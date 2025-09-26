@@ -114,10 +114,10 @@ export default function ProductPage({ onBackToMain }: Props) {
   };
 
   const gallery: string[] = [
-    "src/assets/product-hoodie.jpg",
-    "../assets/hoodie-side.png",
-    "../../assets/hoodie-front.png",
-    "../../src/assets/hoodie.png",
+    "/product-hoodie.jpg",
+    "/hoodie-side.png",
+    "/hoodie-front.png",
+    "/hoodie.png",
   ];
 
   const [activeIdx, setActiveIdx] = useState<number>(0);
