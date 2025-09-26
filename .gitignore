@@ -1,0 +1,62 @@
+# Dependencies
+node_modules/
+
+# Vite build outputs and caches
+dist/
+dist-ssr/
+.vite/
+.vite-inspect/
+
+# Tool caches and temp
+.cache/
+.tmp/
+temp/
+tmp/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+bun-debug.log*
+
+# Test coverage
+coverage/
+
+# Environment files (keep secrets out of git)
+.env
+.env.*.local
+*.local
+
+# TypeScript
+*.tsbuildinfo
+
+# Editors / OS
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Package manager stores (monorepos or yarn/pnpm users)
+.pnpm-store/
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Hosting providers & functions caches
+.vercel/
+.netlify/
+.functions-cache/
+.cloudflare/
+
+# Archives from npm pack, etc.
+*.tgz
