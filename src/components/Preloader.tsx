@@ -1,55 +1,54 @@
-import { useEffect, useState } from "react";
+"use client"
+
+import { useEffect, useState } from "react"
 
 interface PreloaderProps {
-  onComplete: () => void;
+  onComplete: () => void
 }
 
-const TAGLINES = [
-  "Streetwear Reimagined",
-  "Comfort Meets Style", 
-  "Urban Expression",
-  "Coming Soon",
-];
+const TAGLINES = ["Streetwear Reimagined", "Comfort Meets Style", "Urban Expression", "Coming Soon"]
 
 export default function Preloader({ onComplete }: PreloaderProps) {
-  const [idx, setIdx] = useState(0);
-  const [fadeOut, setFadeOut] = useState(false);
+  const [idx, setIdx] = useState(0)
+  const [fadeOut, setFadeOut] = useState(false)
 
   useEffect(() => {
-    const rotate = setInterval(() => setIdx((p) => (p + 1) % TAGLINES.length), 800);
-    
+    const rotate = setInterval(() => setIdx((p) => (p + 1) % TAGLINES.length), 800)
+
     const timer = setTimeout(() => {
-      clearInterval(rotate);
-      setFadeOut(true);
-      setTimeout(onComplete, 800); // Smooth transition delay
-    }, 3200);
-    
+      clearInterval(rotate)
+      setFadeOut(true)
+      setTimeout(onComplete, 800)
+    }, 3200)
+
     return () => {
-      clearInterval(rotate);
-      clearTimeout(timer);
-    };
-  }, [onComplete]);
+      clearInterval(rotate)
+      clearTimeout(timer)
+    }
+  }, [onComplete])
 
   return (
-    <div className={`fixed inset-0 z-50 bg-black flex items-center justify-center transition-all duration-800 ${fadeOut ? 'opacity-0 scale-110' : 'opacity-100 scale-100'}`}>
-      {/* Animated sunray circles */}
+    <div
+      className={`fixed inset-0 z-50 bg-black flex items-center justify-center transition-all duration-800 ${fadeOut ? "opacity-0 scale-110" : "opacity-100 scale-100"}`}
+    >
+      {/* Animated sunray circles - Changed from orange to red */}
       <div className="absolute inset-0 overflow-hidden">
         {[...Array(8)].map((_, i) => (
           <div
             key={i}
-            className="absolute rounded-full border-2 border-orange-500/20"
+            className="absolute rounded-full border-2 border-[#DD0004]/20"
             style={{
               width: `${300 + i * 150}px`,
               height: `${300 + i * 150}px`,
-              top: '50%',
-              left: '50%',
+              top: "50%",
+              left: "50%",
               transform: `translate(-50%, -50%) rotate(${i * 45}deg)`,
               animation: `sunray ${3 + i * 0.5}s linear infinite`,
-              animationDelay: `${i * 0.2}s`
+              animationDelay: `${i * 0.2}s`,
             }}
           />
         ))}
-        
+
         {/* Floating circles */}
         {[...Array(12)].map((_, i) => (
           <div
@@ -61,48 +60,52 @@ export default function Preloader({ onComplete }: PreloaderProps) {
               top: `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,
               animationDelay: `${Math.random() * 2}s`,
-              animationDuration: `${2 + Math.random() * 3}s`
+              animationDuration: `${2 + Math.random() * 3}s`,
             }}
           />
         ))}
       </div>
 
-      {/* Central pulse ring */}
+      {/* Central pulse ring - Changed from orange to red */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-96 h-96 rounded-full border border-orange-500/30 animate-ping" />
-        <div className="absolute w-64 h-64 rounded-full border border-orange-500/50 animate-ping" style={{animationDelay: '0.5s'}} />
-        <div className="absolute w-32 h-32 rounded-full border border-orange-500/70 animate-ping" style={{animationDelay: '1s'}} />
+        <div className="w-96 h-96 rounded-full border border-[#DD0004]/30 animate-ping" />
+        <div
+          className="absolute w-64 h-64 rounded-full border border-[#DD0004]/50 animate-ping"
+          style={{ animationDelay: "0.5s" }}
+        />
+        <div
+          className="absolute w-32 h-32 rounded-full border border-[#DD0004]/70 animate-ping"
+          style={{ animationDelay: "1s" }}
+        />
       </div>
 
       {/* Main content */}
       <div className="relative z-10 text-center">
         <div className="relative">
-          <h1 className="text-6xl md:text-8xl font-black text-white tracking-wider mb-8 animate-pulse">
-            KALLKEYY
-          </h1>
-          {/* Glowing outline effect */}
-          <div className="absolute inset-0 text-6xl md:text-8xl font-black text-orange-500/20 tracking-wider animate-pulse scale-105">
+          <h1 className="text-6xl md:text-8xl font-black text-white tracking-wider mb-8 animate-pulse">KALLKEYY</h1>
+          {/* Glowing outline effect - Changed from orange to red */}
+          <div className="absolute inset-0 text-6xl md:text-8xl font-black text-[#DD0004]/20 tracking-wider animate-pulse scale-105">
             KALLKEYY
           </div>
         </div>
-        
-        <p 
+
+        <p
           key={idx}
-          className="text-xl md:text-2xl font-semibold text-orange-500 animate-fade-in"
+          className="text-xl md:text-2xl font-semibold text-[#DD0004] animate-fade-in"
           style={{
-            animation: 'textSlide 0.8s ease-out'
+            animation: "textSlide 0.8s ease-out",
           }}
         >
           {TAGLINES[idx]}
         </p>
-        
-        {/* Progress dots */}
+
+        {/* Progress dots - Changed from orange to red */}
         <div className="flex justify-center space-x-2 mt-8">
           {TAGLINES.map((_, i) => (
             <div
               key={i}
               className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                i === idx ? 'bg-orange-500 scale-125' : 'bg-white/30'
+                i === idx ? "bg-[#DD0004] scale-125" : "bg-white/30"
               }`}
             />
           ))}
@@ -122,5 +125,5 @@ export default function Preloader({ onComplete }: PreloaderProps) {
         }
       `}</style>
     </div>
-  );
+  )
 }
