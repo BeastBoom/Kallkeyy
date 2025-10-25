@@ -12,8 +12,15 @@ import {
   Heart,
   TrendingUp,
   Instagram,
+  ChevronLeft,
+  ChevronRight, 
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
+import { subscribeToNewsletter } from "@/services/subscriptionService";
+import { InstagramEmbed } from "react-social-media-embed";
+import { useAuth } from "../contexts/AuthContext";
+import { LogOut } from "lucide-react";
 
 interface HeroSlide {
   id: string;
@@ -24,15 +31,13 @@ interface HeroSlide {
   tag: string;
   price: string;
   isUpcoming: boolean;
+  buttonText: string;
+  buttonAction: "product" | "scroll";
 }
 
 interface InstagramReel {
   id: string;
-  thumbnail: string;
-  title: string;
-  views: string;
-  link: string;
-  likes: string;
+  url: string;
 }
 
 interface Product {
@@ -43,6 +48,7 @@ interface Product {
   tag: string;
   description: string;
   features: string[];
+  category: string;
 }
 
 interface FeatureCard {
@@ -53,6 +59,7 @@ interface FeatureCard {
 }
 
 const heroSlides: HeroSlide[] = [
+  // Slide 1: Product (Hoodie)
   {
     id: "hoodie",
     image: "/product-hoodie.jpg",
@@ -63,62 +70,69 @@ const heroSlides: HeroSlide[] = [
     tag: "FLAGSHIP",
     price: "₹2,999",
     isUpcoming: false,
+    buttonText: "SHOP NOW",
+    buttonAction: "product", // Will redirect to hoodie product page
   },
+  // Slide 2: Sales Banner
+  {
+    id: "sale",
+    image: "/sale-banner.jpg", // Add your sale banner image
+    title: "SEASON SALE",
+    subtitle: "Up to 30% OFF",
+    description:
+      "Limited time offer on selected streetwear essentials. Don't miss out!",
+    tag: "SALE",
+    price: "",
+    isUpcoming: false,
+    buttonText: "SHOP SALE",
+    buttonAction: "scroll", // Will scroll to products section
+  },
+  // Slide 3: Product (T-Shirt)
   {
     id: "tshirt",
     image: "/hoodie-front.png",
     title: "SIGNATURE TEE",
-    subtitle: "Your everyday statement",
-    description: "Ultra-soft 260 GSM cotton with bold brand lock-up.",
+    subtitle: "Bold statement piece",
+    description:
+      "The perfect everyday tee. Soft, bold, and unmistakably KALLKEYY.",
     tag: "NEW DROP",
     price: "₹1,499",
     isUpcoming: false,
+    buttonText: "SHOP NOW",
+    buttonAction: "product", // Will redirect to tshirt product page
   },
+  // Slide 4: Brand Story
   {
-    id: "vest",
-    image: "/hero-vest.jpg",
-    title: "PUFFER VEST",
-    subtitle: "Winter '25 preview",
+    id: "brand",
+    image: "/brand-story.jpg", // Add your brand story image
+    title: "BORN FROM THE STREETS",
+    subtitle: "Our Story",
     description:
-      "Lightweight but lethal. Quilted nylon shell stuffed with recycled fill.",
-    tag: "UPCOMING",
-    price: "₹4,999",
-    isUpcoming: true,
+      "Inspired by urban culture. Every piece tells a story of rebellion and authenticity.",
+    tag: "ABOUT",
+    price: "",
+    isUpcoming: false,
+    buttonText: "LEARN MORE",
+    buttonAction: "scroll", // Will scroll to brand story section
   },
 ];
 
 const instagramReels: InstagramReel[] = [
   {
     id: "reel-1",
-    thumbnail: "/reel-thumb-1.jpg",
-    title: "Behind the Scenes: Making of Essential Hoodie",
-    views: "125K",
-    likes: "8.2K",
-    link: "https://instagram.com/kallkeyy/reel/1",
+    url: "https://www.instagram.com/p/DPWokNfAVAm/", // Replace with actual URL
   },
   {
     id: "reel-2",
-    thumbnail: "/reel-thumb-2.jpg",
-    title: "Street Style: How to Rock KALLKEYY",
-    views: "98K",
-    likes: "6.5K",
-    link: "https://instagram.com/kallkeyy/reel/2",
+    url: "https://www.instagram.com/p/DNn6WNjBf-T/", // Replace with actual URL
   },
   {
     id: "reel-3",
-    thumbnail: "/reel-thumb-3.jpg",
-    title: "New Drop Alert: Signature Tee Collection",
-    views: "156K",
-    likes: "12.1K",
-    link: "https://instagram.com/kallkeyy/reel/3",
+    url: "https://www.instagram.com/p/DQHhLP3AT1G/", // Replace with actual URL
   },
   {
     id: "reel-4",
-    thumbnail: "/reel-thumb-4.jpg",
-    title: "Community Vibes: KALLKEYY in the Wild",
-    views: "87K",
-    likes: "5.8K",
-    link: "https://instagram.com/kallkeyy/reel/4",
+    url: "https://www.instagram.com/p/DPrIkFXkdKW/", // Replace with actual URL
   },
 ];
 
@@ -137,6 +151,23 @@ const products: Product[] = [
       "Embroidered logo",
       "Reinforced stitching",
     ],
+    category: "Hoodies",
+  },
+  {
+    id: "hoodie2",
+    name: "OVERSIZED HOODIE",
+    image: "/hoodie2-main.jpg",
+    price: "₹3,299",
+    tag: "NEW LAUNCH",
+    description:
+      "Premium oversized hoodie with dropped shoulders and bold graphics.",
+    features: [
+      "Heavy 450 GSM fabric",
+      "Oversized drop-shoulder fit",
+      "Screen-printed graphics",
+      "Kangaroo pocket",
+    ],
+    category: "Hoodies",
   },
   {
     id: "tshirt",
@@ -152,6 +183,23 @@ const products: Product[] = [
       "Pre-shrunk",
       "Relaxed fit",
     ],
+    category: "T-Shirts",
+  },
+  {
+    id: "tshirt2",
+    name: "GRAPHIC TEE PRO",
+    image: "/tshirt2-front.jpg",
+    price: "₹1,699",
+    tag: "TRENDING",
+    description:
+      "Premium graphic tee with exclusive artwork for bold statements.",
+    features: [
+      "280 GSM premium cotton",
+      "Oversized boxy fit",
+      "High-quality screen print",
+      "Pre-shrunk fabric",
+    ],
+    category: "T-Shirts",
   },
 ];
 
@@ -188,6 +236,8 @@ interface Props {
   onNavigateToShop?: () => void;
   onNavigateToAbout?: () => void;
   onNavigateToContact?: () => void;
+  onNavigateToLogin: () => void;
+  onNavigateToSignup: () => void;
 }
 
 export default function ProductMenuPage({
@@ -196,11 +246,30 @@ export default function ProductMenuPage({
   onNavigateToShop,
   onNavigateToAbout,
   onNavigateToContact,
+  onNavigateToLogin,
+  onNavigateToSignup,
 }: Props) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
   const [emailInput, setEmailInput] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
+
+  const { user, logout } = useAuth();
+
+  // Get unique categories
+  const categories = [
+    "All",
+    ...Array.from(new Set(products.map((p) => p.category))),
+  ];
+
+  // Filter products by category
+  const filteredProducts =
+    selectedCategory === "All"
+      ? products
+      : products.filter((p) => p.category === selectedCategory);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -229,24 +298,44 @@ export default function ProductMenuPage({
     });
   };
 
-  const handleReelClick = (reel: InstagramReel) => {
-    toast({
-      title: "Opening Instagram...",
-      description: `${reel.title} - ${reel.views} views`,
-      duration: 2000,
-    });
-    // In production, this would open: window.open(reel.link, '_blank');
-  };
-
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (emailInput) {
-      toast({
-        title: "Welcome to the family! 🎉",
-        description: "You'll be the first to know about new drops.",
-        duration: 3000,
-      });
-      setEmailInput("");
+
+    if (!emailInput) {
+      sonnerToast.error("Please enter your email address");
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailInput)) {
+      sonnerToast.error("Please enter a valid email address");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await subscribeToNewsletter(emailInput);
+
+      if (response.success) {
+        toast({
+          title: "Welcome to the family! 🎉",
+          description:
+            response.message || "You'll be the first to know about new drops.",
+          duration: 3000,
+        });
+        setEmailInput(""); // Clear the input
+      } else {
+        sonnerToast.error(response.message || "Subscription failed");
+      }
+    } catch (error: any) {
+      console.error("Subscription error:", error);
+      sonnerToast.error(
+        error.message || "Something went wrong. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -298,73 +387,126 @@ export default function ProductMenuPage({
       </div>
 
       {/* NAVBAR - UNCHANGED */}
-      <nav className="relative z-20 border-b border-white/10 bg-black/90 backdrop-blur-md sticky top-0">
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-black/90 backdrop-blur-md">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-3 lg:py-4">
+          <div className="flex items-center justify-between relative">
+            {/* LEFT: Text Logo (Responsive sizing) */}
+            <div className="flex-shrink-0 z-10">
               <h1
-                className="text-4xl font-black tracking-widest hover:text-[#DD0004] transition-colors duration-300 cursor-pointer"
+                className="text-xl sm:text-2xl lg:text-3xl font-black tracking-wider hover:text-[#DD0004] transition-colors duration-300 cursor-pointer"
                 onClick={onBackToMain}
               >
                 KALLKEYY
               </h1>
             </div>
 
-            <div className="hidden md:flex gap-6 text-lg font-bold">
-              <button
-                onClick={() => onBackToMain()}
-                className="hover:text-[#DD0004] transition-colors duration-300 px-6 py-3 hover:bg-white/5 rounded-lg"
-              >
-                HOME
-              </button>
-              <button
-                onClick={() =>
-                  onNavigateToShop
-                    ? onNavigateToShop()
-                    : handleUnavailablePage("Shop")
-                }
-                className="hover:text-[#DD0004] transition-colors duration-300 px-6 py-3 hover:bg-white/5 rounded-lg"
-              >
-                SHOP
-              </button>
-              <button
-                onClick={() =>
-                  onNavigateToAbout
-                    ? onNavigateToAbout()
-                    : handleUnavailablePage("About")
-                }
-                className="hover:text-[#DD0004] transition-colors duration-300 px-6 py-3 hover:bg-white/5 rounded-lg"
-              >
-                ABOUT
-              </button>
-              <button
-                onClick={() =>
-                  onNavigateToContact
-                    ? onNavigateToContact()
-                    : handleUnavailablePage("Contact")
-                }
-                className="hover:text-[#DD0004] transition-colors duration-300 px-6 py-3 hover:bg-white/5 rounded-lg"
-              >
-                CONTACT
-              </button>
+            {/* CENTER: Brand Logo Image (Hidden on small mobile, visible tablet+) */}
+            <div className="hidden sm:block absolute left-1/2 transform -translate-x-1/2 z-10">
+              <img
+                src="/navbar-logo.png"
+                alt="KALLKEYY Logo"
+                onClick={onBackToMain}
+                className="h-10 w-auto sm:h-12 lg:h-14 object-contain opacity-90 hover:opacity-100 transition-opacity cursor-pointer"
+              />
             </div>
 
-            <button
-              className="md:hidden text-white hover:text-[#DD0004] transition-colors"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X size={32} /> : <Menu size={32} />}
-            </button>
+            {/* RIGHT: Navigation + Auth */}
+            <div className="flex items-center z-10">
+              {/* Desktop Navigation Links */}
+              <div className="hidden lg:flex gap-2 text-sm lg:text-base font-bold">
+                <button
+                  onClick={() => onBackToMain()}
+                  className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                >
+                  HOME
+                </button>
+                <button
+                  onClick={() =>
+                    onNavigateToShop
+                      ? onNavigateToShop()
+                      : handleUnavailablePage("Shop")
+                  }
+                  className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                >
+                  SHOP
+                </button>
+                <button
+                  onClick={() =>
+                    onNavigateToAbout
+                      ? onNavigateToAbout()
+                      : handleUnavailablePage("About")
+                  }
+                  className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                >
+                  ABOUT
+                </button>
+                <button
+                  onClick={() =>
+                    onNavigateToContact
+                      ? onNavigateToContact()
+                      : handleUnavailablePage("Contact")
+                  }
+                  className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                >
+                  CONTACT
+                </button>
+                
+                {/* AUTH BUTTONS - Desktop */}
+                {user ? (
+                  <>
+                    <span className="text-white px-2 lg:px-3 py-2 flex items-center text-xs lg:text-sm whitespace-nowrap">
+                      HEY, <span className="text-[#DD0004] ml-1">{user.name.toUpperCase()}</span>
+                    </span>
+                    <button
+                      onClick={logout}
+                      className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg flex items-center gap-1 whitespace-nowrap"
+                    >
+                      <LogOut size={14} className="lg:w-4 lg:h-4" />
+                      <span className="text-xs lg:text-sm">LOGOUT</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => onNavigateToLogin()}
+                      className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap text-xs lg:text-sm"
+                    >
+                      LOGIN
+                    </button>
+                    <button
+                      onClick={() => onNavigateToSignup()}
+                      className="bg-[#DD0004] hover:bg-[#DD0004]/80 transition-colors duration-300 px-3 lg:px-4 py-2 rounded-lg ml-1 whitespace-nowrap text-xs lg:text-sm"
+                    >
+                      SIGN UP
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Hamburger Menu Button (Mobile/Tablet) */}
+              <button
+                className="lg:hidden text-white hover:text-[#DD0004] transition-colors p-2 -mr-2"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label="Toggle menu"
+              >
+                {mobileMenuOpen ? (
+                  <X size={24} className="sm:w-7 sm:h-7" />
+                ) : (
+                  <Menu size={24} className="sm:w-7 sm:h-7" />
+                )}
+              </button>
+            </div>
           </div>
 
+          {/* Mobile Menu (Animated) */}
           {mobileMenuOpen && (
-            <div className="md:hidden mt-6 pb-4 space-y-4 text-lg font-bold border-t border-white/10 pt-4">
+            <div className="lg:hidden mt-4 pb-4 space-y-2 border-t border-white/10 pt-4 animate-fadeIn">
               <button
                 onClick={() => {
                   onBackToMain();
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-3 hover:bg-white/5 rounded-lg"
+                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 HOME
               </button>
@@ -375,7 +517,7 @@ export default function ProductMenuPage({
                     : handleUnavailablePage("Shop");
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-3 hover:bg-white/5 rounded-lg"
+                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 SHOP
               </button>
@@ -386,7 +528,7 @@ export default function ProductMenuPage({
                     : handleUnavailablePage("About");
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-3 hover:bg-white/5 rounded-lg"
+                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 ABOUT
               </button>
@@ -397,115 +539,172 @@ export default function ProductMenuPage({
                     : handleUnavailablePage("Contact");
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-3 hover:bg-white/5 rounded-lg"
+                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 CONTACT
               </button>
+              
+              {/* AUTH SECTION - Mobile */}
+              <div className="border-t border-white/10 pt-3 mt-3">
+                {user ? (
+                  <>
+                    <div className="text-white px-4 py-2 mb-2 text-sm">
+                      HEY, <span className="text-[#DD0004]">{user.name.toUpperCase()}</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        logout();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg flex items-center gap-2 text-base font-semibold"
+                    >
+                      <LogOut size={18} />
+                      LOGOUT
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        onNavigateToLogin();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                    >
+                      LOGIN
+                    </button>
+                    <button
+                      onClick={() => {
+                        onNavigateToSignup();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="w-full bg-[#DD0004] hover:bg-[#DD0004]/80 transition-colors duration-300 px-4 py-2.5 rounded-lg text-center mt-2 text-base font-semibold"
+                    >
+                      SIGN UP
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           )}
         </div>
       </nav>
 
       {/* FULL-WIDTH HERO SLIDESHOW */}
-      <div className="relative z-10 w-full">
-        <div className="relative h-[600px] md:h-[700px] lg:h-[800px] overflow-hidden">
-          {heroSlides.map((slide, index) => (
-            <div
-              key={slide.id}
-              className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
-                index === currentSlide
-                  ? "opacity-100 translate-x-0"
-                  : index < currentSlide
-                  ? "opacity-0 -translate-x-full"
-                  : "opacity-0 translate-x-full"
-              }`}
-            >
-              <div className="relative h-full w-full">
-                <div className="absolute inset-0">
-                  <img
-                    src={slide.image}
-                    alt={slide.title}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).style.display =
-                        "none";
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/40" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-                </div>
+      <div className="relative h-[600px] md:h-[700px] overflow-hidden">
+        {heroSlides.map((slide, index) => (
+          <div
+            key={slide.id}
+            className={`absolute inset-0 transition-all duration-1000 ${
+              index === currentSlide
+                ? "opacity-100 scale-100"
+                : "opacity-0 scale-105 pointer-events-none"
+            }`}
+          >
+            {/* Background Image */}
+            <div className="absolute inset-0 pointer-events-none">
+              <img
+                src={slide.image}
+                alt={slide.title}
+                className="w-full h-full object-cover"
+                onError={(e) =>
+                  ((e.currentTarget as HTMLImageElement).style.opacity = "0")
+                }
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-transparent" />
+            </div>
 
-                <div className="relative z-10 h-full flex items-center">
-                  <div className="w-full px-6 md:px-12 lg:px-24">
-                    <div className="max-w-3xl">
-                      <div className="mb-6">
-                        <span
-                          className={`inline-block px-4 py-2 rounded-full text-sm font-bold border-2 ${
-                            slide.isUpcoming
-                              ? "bg-[#FFA500]/20 border-[#FFA500] text-[#FFA500]"
-                              : "bg-[#DD0004]/20 border-[#DD0004] text-[#DD0004]"
-                          }`}
-                        >
-                          {slide.tag}
-                        </span>
-                      </div>
+            {/* Content - WITH PROPER Z-INDEX AND POINTER EVENTS */}
+            <div className="relative h-full flex items-center z-10 pointer-events-none">
+              <div className="container mx-auto px-4 md:px-8 max-w-7xl">
+                <div className="max-w-2xl space-y-4 md:space-y-6">
+                  {/* Tag */}
+                  <span className="inline-block bg-[#DD0004] text-white px-4 py-2 text-sm font-bold rounded-full animate-pulse">
+                    {slide.tag}
+                  </span>
 
-                      <h2 className="text-5xl md:text-6xl lg:text-7xl font-black text-white mb-4 tracking-tight leading-tight">
-                        {slide.title}
-                      </h2>
+                  {/* Title */}
+                  <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white leading-tight animate-slide-up">
+                    {slide.title}
+                  </h1>
 
-                      <p className="text-xl md:text-2xl text-[#CCCCCC] mb-6 font-medium">
-                        {slide.subtitle}
-                      </p>
+                  {/* Subtitle */}
+                  <p className="text-xl md:text-2xl text-[#DD0004] font-bold animate-slide-up animation-delay-200">
+                    {slide.subtitle}
+                  </p>
 
-                      <p className="text-base md:text-lg text-[#808088] mb-8 leading-relaxed max-w-xl">
-                        {slide.description}
-                      </p>
+                  {/* Description */}
+                  <p className="text-base md:text-lg text-[#808088] max-w-xl animate-slide-up animation-delay-400">
+                    {slide.description}
+                  </p>
 
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-8">
-                        <div className="text-4xl font-black text-[#DD0004]">
-                          {slide.price}
-                        </div>
-                        {slide.isUpcoming && (
-                          <div className="text-sm text-[#808088] bg-[#1C1C21] px-4 py-2 rounded-full border border-white/10">
-                            Expected Launch: Q1 2025
-                          </div>
-                        )}
-                      </div>
-
-                      <Button
-                        onClick={() => handleSlideClick(slide)}
-                        className={`group font-bold py-4 px-8 text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
-                          slide.isUpcoming
-                            ? "bg-[#FFA500] hover:bg-[#FF8C00] text-white"
-                            : "bg-[#DD0004] hover:bg-[#BB0003] text-white"
-                        }`}
-                      >
-                        {slide.isUpcoming ? "NOTIFY ME" : "SHOP NOW"}
-                        <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
-                      </Button>
+                  {/* Price (if available) */}
+                  {slide.price && (
+                    <div className="text-3xl md:text-4xl font-black text-white animate-slide-up animation-delay-600">
+                      {slide.price}
                     </div>
-                  </div>
-                </div>
+                  )}
 
-                <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-3 z-20">
-                  {heroSlides.map((_, idx) => (
-                    <button
-                      key={`indicator-${idx}`}
-                      onClick={() => setCurrentSlide(idx)}
-                      className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                        idx === currentSlide
-                          ? "bg-[#DD0004] w-8"
-                          : "bg-white/30 hover:bg-white/50"
-                      }`}
-                      aria-label={`Go to slide ${idx + 1}`}
-                    />
-                  ))}
+                  {/* Dynamic Button - ENABLE POINTER EVENTS */}
+                  <div className="flex gap-4 animate-slide-up animation-delay-800 pointer-events-auto">
+                    <Button
+                      onClick={() => {
+                        if (slide.buttonAction === "product") {
+                          onSelectProduct(slide.id);
+                        } else if (slide.buttonAction === "scroll") {
+                          document
+                            .querySelector("#products-section")
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        }
+                      }}
+                      className="bg-[#DD0004] hover:bg-[#DD0004]/80 text-white font-bold px-6 py-3 md:px-8 md:py-4 text-base md:text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl group cursor-pointer"
+                    >
+                      {slide.buttonText}
+                      <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2 group-hover:translate-x-1 transition-transform inline" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+
+            {/* Slide Indicators - WITH Z-INDEX */}
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-20">
+              {heroSlides.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentSlide(idx)}
+                  className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                    idx === currentSlide
+                      ? "w-12 bg-[#DD0004]"
+                      : "w-2 bg-white/30 hover:bg-white/50"
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* Navigation Arrows - WITH Z-INDEX */}
+            <button
+              onClick={() =>
+                setCurrentSlide((prev) =>
+                  prev === 0 ? heroSlides.length - 1 : prev - 1
+                )
+              }
+              className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-[#DD0004] p-3 rounded-full transition-all duration-300 hover:scale-110 z-20 cursor-pointer"
+            >
+              <ChevronLeft className="w-6 h-6 text-white" />
+            </button>
+            <button
+              onClick={() =>
+                setCurrentSlide((prev) =>
+                  prev === heroSlides.length - 1 ? 0 : prev + 1
+                )
+              }
+              className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-[#DD0004] p-3 rounded-full transition-all duration-300 hover:scale-110 z-20 cursor-pointer"
+            >
+              <ChevronRight className="w-6 h-6 text-white" />
+            </button>
+          </div>
+        ))}
       </div>
 
       {/* HORIZONTAL SCROLLING MARQUEE */}
@@ -562,136 +761,97 @@ export default function ProductMenuPage({
       {/* MAIN CONTENT */}
       <div className="relative z-10 w-full px-6 md:px-12 lg:px-24 py-16">
         {/* COLLECTION HEADER */}
-        <div className="text-center mb-16 animate-fade-in-up">
-          <h2 className="text-4xl md:text-6xl font-black mb-4">
-            THE <span className="text-[#DD0004]">COLLECTION</span>
-          </h2>
-          <div className="w-32 h-1 bg-[#DD0004] mx-auto mb-6" />
-          <p className="text-[#808088] text-lg max-w-2xl mx-auto leading-relaxed">
-            Limited edition pieces crafted for those who dare to stand out. Each
-            design tells a story of rebellion and authenticity.
-          </p>
+        <section id="products-section" className="py-16 px-4 bg-black">
+          <div className="max-w-7xl mx-auto text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-black mb-4">
+              OUR <span className="text-[#DD0004]">COLLECTION</span>
+            </h2>
+            <div className="w-32 h-1 bg-[#DD0004] mx-auto mb-6" />
+            <p className="text-[#808088] text-lg max-w-2xl mx-auto leading-relaxed">
+              Limited edition pieces crafted for those who dare to stand out. Each
+              design tells a story of rebellion and authenticity.
+            </p>
+          </div>
+        </section>
+
+        {/* CATEGORY FILTER */}
+        <div className="flex justify-center gap-3 mb-12 flex-wrap px-4">
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`px-6 py-3 rounded-full font-bold transition-all duration-300 ${
+                selectedCategory === category
+                  ? "bg-[#DD0004] text-white scale-105 shadow-lg"
+                  : "bg-[#28282B] text-white hover:bg-[#DD0004]/20 hover:scale-105"
+              }`}
+            >
+              {category}
+            </button>
+          ))}
         </div>
 
         {/* PRODUCT GRID - ENHANCED */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto mb-24">
-          {products.map((product, index) => (
+        <div className="flex flex-wrap justify-center gap-3 md:gap-6 max-w-7xl mx-auto mb-24 px-4">
+          {filteredProducts.map((product, index) => (
             <div
               key={product.id}
-              className="group relative bg-gradient-to-br from-[#28282B] to-[#1C1C21] backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 hover:border-[#DD0004]/50 transition-all duration-500 animate-slide-in-up hover:shadow-2xl hover:shadow-[#DD0004]/20"
-              style={{ animationDelay: `${index * 0.2}s` }}
+              className="w-[calc(50%-0.5rem)] md:w-[calc(50%-0.75rem)] lg:w-[calc(25%-1.125rem)] max-w-[280px] group relative bg-[#28282B] rounded-xl overflow-hidden border border-[#808088]/20 hover:border-[#DD0004] transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#DD0004]/20"
               onMouseEnter={() => setHoveredProduct(product.id)}
               onMouseLeave={() => setHoveredProduct(null)}
             >
-              {/* Chain decoration */}
-              <div className="absolute top-4 right-4 opacity-20 group-hover:opacity-40 transition-opacity duration-300 z-10">
-                <svg width="40" height="40" viewBox="0 0 60 60" fill="none">
-                  <circle
-                    cx="15"
-                    cy="30"
-                    r="12"
-                    stroke="#DD0004"
-                    strokeWidth="2"
-                  />
-                  <circle
-                    cx="45"
-                    cy="30"
-                    r="12"
-                    stroke="#DD0004"
-                    strokeWidth="2"
-                  />
-                  <line
-                    x1="27"
-                    y1="30"
-                    x2="33"
-                    y2="30"
-                    stroke="#DD0004"
-                    strokeWidth="2"
-                  />
-                </svg>
-              </div>
-
-              {/* Product tag */}
-              <div className="absolute top-4 left-4 z-10">
-                <span className="bg-[#DD0004] text-white px-3 py-1 text-xs font-bold rounded-full shadow-lg">
-                  {product.tag}
-                </span>
-              </div>
-
-              {/* Product image */}
-              <div className="aspect-square bg-black/40 relative overflow-hidden">
+              {/* Product Image */}
+              <div className="aspect-square bg-[#1a1a1a] relative overflow-hidden">
                 <img
                   src={product.image}
                   alt={product.name}
-                  className={`w-full h-full object-cover transition-transform duration-700 ${
-                    hoveredProduct === product.id ? "scale-110" : "scale-100"
-                  }`}
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.opacity = "0";
-                  }}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  onError={(e) =>
+                    ((e.currentTarget as HTMLImageElement).style.opacity = "0")
+                  }
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-                <div
-                  className={`absolute inset-0 transition-all duration-500 ${
-                    hoveredProduct === product.id
-                      ? "bg-[#DD0004]/10"
-                      : "bg-transparent"
-                  }`}
-                />
-
-                {/* Hover overlay with features */}
-                <div
-                  className={`absolute inset-0 bg-black/90 p-8 flex flex-col justify-center transition-all duration-500 ${
-                    hoveredProduct === product.id
-                      ? "opacity-100"
-                      : "opacity-0 pointer-events-none"
-                  }`}
-                >
-                  <h4 className="text-xl font-bold mb-4 text-[#DD0004]">
-                    KEY FEATURES
-                  </h4>
-                  <ul className="space-y-2">
-                    {product.features.map((feature, idx) => (
-                      <li
-                        key={idx}
-                        className="flex items-center gap-2 text-white/90"
-                      >
-                        <Star className="w-4 h-4 text-[#DD0004]" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              {/* Product info */}
-              <div className="p-6 space-y-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="text-2xl font-black group-hover:text-[#DD0004] transition-colors duration-300 mb-2">
-                      {product.name}
-                    </h3>
-                    <p className="text-sm text-[#808088]">
-                      {product.description}
-                    </p>
-                  </div>
-                  <span className="text-2xl font-bold text-[#DD0004] whitespace-nowrap ml-4">
-                    {product.price}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+                
+                {/* Tag Badge */}
+                <div className="absolute top-3 left-3">
+                  <span className="bg-[#DD0004] text-white px-2 py-1 text-xs font-bold rounded-full">
+                    {product.tag}
                   </span>
                 </div>
 
-                <button
-                  onClick={() => onSelectProduct(product.id)}
-                  className="w-full bg-[#FFFFFF] text-black hover:bg-[#BB0003] hover:text-white hover:shadow-xl font-bold py-4 px-8 text-base transition-all duration-300 rounded-2xl group-hover:scale-105 flex items-center justify-center gap-2"
+                {/* Hover Overlay */}
+                <div
+                  className={`absolute inset-0 bg-black/80 flex items-center justify-center transition-opacity duration-300 ${
+                    hoveredProduct === product.id ? "opacity-100" : "opacity-0"
+                  }`}
                 >
-                  VIEW DETAILS
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+                  <Button
+                    onClick={() => onSelectProduct(product.id)}
+                    className="bg-[#DD0004] hover:bg-[#DD0004]/80 text-white font-bold px-4 py-2 text-sm transition-all duration-300 hover:scale-110"
+                  >
+                    VIEW DETAILS
+                  </Button>
+                </div>
               </div>
 
-              {/* Corner accents */}
-              <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-[#DD0004]/30 group-hover:border-[#DD0004] transition-colors duration-300" />
-              <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-[#DD0004]/30 group-hover:border-[#DD0004] transition-colors duration-300" />
+              {/* Product Info */}
+              <div className="p-4 space-y-2">
+                <h3 className="text-lg font-black group-hover:text-[#DD0004] transition-colors duration-300 line-clamp-1">
+                  {product.name}
+                </h3>
+                <p className="text-[#808088] text-sm line-clamp-2">
+                  {product.description}
+                </p>
+                <div className="flex items-center justify-between pt-2">
+                  <span className="text-xl font-bold text-white">{product.price}</span>
+                  <button
+                    onClick={() => onSelectProduct(product.id)}
+                    className="text-[#DD0004] hover:text-[#DD0004]/80 transition-colors duration-300"
+                  >
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -801,77 +961,99 @@ export default function ProductMenuPage({
           </div>
         </div>
 
-        {/* INSTAGRAM REELS SECTION - WITH THUMBNAILS */}
-        <div className="max-w-7xl mx-auto mb-24">
+        {/* INSTAGRAM REELS SECTION - ALL 4 IN ONE LINE + MOBILE RESPONSIVE */}
+        {/* INSTAGRAM REELS - 320px DESKTOP, SCALED ON MOBILE */}
+        <div className="w-full mx-auto mb-24 px-4">
           <div className="text-center mb-12">
             <h3 className="text-3xl md:text-5xl font-black mb-4">
               FOLLOW <span className="text-[#DD0004]">OUR JOURNEY</span>
             </h3>
             <div className="w-24 h-1 bg-[#DD0004] mx-auto mb-4" />
-            <p className="text-[#808088] text-lg">
+            <p className="text-[#808088] text-base md:text-lg">
               Check out our latest drops and behind-the-scenes content
             </p>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {instagramReels.map((reel) => (
-              <div
-                key={reel.id}
-                className="group relative bg-[#28282B] rounded-xl overflow-hidden border border-white/10 hover:border-[#DD0004]/50 transition-all duration-300 hover:scale-105 cursor-pointer"
-                onClick={() => handleReelClick(reel)}
-              >
-                <div className="aspect-[9/16] bg-black/40 relative overflow-hidden">
-                  <img
-                    src={reel.thumbnail}
-                    alt={reel.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    onError={(e) => {
-                      const target = e.currentTarget as HTMLImageElement;
-                      target.style.display = "none";
-                      target.parentElement!.classList.add(
-                        "flex",
-                        "items-center",
-                        "justify-center"
-                      );
-                      target.parentElement!.innerHTML =
-                        '<div class="text-6xl opacity-20">📱</div>';
+          {/* Responsive with scale transform on mobile */}
+          <div className="w-full overflow-x-auto pb-4">
+            <div className="flex gap-1 lg:gap-2 justify-start lg:justify-center px-2 lg:px-0">
+              {instagramReels.map((reel) => (
+                <div
+                  key={reel.id}
+                  className="flex-shrink-0 scale-[0.88] md:scale-80 lg:scale-100 origin-left lg:origin-center"
+                  style={{
+                    width: "320px",
+                    maxWidth: "320px",
+                    minWidth: "320px",
+                    height: "450px",
+                    maxHeight: "450px",
+                    overflow: "clip",
+                    position: "relative",
+                    backgroundColor: "#000",
+                    borderRadius: "12px",
+                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    isolation: "isolate",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "320px",
+                      height: "600px",
+                      position: "absolute",
+                      top: "0px",
+                      left: 0,
+                    }}
+                  >
+                    <InstagramEmbed
+                      url={reel.url}
+                      width={320}
+                      captioned={false}
+                      placeholderSpinner={
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            height: "450px",
+                            marginTop: "10px",
+                          }}
+                        >
+                          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#DD0004]" />
+                        </div>
+                      }
+                    />
+                  </div>
+
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: "50px",
+                      background:
+                        "linear-gradient(to top, #000 0%, #000 40%, transparent 100%)",
+                      pointerEvents: "auto",
+                      zIndex: 10,
+                      cursor: "default",
                     }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-
-                  {/* Play button overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-16 h-16 rounded-full bg-[#DD0004]/80 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                      <Instagram className="w-8 h-8 text-white" />
-                    </div>
-                  </div>
-
-                  {/* Reel info */}
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <p className="text-white font-bold text-sm mb-2 line-clamp-2">
-                      {reel.title}
-                    </p>
-                    <div className="flex items-center gap-4 text-xs text-white/80">
-                      <span className="flex items-center gap-1">
-                        <Heart className="w-3 h-3" />
-                        {reel.likes}
-                      </span>
-                      <span>{reel.views} views</span>
-                    </div>
-                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
-          <div className="text-center">
+          <div className="text-center mt-12">
             <Button
-              onClick={() => handleUnavailablePage("Instagram")}
-              className="bg-[#DD0004] hover:bg-[#BB0003] text-white font-bold px-8 py-4 text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl group"
+              onClick={() =>
+                window.open("https://www.instagram.com/kall.keyy/", "_blank")
+              }
+              className="bg-[#DD0004] hover:bg-[#BB0003] text-white font-bold px-6 py-3 md:px-8 md:py-4 text-base md:text-lg 
+                 transition-all duration-300 hover:scale-105 hover:shadow-2xl group"
             >
-              <Instagram className="w-5 h-5 mr-2" />
+              <Instagram className="w-4 h-4 md:w-5 md:h-5 mr-2" />
               FOLLOW US ON INSTAGRAM
-              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
         </div>
@@ -893,25 +1075,28 @@ export default function ProductMenuPage({
                 discounts
               </p>
 
-              <form
-                onSubmit={handleNewsletterSubmit}
-                className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto"
-              >
+              <form onSubmit={handleNewsletterSubmit} className="flex gap-2">
                 <input
                   type="email"
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
                   placeholder="Enter your email"
-                  required
-                  className="flex-1 px-6 py-4 bg-black/50 border border-white/20 rounded-xl text-white placeholder:text-[#808088] focus:outline-none focus:border-[#DD0004] transition-colors"
+                  className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg 
+               text-white placeholder:text-white/50 focus:outline-none 
+               focus:border-[#DD0004] transition-colors"
+                  disabled={isSubmitting} // ADD THIS
+                  required // ADD THIS
                 />
-                <Button
+                <button
                   type="submit"
-                  className="bg-[#DD0004] hover:bg-[#BB0003] text-white font-bold px-8 py-4 text-base transition-all duration-300 hover:scale-105 whitespace-nowrap"
+                  disabled={isSubmitting} // ADD THIS
+                  className="px-6 py-3 bg-[#DD0004] text-white rounded-lg font-bold 
+               hover:bg-[#BB0003] transition-colors whitespace-nowrap
+               disabled:opacity-50 disabled:cursor-not-allowed" // ADD disabled styles
                 >
-                  SUBSCRIBE
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
+                  {isSubmitting ? "Subscribing..." : "Subscribe"}{" "}
+                  {/* UPDATE TEXT */}
+                </button>
               </form>
 
               <p className="text-xs text-[#808088] mt-4">
@@ -922,16 +1107,28 @@ export default function ProductMenuPage({
         </div>
       </div>
 
-      {/* FOOTER - UNCHANGED */}
-      <footer className="relative z-10 w-full bg-[#1a1919] border-t border-white/10 py-12">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-8">
-            <div className="animate-fade-in-up">
-              <h4 className="text-lg font-bold mb-4">ABOUT KALLKEYY</h4>
-              <p className="text-[#808088] text-sm leading-relaxed">
-                Born from the streets, driven by passion. We craft premium
-                streetwear that speaks to the authentic urban lifestyle.
+      {/* Footer */}
+      <footer className="bg-black py-12 px-4 border-t border-[#808088]/20 relative">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="md:col-span-2 animate-fade-in-up">
+              <h3 className="text-3xl font-black mb-4">KALLKEYY</h3>
+              <p className="text-[#808088] mb-4 max-w-md">
+                Authentic streetwear for the next generation. Born from the
+                underground, crafted for tomorrow.
               </p>
+              <div className="flex space-x-4">
+                {["IG", "TW", "FB"].map((social, i) => (
+                  <div
+                    key={social}
+                    onClick={() => handleUnavailablePage(social)}
+                    className="w-10 h-10 bg-[#28282B] rounded-full flex items-center justify-center hover:bg-[#DD0004] transition-all duration-300 cursor-pointer hover:scale-110 hover:rotate-12 animate-bounce-in"
+                    style={{ animationDelay: `${i * 0.1}s` }}
+                  >
+                    {social}
+                  </div>
+                ))}
+              </div>
             </div>
             <div
               className="animate-fade-in-up"
@@ -939,15 +1136,17 @@ export default function ProductMenuPage({
             >
               <h4 className="text-lg font-bold mb-4">QUICK LINKS</h4>
               <ul className="space-y-2 text-[#808088]">
-                {["Shop", "About", "Contact", "Size Guide"].map((link) => (
-                  <li
-                    key={link}
-                    onClick={() => handleUnavailablePage(link)}
-                    className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
-                  >
-                    {link}
-                  </li>
-                ))}
+                {["About Us", "Size Guide", "Shipping", "Returns"].map(
+                  (link) => (
+                    <li
+                      key={link}
+                      onClick={() => handleUnavailablePage(link)}
+                      className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
+                    >
+                      {link}
+                    </li>
+                  )
+                )}
               </ul>
             </div>
             <div
@@ -981,7 +1180,7 @@ export default function ProductMenuPage({
       </footer>
 
       {/* STYLES */}
-      <style jsx>{`
+      <style>{`
         @keyframes scroll-seamless {
           0% {
             transform: translateX(0);

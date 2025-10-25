@@ -112,7 +112,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes sunray {
           0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 0.1; }
           50% { opacity: 0.3; }

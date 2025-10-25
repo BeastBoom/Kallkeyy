@@ -5,7 +5,6 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "@/hooks/use-toast"
 import { 
@@ -23,6 +22,8 @@ import {
   ChevronUp,
   TrendingUp  // THIS WAS MISSING
 } from "lucide-react"
+import { useAuth } from "../../contexts/AuthContext";
+import { LogOut } from "lucide-react";
 
 interface ProductData {
   name: string
@@ -38,6 +39,8 @@ interface Props {
   onNavigateToShop?: () => void
   onNavigateToAbout?: () => void
   onNavigateToContact?: () => void
+  onNavigateToLogin: () => void;
+  onNavigateToSignup: () => void;
   product: ProductData
   productId: string
 }
@@ -57,36 +60,19 @@ const REVIEWS = [
   { name: "Sneha D.", rating: 5, comment: "Obsessed with this! Can't wait for more drops.", days: 2 },
 ]
 
-const PREORDER_KEY = "kallkeyy:preorderCount" as const
-
-const getInitialCount = () => {
-  try {
-    const saved = sessionStorage.getItem(PREORDER_KEY)
-    const n = saved ? Number.parseInt(saved, 10) : Number.NaN
-    return Number.isFinite(n) ? n : 92
-  } catch {
-    return 92
-  }
-}
-
 export default function ProductPageBase({
   onBackToMain,
   onNavigateToShop,
   onNavigateToAbout,
   onNavigateToContact,
+  onNavigateToLogin,
+  onNavigateToSignup,
   product,
   productId,
 }: Props) {
-  const [preorderCount, setPreorderCount] = useState(getInitialCount())
 
-  useEffect(() => {
-    try {
-      sessionStorage.setItem(PREORDER_KEY, String(preorderCount))
-    } catch {}
-  }, [preorderCount])
+  const { user, logout } = useAuth();
 
-  const [form, setForm] = useState({ name: "", email: "", phone: "", size: "" })
-  const [open, setOpen] = useState(false)
   const [selectedSize, setSelectedSize] = useState("")
   const [showSizeChart, setShowSizeChart] = useState(false)
   const [userRating, setUserRating] = useState(0)
@@ -95,19 +81,6 @@ export default function ProductPageBase({
   const [liked, setLiked] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (form.name && form.email && form.size) {
-      setPreorderCount((p) => p + 1)
-      setOpen(false)
-      toast({
-        title: "Preorder Confirmed! 🔥",
-        description: `You're #${preorderCount + 1} in line for the ${product.name}. We'll contact you soon!`,
-      })
-      setForm({ name: "", email: "", phone: "", size: "" })
-      setSelectedSize("")
-    }
-  }
 
   const submitReview = (e: React.FormEvent) => {
     e.preventDefault()
@@ -124,29 +97,31 @@ export default function ProductPageBase({
 
   const handleSizeSelect = (size: string) => {
     setSelectedSize(size)
-    setForm((s) => ({ ...s, size }))
   }
 
-  const handleLike = () => {
-    setLiked(!liked)
-    toast({
-      title: liked ? "Removed from wishlist 💔" : "Added to wishlist! ❤️",
-      description: liked ? "You can add it back anytime." : "We'll notify you about updates!",
-    })
-  }
+  // const handleLike = () => {
+  //   setLiked(!liked)
+  //   toast({
+  //     title: liked ? "Removed from wishlist 💔" : "Added to wishlist! ❤️",
+  //     description: liked ? "You can add it back anytime." : "We'll notify you about updates!",
+  //   })
+  // }
 
-  const handleShare = () => {
-    toast({
-      title: "Share link copied! 🔗",
-      description: `Share this amazing ${productId === "tshirt" ? "tee" : "hoodie"} with your friends!`,
-    })
-  }
-
-  const handlePreorderClick = () => {
-    if (selectedSize && !form.size) {
-      setForm((s) => ({ ...s, size: selectedSize }))
+  const handleShare = async () => {
+    try {
+      const url = window.location.href
+      await navigator.clipboard.writeText(url)
+      toast({
+        title: "Link Copied! 🔗",
+        description: "Product URL copied to clipboard!",
+      })
+    } catch (error) {
+      toast({
+        title: "Copy Failed",
+        description: "Could not copy link. Please try again.",
+        variant: "destructive",
+      })
     }
-    setOpen(true)
   }
 
   const [activeIdx, setActiveIdx] = useState(0)
@@ -193,92 +168,205 @@ export default function ProductPageBase({
         ))}
       </div>
 
-      {/* NAVBAR */}
-      <nav className="relative z-20 border-b border-white/10 bg-black/90 backdrop-blur-md sticky top-0">
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+      {/* NAVBAR - UNCHANGED */}
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-black/90 backdrop-blur-md">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-3 lg:py-4">
+          <div className="flex items-center justify-between relative">
+            {/* LEFT: Text Logo (Responsive sizing) */}
+            <div className="flex-shrink-0 z-10">
               <h1
-                className="text-4xl font-black tracking-widest hover:text-[#DD0004] transition-colors duration-300 cursor-pointer"
+                className="text-xl sm:text-2xl lg:text-3xl font-black tracking-wider hover:text-[#DD0004] transition-colors duration-300 cursor-pointer"
                 onClick={onBackToMain}
               >
                 KALLKEYY
               </h1>
             </div>
 
-            <div className="hidden md:flex gap-6 text-lg font-bold">
-              <button
-                onClick={() => onBackToMain && onBackToMain()}
-                className="hover:text-[#DD0004] transition-colors duration-300 px-6 py-3 hover:bg-white/5 rounded-lg"
-              >
-                HOME
-              </button>
-              <button
-                onClick={() => (onNavigateToShop ? onNavigateToShop() : handleUnavailablePage("Shop"))}
-                className="hover:text-[#DD0004] transition-colors duration-300 px-6 py-3 hover:bg-white/5 rounded-lg"
-              >
-                SHOP
-              </button>
-              <button
-                onClick={() => (onNavigateToAbout ? onNavigateToAbout() : handleUnavailablePage("About"))}
-                className="hover:text-[#DD0004] transition-colors duration-300 px-6 py-3 hover:bg-white/5 rounded-lg"
-              >
-                ABOUT
-              </button>
-              <button
-                onClick={() => (onNavigateToContact ? onNavigateToContact() : handleUnavailablePage("Contact"))}
-                className="hover:text-[#DD0004] transition-colors duration-300 px-6 py-3 hover:bg-white/5 rounded-lg"
-              >
-                CONTACT
-              </button>
+            {/* CENTER: Brand Logo Image (Hidden on small mobile, visible tablet+) */}
+            <div className="hidden sm:block absolute left-1/2 transform -translate-x-1/2 z-10">
+              <img
+                src="/navbar-logo.png"
+                alt="KALLKEYY Logo"
+                onClick={onBackToMain}
+                className="h-10 w-auto sm:h-12 lg:h-14 object-contain opacity-90 hover:opacity-100 transition-opacity cursor-pointer"
+              />
             </div>
 
-            <button
-              className="md:hidden text-white hover:text-[#DD0004] transition-colors"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X size={32} /> : <Menu size={32} />}
-            </button>
+            {/* RIGHT: Navigation + Auth */}
+            <div className="flex items-center z-10">
+              {/* Desktop Navigation Links */}
+              <div className="hidden lg:flex gap-2 text-sm lg:text-base font-bold">
+                <button
+                  onClick={() => onBackToMain()}
+                  className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                >
+                  HOME
+                </button>
+                <button
+                  onClick={() =>
+                    onNavigateToShop
+                      ? onNavigateToShop()
+                      : handleUnavailablePage("Shop")
+                  }
+                  className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                >
+                  SHOP
+                </button>
+                <button
+                  onClick={() =>
+                    onNavigateToAbout
+                      ? onNavigateToAbout()
+                      : handleUnavailablePage("About")
+                  }
+                  className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                >
+                  ABOUT
+                </button>
+                <button
+                  onClick={() =>
+                    onNavigateToContact
+                      ? onNavigateToContact()
+                      : handleUnavailablePage("Contact")
+                  }
+                  className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                >
+                  CONTACT
+                </button>
+                
+                {/* AUTH BUTTONS - Desktop */}
+                {user ? (
+                  <>
+                    <span className="text-white px-2 lg:px-3 py-2 flex items-center text-xs lg:text-sm whitespace-nowrap">
+                      HEY, <span className="text-[#DD0004] ml-1">{user.name.toUpperCase()}</span>
+                    </span>
+                    <button
+                      onClick={logout}
+                      className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg flex items-center gap-1 whitespace-nowrap"
+                    >
+                      <LogOut size={14} className="lg:w-4 lg:h-4" />
+                      <span className="text-xs lg:text-sm">LOGOUT</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => onNavigateToLogin()}
+                      className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap text-xs lg:text-sm"
+                    >
+                      LOGIN
+                    </button>
+                    <button
+                      onClick={() => onNavigateToSignup()}
+                      className="bg-[#DD0004] hover:bg-[#DD0004]/80 transition-colors duration-300 px-3 lg:px-4 py-2 rounded-lg ml-1 whitespace-nowrap text-xs lg:text-sm"
+                    >
+                      SIGN UP
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Hamburger Menu Button (Mobile/Tablet) */}
+              <button
+                className="lg:hidden text-white hover:text-[#DD0004] transition-colors p-2 -mr-2"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label="Toggle menu"
+              >
+                {mobileMenuOpen ? (
+                  <X size={24} className="sm:w-7 sm:h-7" />
+                ) : (
+                  <Menu size={24} className="sm:w-7 sm:h-7" />
+                )}
+              </button>
+            </div>
           </div>
 
+          {/* Mobile Menu (Animated) */}
           {mobileMenuOpen && (
-            <div className="md:hidden mt-6 pb-4 space-y-4 text-lg font-bold border-t border-white/10 pt-4">
+            <div className="lg:hidden mt-4 pb-4 space-y-2 border-t border-white/10 pt-4 animate-fadeIn">
               <button
                 onClick={() => {
-                  onBackToMain && onBackToMain()
-                  setMobileMenuOpen(false)
+                  onBackToMain();
+                  setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-3 hover:bg-white/5 rounded-lg"
+                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 HOME
               </button>
               <button
                 onClick={() => {
-                  onNavigateToShop ? onNavigateToShop() : handleUnavailablePage("Shop")
-                  setMobileMenuOpen(false)
+                  onNavigateToShop
+                    ? onNavigateToShop()
+                    : handleUnavailablePage("Shop");
+                  setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-3 hover:bg-white/5 rounded-lg"
+                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 SHOP
               </button>
               <button
                 onClick={() => {
-                  onNavigateToAbout ? onNavigateToAbout() : handleUnavailablePage("About")
-                  setMobileMenuOpen(false)
+                  onNavigateToAbout
+                    ? onNavigateToAbout()
+                    : handleUnavailablePage("About");
+                  setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-3 hover:bg-white/5 rounded-lg"
+                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 ABOUT
               </button>
               <button
                 onClick={() => {
-                  onNavigateToContact ? onNavigateToContact() : handleUnavailablePage("Contact")
-                  setMobileMenuOpen(false)
+                  onNavigateToContact
+                    ? onNavigateToContact()
+                    : handleUnavailablePage("Contact");
+                  setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-3 hover:bg-white/5 rounded-lg"
+                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 CONTACT
               </button>
+              
+              {/* AUTH SECTION - Mobile */}
+              <div className="border-t border-white/10 pt-3 mt-3">
+                {user ? (
+                  <>
+                    <div className="text-white px-4 py-2 mb-2 text-sm">
+                      HEY, <span className="text-[#DD0004]">{user.name.toUpperCase()}</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        logout();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg flex items-center gap-2 text-base font-semibold"
+                    >
+                      <LogOut size={18} />
+                      LOGOUT
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        onNavigateToLogin();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                    >
+                      LOGIN
+                    </button>
+                    <button
+                      onClick={() => {
+                        onNavigateToSignup();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="w-full bg-[#DD0004] hover:bg-[#DD0004]/80 transition-colors duration-300 px-4 py-2.5 rounded-lg text-center mt-2 text-base font-semibold"
+                    >
+                      SIGN UP
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -349,16 +437,11 @@ export default function ProductPageBase({
             <div className="space-y-4">
               <div className="flex flex-wrap gap-3">
                 <Badge className="bg-[#DD0004]/20 text-[#DD0004] border border-[#DD0004] px-3 py-1 text-xs font-bold">
-                  PRE‑LAUNCH
+                  IN STOCK
                 </Badge>
                 <Badge className="bg-white/10 text-white border border-white/20 px-3 py-1 text-xs font-bold">
                   LIMITED EDITION
                 </Badge>
-              </div>
-
-              <div className="flex items-center gap-2 text-sm text-[#808088]">
-                <TrendingUp className="w-4 h-4" />
-                <span className="font-medium">{preorderCount} people preordered</span>
               </div>
 
               <h1 className="text-4xl md:text-5xl font-black text-white leading-tight">{product.name}</h1>
@@ -381,7 +464,7 @@ export default function ProductPageBase({
                 <div className="grid grid-cols-3 gap-4">
                   {[
                     { icon: Ruler, text: "Premium Fit" },
-                    { icon: Truck, text: "Ships on Launch" },
+                    { icon: Truck, text: "Fast Shipping" },
                     { icon: RotateCcw, text: "Easy Returns" },
                   ].map((item, i) => (
                     <div key={i} className="flex flex-col items-center gap-2 p-4 bg-[#28282B] rounded-lg border border-white/10">
@@ -408,32 +491,40 @@ export default function ProductPageBase({
                 </Button>
               </div>
 
-              {showSizeChart && (
-                <div className="border border-white/10 rounded-lg p-4 bg-[#28282B]/50 backdrop-blur-sm animate-fade-in-up">
-                  <p className="text-sm text-[#CCCCCC] mb-3 font-semibold">Indian Size Chart (inches)</p>
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-white/10">
-                        <th className="text-left py-2 text-white font-bold">Size</th>
-                        <th className="text-left py-2 text-white font-bold">Chest</th>
-                        <th className="text-left py-2 text-white font-bold">Length</th>
-                        <th className="text-left py-2 text-white font-bold">Shoulder</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {Object.entries(SIZE_CHART).map(([size, measurements]) => (
-                        <tr key={size} className="border-b border-white/5">
-                          <td className="py-2 text-[#CCCCCC] font-semibold">{size}</td>
-                          <td className="py-2 text-[#808088]">{measurements.chest}</td>
-                          <td className="py-2 text-[#808088]">{measurements.length}</td>
-                          <td className="py-2 text-[#808088]">{measurements.shoulder}</td>
+              {/* ✅ ANIMATED SIZE CHART - Remove the conditional {showSizeChart && ...} */}
+              <div
+                className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                  showSizeChart ? "max-h-[600px] opacity-100 mt-4" : "max-h-0 opacity-0 mt-0"
+                }`}
+              >
+                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                  <h4 className="font-bold text-sm mb-3">Indian Size Chart (inches)</h4>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="border-b border-white/20">
+                          <th className="text-left p-2">Size</th>
+                          <th className="text-left p-2">Chest</th>
+                          <th className="text-left p-2">Length</th>
+                          <th className="text-left p-2">Shoulder</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {Object.entries(SIZE_CHART).map(([size, measurements]) => (
+                          <tr key={size} className="border-b border-white/10">
+                            <td className="p-2 font-semibold">{size}</td>
+                            <td className="p-2">{measurements.chest}"</td>
+                            <td className="p-2">{measurements.length}"</td>
+                            <td className="p-2">{measurements.shoulder}"</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              )}
+              </div>
 
+              {/* Size buttons */}
               <div className="grid grid-cols-5 gap-3">
                 {Object.keys(SIZE_CHART).map((size) => (
                   <button
@@ -453,88 +544,30 @@ export default function ProductPageBase({
 
             {/* Action Buttons */}
             <div className="space-y-4">
-              <Dialog open={open} onOpenChange={setOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    onClick={handlePreorderClick}
-                    className="w-full bg-[#DD0004] hover:bg-[#DD0004]/90 text-white font-bold py-6 text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-[#DD0004]/30 group"
-                    size="lg"
-                  >
-                    <ShoppingBag className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform duration-300" />
-                    PREORDER NOW
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="bg-[#1C1C21] border-white/10 text-white">
-                  <DialogHeader>
-                    <DialogTitle className="text-2xl font-black">Secure Your {productId === "tshirt" ? "Tee" : "Hoodie"}</DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={submit} className="space-y-4">
-                    <div>
-                      <label className="text-sm font-semibold text-[#CCCCCC] mb-2 block">Name *</label>
-                      <Input
-                        required
-                        placeholder="Your full name"
-                        value={form.name}
-                        onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
-                        className="bg-[#28282B] border-[#808088]/30 text-white focus:border-[#DD0004] focus:ring-2 focus:ring-[#DD0004]/20 transition-all duration-300"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-semibold text-[#CCCCCC] mb-2 block">Email *</label>
-                      <Input
-                        required
-                        type="email"
-                        placeholder="your.email@example.com"
-                        value={form.email}
-                        onChange={(e) => setForm((s) => ({ ...s, email: e.target.value }))}
-                        className="bg-[#28282B] border-[#808088]/30 text-white focus:border-[#DD0004] focus:ring-2 focus:ring-[#DD0004]/20 transition-all duration-300"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-semibold text-[#CCCCCC] mb-2 block">Phone (Optional)</label>
-                      <Input
-                        type="tel"
-                        placeholder="+91 XXXXX XXXXX"
-                        value={form.phone}
-                        onChange={(e) => setForm((s) => ({ ...s, phone: e.target.value }))}
-                        className="bg-[#28282B] border-[#808088]/30 text-white focus:border-[#DD0004] focus:ring-2 focus:ring-[#DD0004]/20 transition-all duration-300"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-semibold text-[#CCCCCC] mb-2 block">Size *</label>
-                      <Select required onValueChange={(v) => setForm((s) => ({ ...s, size: v }))} value={form.size}>
-                        <SelectTrigger className="bg-[#28282B] border-[#808088]/30 text-white focus:border-[#DD0004] focus:ring-2 focus:ring-[#DD0004]/20">
-                          <SelectValue placeholder="Select your size" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-[#1C1C21] border-white/10 text-white">
-                          {Object.keys(SIZE_CHART).map((size) => (
-                            <SelectItem key={size} value={size} className="focus:bg-[#DD0004] focus:text-white">
-                              {size} - Chest: {SIZE_CHART[size as keyof typeof SIZE_CHART].chest}"
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="bg-[#28282B]/50 rounded-lg p-4 border border-white/10">
-                      <p className="text-sm font-semibold text-[#CCCCCC] mb-2">What happens next:</p>
-                      <ul className="space-y-1 text-xs text-[#808088]">
-                        <li>• We'll contact you when the {productId === "tshirt" ? "tee" : "hoodie"} launches</li>
-                        <li>• Priority shipping to your address</li>
-                        <li>• Exclusive member perks and early access</li>
-                      </ul>
-                    </div>
-                    <Button
-                      type="submit"
-                      className="w-full bg-[#DD0004] hover:bg-[#DD0004]/90 text-white font-bold py-4 transition-all duration-300 hover:scale-105"
-                    >
-                      CONFIRM PREORDER
-                    </Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
+              <Button
+                onClick={() => {
+                  if (!selectedSize) {
+                    toast({
+                      title: "Select a Size",
+                      description: "Please select a size before adding to cart.",
+                      variant: "destructive",
+                    })
+                    return
+                  }
+                  toast({
+                    title: "Coming Soon! 🛒",
+                    description: "Add to cart feature will be available soon. Stay tuned!",
+                  })
+                }}
+                disabled={!selectedSize}
+                className="w-full bg-gradient-to-r from-[#DD0004] to-[#FF0000] hover:from-[#FF0000] hover:to-[#DD0004] text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] py-4"
+              >
+                <ShoppingBag className="w-4 h-4 mr-2" />
+                ADD TO CART
+              </Button>
 
-              <div className="grid grid-cols-2 gap-3">
-                <Button
+              <div className="grid grid-cols-1 gap-3">
+                {/* <Button
                   onClick={handleLike}
                   variant="outline"
                   className={`border-white/20 hover:border-[#DD0004] transition-all duration-300 hover:scale-105 ${
@@ -543,7 +576,7 @@ export default function ProductPageBase({
                 >
                   <Heart className={`w-5 h-5 mr-2 ${liked ? "fill-[#DD0004]" : ""}`} />
                   {liked ? "Saved" : "Save"}
-                </Button>
+                </Button> */}
                 <Button
                   onClick={handleShare}
                   variant="outline"

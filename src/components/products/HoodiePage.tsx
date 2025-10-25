@@ -7,6 +7,8 @@ interface Props {
   onNavigateToShop?: () => void
   onNavigateToAbout?: () => void
   onNavigateToContact?: () => void
+  onNavigateToLogin: () => void 
+  onNavigateToSignup: () => void 
 }
 
 const HOODIE_DATA = {
@@ -25,7 +27,7 @@ const HOODIE_DATA = {
   ],
 }
 
-export default function HoodiePage({ onBackToMain, onNavigateToShop, onNavigateToAbout, onNavigateToContact }: Props) {
+export default function HoodiePage({ onBackToMain, onNavigateToShop, onNavigateToAbout, onNavigateToContact, onNavigateToLogin, onNavigateToSignup }: Props) {
   return (
     <ProductPageBase
       product={HOODIE_DATA}
@@ -34,6 +36,8 @@ export default function HoodiePage({ onBackToMain, onNavigateToShop, onNavigateT
       onNavigateToShop={onNavigateToShop}
       onNavigateToAbout={onNavigateToAbout}
       onNavigateToContact={onNavigateToContact}
+      onNavigateToLogin={onNavigateToLogin}
+      onNavigateToSignup={onNavigateToSignup}
     />
   )
 }

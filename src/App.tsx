@@ -5,182 +5,306 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-
 import Preloader from "@/components/Preloader";
-import EarlyAccessPage from "@/components/EarlyAccessPage";
 import MainBrandPage from "@/components/MainBrandPage";
 import HoodiePage from "@/components/products/HoodiePage";
 import TshirtPage from "@/components/products/TshirtPage";
+import Hoodie2Page from "@/components/products/Hoodie2Page";
+import Tshirt2Page from "@/components/products/Tshirt2Page";
 import ProductMenuPage from "@/components/ProductMenuPage";
-// Import these when you create them:
-// import AboutPage from "@/components/About"
-// import ContactPage from "@/components/Contact"
+import LoginPage from "@/components/LoginPage";
+import SignupPage from "@/components/SignupPage";
+import { AuthProvider } from "./contexts/AuthContext"; 
 
 const queryClient = new QueryClient();
 
-const STAGE_KEY = "kallkeyy:stage" as const;
-const PRODUCT_KEY = "kallkeyy:selectedProduct" as const;
-
-const getInitialStage = (): AppStage => {
-  try {
-    const saved = sessionStorage.getItem(STAGE_KEY) as AppStage | null;
-    return saved ?? "loading";
-  } catch {
-    return "loading";
-  }
-};
-
-const getInitialProduct = (): string => {
-  try {
-    const saved = sessionStorage.getItem(PRODUCT_KEY);
-    return saved ?? "hoodie";
-  } catch {
-    return "hoodie";
-  }
-};
-
-// Updated to include about and contact
 type AppStage =
   | "loading"
-  | "early-access"
   | "main"
   | "product-menu"
   | "product"
   | "about"
-  | "contact";
+  | "contact"
+  | "login"
+  | "signup";
+
+// Route configuration
+const ROUTES = {
+  HOME: "/",
+  SHOP: "/shop",
+  ABOUT: "/about",
+  CONTACT: "/contact",
+  HOODIE: "/product/hoodie",
+  TSHIRT: "/product/tshirt",
+  HOODIE2: "/product/hoodie2",
+  TSHIRT2: "/product/tshirt2",
+  LOGIN: "/login",
+  SIGNUP: "/signup",
+} as const;
 
 const App = () => {
-  const [stage, setStage] = useState<AppStage>(getInitialStage());
-  const [selectedProduct, setSelectedProduct] = useState<string>(
-    getInitialProduct()
-  );
+  const [stage, setStage] = useState<AppStage>("loading");
+  const [selectedProduct, setSelectedProduct] = useState<string>("hoodie");
 
+  // Function to get current route from URL
+  const getCurrentRoute = (): AppStage => {
+    const path = window.location.pathname;
+
+    if (path === ROUTES.HOME) return "main";
+    if (path === ROUTES.SHOP) return "product-menu";
+    if (path === ROUTES.ABOUT) return "about";
+    if (path === ROUTES.CONTACT) return "contact";
+    if (path === ROUTES.LOGIN) return "login";  
+    if (path === ROUTES.SIGNUP) return "signup";
+    if (
+      path === ROUTES.HOODIE ||
+      path === ROUTES.TSHIRT ||
+      path === ROUTES.HOODIE2 ||
+      path === ROUTES.TSHIRT2
+    )
+      return "product";
+    return "main";
+  };
+
+  // Function to get product from URL
+  const getProductFromURL = (): string => {
+    const path = window.location.pathname;
+    if (path === ROUTES.HOODIE) return "hoodie";
+    if (path === ROUTES.TSHIRT) return "tshirt";
+    if (path === ROUTES.HOODIE2) return "hoodie2";
+    if (path === ROUTES.TSHIRT2) return "tshirt2";
+    return "hoodie"; // Default
+  };
+
+  // Initialize app based on current URL
   useEffect(() => {
-    try {
-      sessionStorage.setItem(STAGE_KEY, stage);
-    } catch {}
-  }, [stage]);
+    const route = getCurrentRoute();
+    const product = getProductFromURL();
 
+    setStage(route === "main" ? "loading" : route);
+    setSelectedProduct(product);
+
+    // Set a small delay for preloader if we're on home page
+    if (route === "main") {
+      setTimeout(() => setStage("main"), 100);
+    }
+  }, []);
+
+  // Handle browser back/forward buttons
   useEffect(() => {
-    try {
-      sessionStorage.setItem(PRODUCT_KEY, selectedProduct);
-    } catch {}
-  }, [selectedProduct]);
+    const handlePopState = () => {
+      const route = getCurrentRoute();
+      const product = getProductFromURL();
 
-  useEffect(() => {
-    window.history.pushState({ stage }, "", "");
-
-    const handlePopState = (event: PopStateEvent) => {
-      if (event.state && event.state.stage) {
-        setStage(event.state.stage);
-      } else {
-        setStage("main");
-      }
+      setStage(route);
+      setSelectedProduct(product);
     };
 
     window.addEventListener("popstate", handlePopState);
-
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
+    return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
-  useEffect(() => {
-    if (stage !== "loading") {
-      window.history.pushState({ stage }, "", "");
-    }
-  }, [stage]);
+  // Navigation functions with proper URL updates
+  const navigateToHome = () => {
+    setStage("main");
+    window.history.pushState({}, "", ROUTES.HOME);
+  };
 
-  const handleSelectProduct = (productId: string) => {
+  const navigateToShop = () => {
+    setStage("product-menu");
+    window.history.pushState({}, "", ROUTES.SHOP);
+  };
+
+  const navigateToAbout = () => {
+    setStage("about");
+    window.history.pushState({}, "", ROUTES.ABOUT);
+  };
+
+  const navigateToContact = () => {
+    setStage("contact");
+    window.history.pushState({}, "", ROUTES.CONTACT);
+  };
+
+  const navigateToLogin = () => {
+    setStage("login");
+    window.history.pushState({}, "", ROUTES.LOGIN);
+  };
+
+  const navigateToSignup = () => {
+    setStage("signup");
+    window.history.pushState({}, "", ROUTES.SIGNUP);
+  };
+
+  const navigateToProduct = (productId: string) => {
     setSelectedProduct(productId);
     setStage("product");
+    let route;
+    switch (productId) {
+      case "hoodie":
+        route = ROUTES.HOODIE;
+        break;
+      case "tshirt":
+        route = ROUTES.TSHIRT;
+        break;
+      case "hoodie2":
+        route = ROUTES.HOODIE2;
+        break;
+      case "tshirt2":
+        route = ROUTES.TSHIRT2;
+        break;
+      default:
+        route = ROUTES.HOODIE;
+    }
+    window.history.pushState({}, "", route);
   };
+
+  const handleSelectProduct = (productId: string) => {
+    navigateToProduct(productId);
+  };
+
+  // Update document title based on current page
+  useEffect(() => {
+    const titles = {
+      loading: "KALLKEYY - Loading...",
+      main: "KALLKEYY - Streetwear Fashion",
+      "product-menu": "Shop - KALLKEYY",
+      product: `${
+        selectedProduct.charAt(0).toUpperCase() + selectedProduct.slice(1)
+      } - KALLKEYY`,
+      about: "About Us - KALLKEYY",
+      contact: "Contact - KALLKEYY",
+    };
+
+    document.title = titles[stage] || "KALLKEYY";
+  }, [stage, selectedProduct]);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        {stage === "loading" && (
-          <Preloader onComplete={() => setStage("early-access")} />
-        )}
+      <AuthProvider> 
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
 
-        {stage === "early-access" && (
-          <EarlyAccessPage onAccessGranted={() => setStage("main")} />
-        )}
+          {stage === "loading" && (
+            <Preloader onComplete={() => setStage("main")} />
+          )}
 
-        {stage === "main" && (
-          <MainBrandPage
-            onViewProduct={() => setStage("product")}
-            onViewProductMenu={() => setStage("product-menu")}
-            onViewHoodie={() => {
-              setSelectedProduct("hoodie");
-              setStage("product");
-            }}
-            onViewTshirt={() => {
-              setSelectedProduct("tshirt");
-              setStage("product");
-            }}
-            onNavigateToShop={() => setStage("product-menu")}
-            onNavigateToAbout={() => setStage("about")}
-            onNavigateToContact={() => setStage("contact")}
-          />
-        )}
+          {stage === "main" && (
+            <MainBrandPage
+              onViewProduct={() => navigateToProduct("hoodie")}
+              onViewProductMenu={navigateToShop}
+              onViewHoodie={() => navigateToProduct("hoodie")}
+              onViewTshirt={() => navigateToProduct("tshirt")}
+              onViewHoodie2={() => navigateToProduct("hoodie2")}
+              onViewTshirt2={() => navigateToProduct("tshirt2")}
+              onNavigateToLogin={navigateToLogin}
+              onNavigateToSignup={navigateToSignup}
+              onNavigateToShop={navigateToShop}
+              onNavigateToAbout={navigateToAbout}
+              onNavigateToContact={navigateToContact}
+              onBackToMain={navigateToHome}
+            />
+          )}
 
-        {stage === "product-menu" && (
-          <ProductMenuPage
-            onSelectProduct={handleSelectProduct}
-            onBackToMain={() => setStage("main")}
-            onNavigateToShop={() => setStage("product-menu")}
-            onNavigateToAbout={() => setStage("about")}
-            onNavigateToContact={() => setStage("contact")}
-          />
-        )}
+          {stage === "product-menu" && (
+            <ProductMenuPage
+              onSelectProduct={handleSelectProduct}
+              onBackToMain={navigateToHome}
+              onNavigateToShop={navigateToShop}
+              onNavigateToAbout={navigateToAbout}
+              onNavigateToContact={navigateToContact}
+              onNavigateToLogin={navigateToLogin}
+              onNavigateToSignup={navigateToSignup}
+            />
+          )}
 
-        {stage === "product" && selectedProduct === "hoodie" && (
-          <HoodiePage
-            onBackToMain={() => setStage("main")}
-            onNavigateToShop={() => setStage("product-menu")}
-            onNavigateToAbout={() => setStage("about")}
-            onNavigateToContact={() => setStage("contact")}
-          />
-        )}
+          {stage === "product" && selectedProduct === "hoodie" && (
+            <HoodiePage
+              onBackToMain={navigateToHome}
+              onNavigateToShop={navigateToShop}
+              onNavigateToAbout={navigateToAbout}
+              onNavigateToContact={navigateToContact}
+              onNavigateToLogin={navigateToLogin}
+              onNavigateToSignup={navigateToSignup}
+            />
+          )}
 
-        {stage === "product" && selectedProduct === "tshirt" && (
-          <TshirtPage
-            onBackToMain={() => setStage("main")}
-            onNavigateToShop={() => setStage("product-menu")}
-            onNavigateToAbout={() => setStage("about")}
-            onNavigateToContact={() => setStage("contact")}
-          />
-        )}
+          {stage === "product" && selectedProduct === "tshirt" && (
+            <TshirtPage
+              onBackToMain={navigateToHome}
+              onNavigateToShop={navigateToShop}
+              onNavigateToAbout={navigateToAbout}
+              onNavigateToContact={navigateToContact}
+              onNavigateToLogin={navigateToLogin}
+              onNavigateToSignup={navigateToSignup}
+            />
+          )}
 
-        {/* Temporary placeholders - replace when you create the actual pages */}
-        {stage === "about" && (
-          <div className="min-h-screen bg-black text-white flex items-center justify-center flex-col gap-4">
-            <h1 className="text-4xl font-bold">About Page - Coming Soon</h1>
-            <button
-              onClick={() => setStage("main")}
-              className="bg-[#DD0004] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#BB0003]"
-            >
-              Back to Home
-            </button>
-          </div>
-        )}
+          {stage === "product" && selectedProduct === "hoodie2" && (
+            <Hoodie2Page
+              onBackToMain={navigateToHome}
+              onNavigateToShop={navigateToShop}
+              onNavigateToAbout={navigateToAbout}
+              onNavigateToContact={navigateToContact}
+              onNavigateToLogin={navigateToLogin}
+              onNavigateToSignup={navigateToSignup}
+            />
+          )}
 
-        {stage === "contact" && (
-          <div className="min-h-screen bg-black text-white flex items-center justify-center flex-col gap-4">
-            <h1 className="text-4xl font-bold">Contact Page - Coming Soon</h1>
-            <button
-              onClick={() => setStage("main")}
-              className="bg-[#DD0004] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#BB0003]"
-            >
-              Back to Home
-            </button>
-          </div>
-        )}
+          {stage === "product" && selectedProduct === "tshirt2" && (
+            <Tshirt2Page
+              onBackToMain={navigateToHome}
+              onNavigateToShop={navigateToShop}
+              onNavigateToAbout={navigateToAbout}
+              onNavigateToContact={navigateToContact}
+              onNavigateToLogin={navigateToLogin}
+              onNavigateToSignup={navigateToSignup}
+            />
+          )}
 
-        <Toaster />
-        <Sonner />
-      </TooltipProvider>
+          {stage === "login" && (
+            <LoginPage
+              onNavigateToHome={navigateToHome} 
+              onNavigateToSignup={navigateToSignup}
+            />
+          )}
+
+          {stage === "signup" && (
+            <SignupPage
+              onNavigateToHome={navigateToHome}
+              onNavigateToLogin={navigateToLogin}
+            />
+          )}
+
+          {stage === "about" && (
+            <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8">
+              <h1 className="text-4xl font-bold mb-4">
+                About Page - Coming Soon
+              </h1>
+              <button
+                onClick={navigateToHome}
+                className="bg-[#DD0004] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#BB0003]"
+              >
+                Back to Home
+              </button>
+            </div>
+          )}
+
+          {stage === "contact" && (
+            <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8">
+              <h1 className="text-4xl font-bold mb-4">
+                Contact Page - Coming Soon
+              </h1>
+              <button
+                onClick={navigateToHome}
+                className="bg-[#DD0004] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#BB0003]"
+              >
+                Back to Home
+              </button>
+            </div>
+          )}
+        </TooltipProvider>
+      </AuthProvider> 
     </QueryClientProvider>
   );
 };

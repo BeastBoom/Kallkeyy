@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+backend/node_modules/
 
 # Vite build outputs and caches
 dist/
@@ -30,6 +31,7 @@ coverage/
 .env
 .env.*.local
 *.local
+backend/.env
 
 # TypeScript
 *.tsbuildinfo

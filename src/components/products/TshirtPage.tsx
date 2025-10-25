@@ -7,6 +7,8 @@ interface Props {
   onNavigateToShop?: () => void
   onNavigateToAbout?: () => void
   onNavigateToContact?: () => void
+  onNavigateToLogin: () => void
+  onNavigateToSignup: () => void
 }
 
 const TSHIRT_DATA = {
@@ -25,7 +27,7 @@ const TSHIRT_DATA = {
   ],
 }
 
-export default function TshirtPage({ onBackToMain, onNavigateToShop, onNavigateToAbout, onNavigateToContact }: Props) {
+export default function TshirtPage({ onBackToMain, onNavigateToShop, onNavigateToAbout, onNavigateToContact, onNavigateToLogin, onNavigateToSignup }: Props) {
   return (
     <ProductPageBase
       product={TSHIRT_DATA}
@@ -34,6 +36,8 @@ export default function TshirtPage({ onBackToMain, onNavigateToShop, onNavigateT
       onNavigateToShop={onNavigateToShop}
       onNavigateToAbout={onNavigateToAbout}
       onNavigateToContact={onNavigateToContact}
+      onNavigateToLogin={onNavigateToLogin}
+      onNavigateToSignup={onNavigateToSignup}
     />
   )
 }
