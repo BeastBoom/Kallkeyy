@@ -1,20 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
+const auth = require('../middleware/auth');
 
-// @route   POST /api/auth/signup
-// @desc    Register new user
-// @access  Public
-router.post('/signup', authController.signup);
-
-// @route   POST /api/auth/login
-// @desc    Login user
-// @access  Public
+// Public routes
+router.post('/register', authController.register);
 router.post('/login', authController.login);
+router.post('/google', authController.googleAuth);
+router.post('/forgot-password', authController.forgotPassword);
+router.post('/verify-reset-code', authController.verifyResetCode);
+router.post('/reset-password', authController.resetPassword);
 
-// @route   GET /api/auth/me
-// @desc    Get current user
-// @access  Private
-router.get('/me', authController.getCurrentUser);
+// Protected routes
+router.get('/me', auth, authController.getCurrentUser);
 
 module.exports = router;

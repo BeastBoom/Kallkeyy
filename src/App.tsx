@@ -14,7 +14,10 @@ import Tshirt2Page from "@/components/products/Tshirt2Page";
 import ProductMenuPage from "@/components/ProductMenuPage";
 import LoginPage from "@/components/LoginPage";
 import SignupPage from "@/components/SignupPage";
-import { AuthProvider } from "./contexts/AuthContext"; 
+import { AuthProvider } from "./contexts/AuthContext";
+import { CartProvider } from "./contexts/CartContext";
+import { FloatingCart } from "@/components/FloatingCart";
+import ForgotPasswordPage from '@/components/ForgotPasswordPage';
 
 const queryClient = new QueryClient();
 
@@ -26,7 +29,8 @@ type AppStage =
   | "about"
   | "contact"
   | "login"
-  | "signup";
+  | "signup"
+  | "forgot-password";
 
 // Route configuration
 const ROUTES = {
@@ -42,9 +46,12 @@ const ROUTES = {
   SIGNUP: "/signup",
 } as const;
 
+
+
 const App = () => {
   const [stage, setStage] = useState<AppStage>("loading");
   const [selectedProduct, setSelectedProduct] = useState<string>("hoodie");
+  const navigateToForgotPassword = () => setStage("forgot-password");
 
   // Function to get current route from URL
   const getCurrentRoute = (): AppStage => {
@@ -180,130 +187,141 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider> 
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
+      <AuthProvider>
+        <CartProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
 
-          {stage === "loading" && (
-            <Preloader onComplete={() => setStage("main")} />
-          )}
+            <FloatingCart />
 
-          {stage === "main" && (
-            <MainBrandPage
-              onViewProduct={() => navigateToProduct("hoodie")}
-              onViewProductMenu={navigateToShop}
-              onViewHoodie={() => navigateToProduct("hoodie")}
-              onViewTshirt={() => navigateToProduct("tshirt")}
-              onViewHoodie2={() => navigateToProduct("hoodie2")}
-              onViewTshirt2={() => navigateToProduct("tshirt2")}
-              onNavigateToLogin={navigateToLogin}
-              onNavigateToSignup={navigateToSignup}
-              onNavigateToShop={navigateToShop}
-              onNavigateToAbout={navigateToAbout}
-              onNavigateToContact={navigateToContact}
-              onBackToMain={navigateToHome}
-            />
-          )}
+            {stage === "loading" && (
+              <Preloader onComplete={() => setStage("main")} />
+            )}
 
-          {stage === "product-menu" && (
-            <ProductMenuPage
-              onSelectProduct={handleSelectProduct}
-              onBackToMain={navigateToHome}
-              onNavigateToShop={navigateToShop}
-              onNavigateToAbout={navigateToAbout}
-              onNavigateToContact={navigateToContact}
-              onNavigateToLogin={navigateToLogin}
-              onNavigateToSignup={navigateToSignup}
-            />
-          )}
+            {stage === "main" && (
+              <MainBrandPage
+                onViewProduct={() => navigateToProduct("hoodie")}
+                onViewProductMenu={navigateToShop}
+                onViewHoodie={() => navigateToProduct("hoodie")}
+                onViewTshirt={() => navigateToProduct("tshirt")}
+                onViewHoodie2={() => navigateToProduct("hoodie2")}
+                onViewTshirt2={() => navigateToProduct("tshirt2")}
+                onNavigateToLogin={navigateToLogin}
+                onNavigateToSignup={navigateToSignup}
+                onNavigateToShop={navigateToShop}
+                onNavigateToAbout={navigateToAbout}
+                onNavigateToContact={navigateToContact}
+                onBackToMain={navigateToHome}
+              />
+            )}
 
-          {stage === "product" && selectedProduct === "hoodie" && (
-            <HoodiePage
-              onBackToMain={navigateToHome}
-              onNavigateToShop={navigateToShop}
-              onNavigateToAbout={navigateToAbout}
-              onNavigateToContact={navigateToContact}
-              onNavigateToLogin={navigateToLogin}
-              onNavigateToSignup={navigateToSignup}
-            />
-          )}
+            {stage === "product-menu" && (
+              <ProductMenuPage
+                onSelectProduct={handleSelectProduct}
+                onBackToMain={navigateToHome}
+                onNavigateToShop={navigateToShop}
+                onNavigateToAbout={navigateToAbout}
+                onNavigateToContact={navigateToContact}
+                onNavigateToLogin={navigateToLogin}
+                onNavigateToSignup={navigateToSignup}
+              />
+            )}
 
-          {stage === "product" && selectedProduct === "tshirt" && (
-            <TshirtPage
-              onBackToMain={navigateToHome}
-              onNavigateToShop={navigateToShop}
-              onNavigateToAbout={navigateToAbout}
-              onNavigateToContact={navigateToContact}
-              onNavigateToLogin={navigateToLogin}
-              onNavigateToSignup={navigateToSignup}
-            />
-          )}
+            {stage === "product" && selectedProduct === "hoodie" && (
+              <HoodiePage
+                onBackToMain={navigateToHome}
+                onNavigateToShop={navigateToShop}
+                onNavigateToAbout={navigateToAbout}
+                onNavigateToContact={navigateToContact}
+                onNavigateToLogin={navigateToLogin}
+                onNavigateToSignup={navigateToSignup}
+              />
+            )}
 
-          {stage === "product" && selectedProduct === "hoodie2" && (
-            <Hoodie2Page
-              onBackToMain={navigateToHome}
-              onNavigateToShop={navigateToShop}
-              onNavigateToAbout={navigateToAbout}
-              onNavigateToContact={navigateToContact}
-              onNavigateToLogin={navigateToLogin}
-              onNavigateToSignup={navigateToSignup}
-            />
-          )}
+            {stage === "product" && selectedProduct === "tshirt" && (
+              <TshirtPage
+                onBackToMain={navigateToHome}
+                onNavigateToShop={navigateToShop}
+                onNavigateToAbout={navigateToAbout}
+                onNavigateToContact={navigateToContact}
+                onNavigateToLogin={navigateToLogin}
+                onNavigateToSignup={navigateToSignup}
+              />
+            )}
 
-          {stage === "product" && selectedProduct === "tshirt2" && (
-            <Tshirt2Page
-              onBackToMain={navigateToHome}
-              onNavigateToShop={navigateToShop}
-              onNavigateToAbout={navigateToAbout}
-              onNavigateToContact={navigateToContact}
-              onNavigateToLogin={navigateToLogin}
-              onNavigateToSignup={navigateToSignup}
-            />
-          )}
+            {stage === "product" && selectedProduct === "hoodie2" && (
+              <Hoodie2Page
+                onBackToMain={navigateToHome}
+                onNavigateToShop={navigateToShop}
+                onNavigateToAbout={navigateToAbout}
+                onNavigateToContact={navigateToContact}
+                onNavigateToLogin={navigateToLogin}
+                onNavigateToSignup={navigateToSignup}
+              />
+            )}
 
-          {stage === "login" && (
-            <LoginPage
-              onNavigateToHome={navigateToHome} 
-              onNavigateToSignup={navigateToSignup}
-            />
-          )}
+            {stage === "product" && selectedProduct === "tshirt2" && (
+              <Tshirt2Page
+                onBackToMain={navigateToHome}
+                onNavigateToShop={navigateToShop}
+                onNavigateToAbout={navigateToAbout}
+                onNavigateToContact={navigateToContact}
+                onNavigateToLogin={navigateToLogin}
+                onNavigateToSignup={navigateToSignup}
+              />
+            )}
 
-          {stage === "signup" && (
-            <SignupPage
-              onNavigateToHome={navigateToHome}
-              onNavigateToLogin={navigateToLogin}
-            />
-          )}
+            {stage === "login" && (
+              <LoginPage
+                onNavigateToHome={navigateToHome} 
+                onNavigateToSignup={navigateToSignup}
+                onNavigateToForgotPassword={navigateToForgotPassword}
+              />
+            )}
 
-          {stage === "about" && (
-            <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8">
-              <h1 className="text-4xl font-bold mb-4">
-                About Page - Coming Soon
-              </h1>
-              <button
-                onClick={navigateToHome}
-                className="bg-[#DD0004] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#BB0003]"
-              >
-                Back to Home
-              </button>
-            </div>
-          )}
+            {stage === "signup" && (
+              <SignupPage
+                onNavigateToHome={navigateToHome}
+                onNavigateToLogin={navigateToLogin}
+              />
+            )}
 
-          {stage === "contact" && (
-            <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8">
-              <h1 className="text-4xl font-bold mb-4">
-                Contact Page - Coming Soon
-              </h1>
-              <button
-                onClick={navigateToHome}
-                className="bg-[#DD0004] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#BB0003]"
-              >
-                Back to Home
-              </button>
-            </div>
-          )}
-        </TooltipProvider>
+            {stage === "forgot-password" && (
+              <ForgotPasswordPage
+                onNavigateToLogin={navigateToLogin}
+              />
+            )}
+            
+            {stage === "about" && (
+              <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8">
+                <h1 className="text-4xl font-bold mb-4">
+                  About Page - Coming Soon
+                </h1>
+                <button
+                  onClick={navigateToHome}
+                  className="bg-[#DD0004] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#BB0003]"
+                >
+                  Back to Home
+                </button>
+              </div>
+            )}
+
+            {stage === "contact" && (
+              <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8">
+                <h1 className="text-4xl font-bold mb-4">
+                  Contact Page - Coming Soon
+                </h1>
+                <button
+                  onClick={navigateToHome}
+                  className="bg-[#DD0004] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#BB0003]"
+                >
+                  Back to Home
+                </button>
+              </div>
+            )}
+          </TooltipProvider>
+        </CartProvider> 
       </AuthProvider> 
     </QueryClientProvider>
   );

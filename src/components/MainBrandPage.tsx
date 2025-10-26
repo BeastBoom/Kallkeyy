@@ -51,6 +51,24 @@ export default function MainBrandPage({
     });
   };
 
+  // Helper function to format user display name
+  const formatDisplayName = (fullName: string): string => {
+    if (!fullName) return '';
+    const nameParts = fullName.trim().split(/\s+/);
+    const firstName = nameParts[0];
+    if (firstName.length <= 10) {
+      return firstName.toUpperCase();
+    }
+    const initials = nameParts
+      .slice(0, 3)
+      .map(part => part[0])
+      .join('')
+      .toUpperCase();
+    
+    return initials;
+  };
+
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -228,7 +246,7 @@ export default function MainBrandPage({
                 {user ? (
                   <>
                     <span className="text-white px-2 lg:px-3 py-2 flex items-center text-xs lg:text-sm whitespace-nowrap">
-                      HEY, <span className="text-[#DD0004] ml-1">{user.name.toUpperCase()}</span>
+                      HEY, <span className="text-[#DD0004] ml-1">{formatDisplayName(user.name)}</span>
                     </span>
                     <button
                       onClick={logout}
@@ -322,7 +340,7 @@ export default function MainBrandPage({
                 {user ? (
                   <>
                     <div className="text-white px-4 py-2 mb-2 text-sm">
-                      HEY, <span className="text-[#DD0004]">{user.name.toUpperCase()}</span>
+                      HEY, <span className="text-[#DD0004]">{formatDisplayName(user.name)}</span>
                     </div>
                     <button
                       onClick={() => {

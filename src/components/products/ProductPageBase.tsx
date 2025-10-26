@@ -24,6 +24,7 @@ import {
 } from "lucide-react"
 import { useAuth } from "../../contexts/AuthContext";
 import { LogOut } from "lucide-react";
+import { useCart } from "../../contexts/CartContext";
 
 interface ProductData {
   name: string
@@ -72,7 +73,7 @@ export default function ProductPageBase({
 }: Props) {
 
   const { user, logout } = useAuth();
-
+  const { addToCart } = useCart();
   const [selectedSize, setSelectedSize] = useState("")
   const [showSizeChart, setShowSizeChart] = useState(false)
   const [userRating, setUserRating] = useState(0)
@@ -143,6 +144,68 @@ export default function ProductPageBase({
       duration: 3000,
     })
   }
+
+  const handleAddToCart = async () => {
+    // Check if user is logged in
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Login Required ⚠️",
+        description: "Please login to add items to cart"
+      });
+      onNavigateToLogin();
+      return;
+    }
+
+    // Check if size is selected
+    if (!selectedSize) {
+      toast({
+        variant: "destructive",
+        title: "Please select a size",
+        description: "Choose a size before adding to cart"
+      });
+      return;
+    }
+    
+    try {
+      await addToCart({
+        productId: productId,
+        productName: product.name,
+        size: selectedSize,
+        price: parseFloat(product.price.replace('₹', '').replace(',', '')),
+        image: product.images[0],
+        quantity: 1
+      });
+
+      toast({
+        title: "Added to Cart! 🎉",
+        description: `${product.name} - Size ${selectedSize} added successfully`
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Failed to add to cart",
+        description: error instanceof Error ? error.message : "Please try again"
+      });
+    }
+  };
+
+  const formatDisplayName = (fullName: string): string => {
+    if (!fullName) return '';
+    const nameParts = fullName.trim().split(/\s+/);
+    const firstName = nameParts[0];
+    if (firstName.length <= 10) {
+      return firstName.toUpperCase();
+    }
+    const initials = nameParts
+      .slice(0, 3)
+      .map(part => part[0])
+      .join('')
+      .toUpperCase();
+    
+    return initials;
+  };
+
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
@@ -237,7 +300,7 @@ export default function ProductPageBase({
                 {user ? (
                   <>
                     <span className="text-white px-2 lg:px-3 py-2 flex items-center text-xs lg:text-sm whitespace-nowrap">
-                      HEY, <span className="text-[#DD0004] ml-1">{user.name.toUpperCase()}</span>
+                      HEY, <span className="text-[#DD0004] ml-1">{formatDisplayName(user.name)}</span>
                     </span>
                     <button
                       onClick={logout}
@@ -331,7 +394,7 @@ export default function ProductPageBase({
                 {user ? (
                   <>
                     <div className="text-white px-4 py-2 mb-2 text-sm">
-                      HEY, <span className="text-[#DD0004]">{user.name.toUpperCase()}</span>
+                      HEY, <span className="text-[#DD0004]">{formatDisplayName(user.name)}</span>
                     </div>
                     <button
                       onClick={() => {
@@ -545,20 +608,7 @@ export default function ProductPageBase({
             {/* Action Buttons */}
             <div className="space-y-4">
               <Button
-                onClick={() => {
-                  if (!selectedSize) {
-                    toast({
-                      title: "Select a Size",
-                      description: "Please select a size before adding to cart.",
-                      variant: "destructive",
-                    })
-                    return
-                  }
-                  toast({
-                    title: "Coming Soon! 🛒",
-                    description: "Add to cart feature will be available soon. Stay tuned!",
-                  })
-                }}
+                onClick={handleAddToCart}
                 disabled={!selectedSize}
                 className="w-full bg-gradient-to-r from-[#DD0004] to-[#FF0000] hover:from-[#FF0000] hover:to-[#DD0004] text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] py-4"
               >

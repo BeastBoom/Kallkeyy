@@ -1,134 +1,202 @@
-"use client";
+import { useEffect, useState } from 'react';
+import { ArrowLeft, Mail, Lock } from 'lucide-react';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from './ui/use-toast';
 
-import { useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
-import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
-
-interface Props {
+interface LoginPageProps {
   onNavigateToHome: () => void;
   onNavigateToSignup: () => void;
+  onNavigateToForgotPassword: () => void;
 }
 
-export default function LoginPage({ onNavigateToHome, onNavigateToSignup }: Props) {
-  const { login } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+export default function LoginPage({ 
+  onNavigateToHome, 
+  onNavigateToSignup,
+  onNavigateToForgotPassword 
+}: LoginPageProps) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { login, googleLogin } = useAuth();
+  const { toast } = useToast();
+
+  function useWindowWidth() {
+    const [width, setWidth] = useState(window.innerWidth);
+
+    useEffect(() => {
+      const handleResize = () => setWidth(window.innerWidth);
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    return width;
+  }
+
+  const windowWidth = useWindowWidth();
+  const googleButtonWidth = Math.min(windowWidth - 32, 270);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setIsLoading(true);
+    setLoading(true);
 
     try {
       await login(email, password);
-      onNavigateToHome(); // Redirect to home after successful login
-    } catch (err: any) {
-      setError(err.message || "Login failed. Please try again.");
+      toast({
+        title: 'Welcome back!',
+        description: 'Login successful'
+      });
+      onNavigateToHome();
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: error instanceof Error ? error.message : 'Invalid credentials'
+      });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    try {
+      if (!credentialResponse.credential) {
+        throw new Error('No credential received');
+      }
+
+      await googleLogin(credentialResponse.credential);
+      
+      toast({
+        title: 'Welcome!',
+        description: 'Google login successful'
+      });
+      
+      onNavigateToHome();
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Google Login Failed',
+        description: error instanceof Error ? error.message : 'Failed to login with Google'
+      });
+    }
+  };
+
+  const handleGoogleError = () => {
+    toast({
+      variant: 'destructive',
+      title: 'Google Login Failed',
+      description: 'Something went wrong. Please try again.'
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-black via-zinc-900 to-black flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         {/* Back Button */}
         <button
           onClick={onNavigateToHome}
-          className="flex items-center text-[#808088] hover:text-white mb-8 transition-colors duration-300"
+          className="flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-8"
         >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to Home
+          <ArrowLeft size={20} />
+          <span>Back to Home</span>
         </button>
 
         {/* Login Card */}
-        <div className="bg-[#28282B] rounded-2xl p-8 border border-[#808088]/20">
+        <div className="bg-zinc-900/50 backdrop-blur-lg border border-white/10 rounded-2xl p-8 shadow-2xl">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-black text-white mb-2">
-              WELCOME <span className="text-[#DD0004]">BACK</span>
-            </h1>
-            <p className="text-[#808088]">Login to access your account</p>
+            <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
+            <p className="text-white/60">Login to your account</p>
           </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="bg-[#DD0004]/10 border border-[#DD0004] text-[#DD0004] px-4 py-3 rounded-lg mb-6">
-              {error}
+          {/* Google Signup */}
+          <div className="w-full flex justify-center">
+            <div style={{ width: googleButtonWidth }}>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                theme="filled_black"
+                size="large"
+                text="signup_with"
+                width={googleButtonWidth}
+              />
             </div>
-          )}
+          </div>
 
-          {/* Login Form */}
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/10"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-zinc-900/50 text-white/60">Or continue with email</span>
+            </div>
+          </div>
+
+          {/* Email/Password Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Input */}
             <div>
-              <label className="block text-sm font-bold text-white mb-2">
-                EMAIL
+              <label className="block text-sm font-medium text-white mb-2">
+                Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#808088]" />
-                <input
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" size={20} />
+                <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  required
                   placeholder="your@email.com"
-                  className="w-full bg-black border border-[#808088]/30 rounded-lg py-3 px-12 text-white placeholder-[#808088] focus:outline-none focus:border-[#DD0004] transition-colors duration-300"
+                  className="pl-11 bg-white/5 border-white/10 text-white"
+                  required
                 />
               </div>
             </div>
 
-            {/* Password Input */}
             <div>
-              <label className="block text-sm font-bold text-white mb-2">
-                PASSWORD
+              <label className="block text-sm font-medium text-white mb-2">
+                Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#808088]" />
-                <input
-                  type={showPassword ? "text" : "password"}
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" size={20} />
+                <Input
+                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
                   placeholder="••••••••"
-                  className="w-full bg-black border border-[#808088]/30 rounded-lg py-3 px-12 text-white placeholder-[#808088] focus:outline-none focus:border-[#DD0004] transition-colors duration-300"
+                  className="pl-11 bg-white/5 border-white/10 text-white"
+                  required
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#808088] hover:text-white transition-colors duration-300"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
               </div>
             </div>
 
-            {/* Login Button */}
-            <button
+            {/* Forgot Password Link */}
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={onNavigateToForgotPassword}
+                className="text-sm text-[#DD0004] hover:text-[#FF0000] transition-colors"
+              >
+                Forgot Password?
+              </button>
+            </div>
+
+            <Button
               type="submit"
-              disabled={isLoading}
-              className="w-full bg-[#DD0004] hover:bg-[#DD0004]/80 text-white font-bold py-3 rounded-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-[#DD0004] to-[#FF0000] hover:from-[#FF0000] hover:to-[#DD0004] text-white font-bold py-6"
             >
-              {isLoading ? "LOGGING IN..." : "LOGIN"}
-            </button>
+              {loading ? 'Logging in...' : 'Login'}
+            </Button>
           </form>
 
-          {/* Divider */}
-          <div className="flex items-center my-6">
-            <div className="flex-1 border-t border-[#808088]/30"></div>
-            <span className="px-4 text-sm text-[#808088]">OR</span>
-            <div className="flex-1 border-t border-[#808088]/30"></div>
-          </div>
-
-          {/* Signup Link */}
-          <p className="text-center text-[#808088]">
-            Don't have an account?{" "}
+          {/* Sign Up Link */}
+          <p className="text-center text-white/60 mt-6">
+            Don't have an account?{' '}
             <button
               onClick={onNavigateToSignup}
-              className="text-[#DD0004] hover:underline font-bold"
+              className="text-[#DD0004] hover:text-[#FF0000] font-semibold transition-colors"
             >
               Sign Up
             </button>

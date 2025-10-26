@@ -1,184 +1,299 @@
-"use client";
+import { useEffect, useState } from 'react';
+import { ArrowLeft, Mail, Lock, User } from 'lucide-react';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from './ui/use-toast';
 
-import { useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from "lucide-react";
-
-interface Props {
+interface SignupPageProps {
   onNavigateToHome: () => void;
   onNavigateToLogin: () => void;
 }
 
-export default function SignupPage({ onNavigateToHome, onNavigateToLogin }: Props) {
-  const { signup } = useAuth();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+interface PasswordRequirement {
+  label: string;
+  test: (password: string) => boolean;
+}
+
+const passwordRequirements: PasswordRequirement[] = [
+  { label: 'At least 8 characters', test: (p) => p.length >= 8 },
+  { label: 'One uppercase letter', test: (p) => /[A-Z]/.test(p) },
+  { label: 'One lowercase letter', test: (p) => /[a-z]/.test(p) },
+  { label: 'One number', test: (p) => /\d/.test(p) },
+  { label: 'One special character (!@#$%^&*)', test: (p) => /[!@#$%^&*(),.?":{}|<>]/.test(p) }
+];
+
+export default function SignupPage({ onNavigateToHome, onNavigateToLogin }: SignupPageProps) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const { register, googleLogin } = useAuth();
+  const { toast } = useToast();
+
+  const windowWidth = useWindowWidth();
+  const googleButtonWidth = Math.min(windowWidth - 32, 270); // 32px padding, max 340px
+
+  // ADD THIS FUNCTION - Validate Password Strength
+  const validatePasswordStrength = (pass: string): boolean => {
+    return passwordRequirements.every(req => req.test(pass));
+  };
+
+  function useWindowWidth() {
+    const [width, setWidth] = useState(window.innerWidth);
+
+    useEffect(() => {
+      const handleResize = () => setWidth(window.innerWidth);
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    return width;
+  }
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
 
-    // Validation
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Passwords do not match'
+      });
       return;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+    if (!validatePasswordStrength(password)) {
+      toast({
+        variant: 'destructive',
+        title: 'Weak Password',
+        description: 'Please meet all password requirements'
+      });
       return;
     }
 
-    setIsLoading(true);
+    setLoading(true);
 
     try {
-      await signup(name, email, password);
-      onNavigateToHome(); // Redirect to home after successful signup
-    } catch (err: any) {
-      setError(err.message || "Signup failed. Please try again.");
+      await register(name, email, password);
+      toast({
+        title: 'Welcome!',
+        description: 'Account created successfully'
+      });
+      onNavigateToHome();
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Signup Failed',
+        description: error instanceof Error ? error.message : 'Failed to create account'
+      });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    try {
+      if (!credentialResponse.credential) {
+        throw new Error('No credential received');
+      }
+
+      await googleLogin(credentialResponse.credential);
+      
+      toast({
+        title: 'Welcome!',
+        description: 'Google signup successful'
+      });
+      
+      onNavigateToHome();
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Google Signup Failed',
+        description: error instanceof Error ? error.message : 'Failed to signup with Google'
+      });
+    }
+  };
+
+  const handleGoogleError = () => {
+    toast({
+      variant: 'destructive',
+      title: 'Google Signup Failed',
+      description: 'Something went wrong. Please try again.'
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-black via-zinc-900 to-black flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         {/* Back Button */}
         <button
           onClick={onNavigateToHome}
-          className="flex items-center text-[#808088] hover:text-white mb-8 transition-colors duration-300"
+          className="flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-8"
         >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to Home
+          <ArrowLeft size={20} />
+          <span>Back to Home</span>
         </button>
 
         {/* Signup Card */}
-        <div className="bg-[#28282B] rounded-2xl p-8 border border-[#808088]/20">
+        <div className="bg-zinc-900/50 backdrop-blur-lg border border-white/10 rounded-2xl p-8 shadow-2xl">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-black text-white mb-2">
-              JOIN <span className="text-[#DD0004]">KALLKEYY</span>
-            </h1>
-            <p className="text-[#808088]">Create your account to get started</p>
+            <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
+            <p className="text-white/60">Join KALLKEYY today</p>
           </div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="bg-[#DD0004]/10 border border-[#DD0004] text-[#DD0004] px-4 py-3 rounded-lg mb-6">
-              {error}
+          {/* Google Signup */}
+          <div className="w-full flex justify-center">
+            <div style={{ width: googleButtonWidth }}>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                theme="filled_black"
+                size="large"
+                text="signup_with"
+                width={googleButtonWidth}
+              />
             </div>
-          )}
+          </div>
+
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/10"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-zinc-900/50 text-white/60">Or sign up with email</span>
+            </div>
+          </div>
 
           {/* Signup Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name Input */}
             <div>
-              <label className="block text-sm font-bold text-white mb-2">
-                FULL NAME
+              <label className="block text-sm font-medium text-white mb-2">
+                Full Name
               </label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#808088]" />
-                <input
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" size={20} />
+                <Input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  required
                   placeholder="John Doe"
-                  className="w-full bg-black border border-[#808088]/30 rounded-lg py-3 px-12 text-white placeholder-[#808088] focus:outline-none focus:border-[#DD0004] transition-colors duration-300"
+                  className="pl-11 bg-white/5 border-white/10 text-white"
+                  required
                 />
               </div>
             </div>
 
-            {/* Email Input */}
             <div>
-              <label className="block text-sm font-bold text-white mb-2">
-                EMAIL
+              <label className="block text-sm font-medium text-white mb-2">
+                Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#808088]" />
-                <input
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" size={20} />
+                <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  required
                   placeholder="your@email.com"
-                  className="w-full bg-black border border-[#808088]/30 rounded-lg py-3 px-12 text-white placeholder-[#808088] focus:outline-none focus:border-[#DD0004] transition-colors duration-300"
+                  className="pl-11 bg-white/5 border-white/10 text-white"
+                  required
                 />
               </div>
             </div>
 
-            {/* Password Input */}
             <div>
-              <label className="block text-sm font-bold text-white mb-2">
-                PASSWORD
+              <label className="block text-sm font-medium text-white mb-2">
+                Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#808088]" />
-                <input
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" size={20} />
+                <Input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
                   placeholder="••••••••"
-                  className="w-full bg-black border border-[#808088]/30 rounded-lg py-3 px-12 text-white placeholder-[#808088] focus:outline-none focus:border-[#DD0004] transition-colors duration-300"
+                  className="pl-11 pr-10 bg-white/5 border-white/10 text-white"
+                  required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#808088] hover:text-white transition-colors duration-300"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60 transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? '🙈' : '👁️'}
                 </button>
               </div>
+              
+              {/* ADD THIS - Password Requirements Checklist */}
+              {password && (
+                <div className="mt-3 space-y-2 p-3 bg-zinc-800/30 border border-white/5 rounded-lg">
+                  <p className="text-xs text-white/60 font-medium mb-2">Password must contain:</p>
+                  {passwordRequirements.map((req, index) => (
+                    <div key={index} className="flex items-center gap-2 text-xs">
+                      {req.test(password) ? (
+                        <span className="text-green-500">✓</span>
+                      ) : (
+                        <span className="text-red-500">✗</span>
+                      )}
+                      <span className={req.test(password) ? 'text-green-500' : 'text-white/50'}>
+                        {req.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Confirm Password Input */}
             <div>
-              <label className="block text-sm font-bold text-white mb-2">
-                CONFIRM PASSWORD
+              <label className="block text-sm font-medium text-white mb-2">
+                Confirm Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#808088]" />
-                <input
-                  type={showPassword ? "text" : "password"}
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" size={20} />
+                <Input
+                  type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
                   placeholder="••••••••"
-                  className="w-full bg-black border border-[#808088]/30 rounded-lg py-3 px-12 text-white placeholder-[#808088] focus:outline-none focus:border-[#DD0004] transition-colors duration-300"
+                  className="pl-11 bg-white/5 border-white/10 text-white"
+                  minLength={6}
+                  required
                 />
               </div>
+              {/* ADD THIS - Password Match Indicator */}
+              {confirmPassword && password !== confirmPassword && (
+                <p className="mt-2 text-xs text-red-500 flex items-center gap-1">
+                  <span>✗</span> Passwords do not match
+                </p>
+              )}
+              {confirmPassword && password === confirmPassword && (
+                <p className="mt-2 text-xs text-green-500 flex items-center gap-1">
+                  <span>✓</span> Passwords match
+                </p>
+              )}
             </div>
 
-            {/* Signup Button */}
-            <button
+            <Button
               type="submit"
-              disabled={isLoading}
-              className="w-full bg-[#DD0004] hover:bg-[#DD0004]/80 text-white font-bold py-3 rounded-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-[#DD0004] to-[#FF0000] hover:from-[#FF0000] hover:to-[#DD0004] text-white font-bold py-6"
             >
-              {isLoading ? "CREATING ACCOUNT..." : "SIGN UP"}
-            </button>
+              {loading ? 'Creating Account...' : 'Sign Up'}
+            </Button>
           </form>
 
-          {/* Divider */}
-          <div className="flex items-center my-6">
-            <div className="flex-1 border-t border-[#808088]/30"></div>
-            <span className="px-4 text-sm text-[#808088]">OR</span>
-            <div className="flex-1 border-t border-[#808088]/30"></div>
-          </div>
-
           {/* Login Link */}
-          <p className="text-center text-[#808088]">
-            Already have an account?{" "}
+          <p className="text-center text-white/60 mt-6">
+            Already have an account?{' '}
             <button
               onClick={onNavigateToLogin}
-              className="text-[#DD0004] hover:underline font-bold"
+              className="text-[#DD0004] hover:text-[#FF0000] font-semibold transition-colors"
             >
               Login
             </button>

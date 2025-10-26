@@ -13,7 +13,7 @@ export interface SubscriptionResponse {
 
 export const subscribeToNewsletter = async (email: string): Promise<SubscriptionResponse> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/subscribers/subscribe`, {
+    const response = await fetch(`${API_BASE_URL}/api/subscribers/subscribe`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
