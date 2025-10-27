@@ -5,6 +5,9 @@ import connectDB from './config/db.js';
 import subscriberRoutes from './routes/subscribers.js';
 import authRoutes from './routes/auth.js';
 import cartRoutes from './routes/cart.js';
+import paymentRoutes from './routes/payment.js';
+import otpRoutes from './routes/otp.js';
+import addressRoutes from './routes/address.js';
 
 // Load environment variables
 dotenv.config();
@@ -58,6 +61,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/subscribers', subscriberRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/payment', paymentRoutes);
+app.use('/api/otp', otpRoutes);
+app.use('/api/addresses', addressRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

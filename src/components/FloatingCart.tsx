@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ShoppingBag, X, Minus, Plus, Trash2 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,8 +9,31 @@ export const FloatingCart: React.FC = () => {
   const { items, totalItems, totalPrice, updateQuantity, removeFromCart, loading } = useCart();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [isCheckoutPage, setIsCheckoutPage] = useState(false);
 
-  if (!user) return null; // Only show if logged in
+  useEffect(() => {
+    const checkPath = () => {
+      const path = window.location.pathname;
+      setIsCheckoutPage(path === '/checkout');
+    };
+
+    checkPath();
+    
+    // Listen for navigation changes
+    window.addEventListener('popstate', checkPath);
+    const originalPushState = window.history.pushState;
+    window.history.pushState = function(...args) {
+      originalPushState.apply(window.history, args);
+      checkPath();
+    };
+
+    return () => {
+      window.removeEventListener('popstate', checkPath);
+      window.history.pushState = originalPushState;
+    };
+  }, []);
+
+  if (!user || isCheckoutPage) return null; // Only show if logged in
 
   return (
     <>
@@ -128,12 +151,14 @@ export const FloatingCart: React.FC = () => {
                 </div>
 
                 {/* Checkout Button */}
-                <Button
-                  className="w-full bg-[#DD0004] hover:bg-[#BB0003] text-white font-bold py-6 transition-all duration-300 hover:scale-105"
-                  disabled={loading}
+                <button
+                  onClick={() => {
+                    window.location.href = '/checkout'; // Or use your navigation prop
+                  }}
+                  className="w-full bg-[#DD0004] text-white py-3 rounded hover:bg-gray-800"
                 >
                   Proceed to Checkout
-                </Button>
+                </button>
               </div>
             )}
           </div>

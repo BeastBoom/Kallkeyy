@@ -18,27 +18,35 @@ exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Validate password strength
-    const passwordValidation = validatePassword(password);
-    if (!passwordValidation.valid) {
-      return res.status(400).json({ 
-        message: 'Password does not meet requirements',
-        errors: passwordValidation.errors
-      });
-    }
-
-    // Validate email using Mailboxlayer API
-    const emailValidation = await validateEmailWithAPI(email);
-    if (!emailValidation.valid) {
-      return res.status(400).json({ 
-        message: emailValidation.message 
-      });
-    }
-
-    // Check if user already exists
+    // ✅ STEP 1: Check if user already exists FIRST (fast database query)
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: 'Email already registered' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'This email is already registered. Please login instead.',
+        field: 'email'
+      });
+    }
+
+    // ✅ STEP 2: Validate password strength (fast local check)
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password does not meet requirements',
+        errors: passwordValidation.errors,
+        field: 'password'
+      });
+    }
+
+    // ✅ STEP 3: Validate email using Mailboxlayer API (expensive, do LAST)
+    const emailValidation = await validateEmailWithAPI(email);
+    if (!emailValidation.valid) {
+      return res.status(400).json({
+        success: false,
+        message: emailValidation.message,
+        field: 'email'
+      });
     }
 
     // Hash password
@@ -50,12 +58,14 @@ exports.register = async (req, res) => {
       email,
       password: hashedPassword
     });
+
     await user.save();
 
     // Generate token
     const token = generateToken(user._id);
 
     res.status(201).json({
+      success: true,
       message: 'User registered successfully',
       token,
       user: {
@@ -64,9 +74,13 @@ exports.register = async (req, res) => {
         email: user.email
       }
     });
+
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ message: 'Server error during registration' });
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error during registration' 
+    });
   }
 };
 
@@ -274,5 +288,47 @@ exports.getCurrentUser = async (req, res) => {
   } catch (error) {
     console.error('Get current user error:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Get user profile
+exports.getUserProfile = async (req, res) => {
+  try {
+    // ✅ FIX: Use req.userId instead of req.user._id (set by auth middleware)
+    const userId = req.userId;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized - No user ID found'
+      });
+    }
+
+    const user = await User.findById(userId).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        phoneVerified: user.phoneVerified,
+        addresses: user.addresses
+      }
+    });
+  } catch (error) {
+    console.error('Get user profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get user profile'
+    });
   }
 };

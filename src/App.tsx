@@ -18,6 +18,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
 import { FloatingCart } from "@/components/FloatingCart";
 import ForgotPasswordPage from '@/components/ForgotPasswordPage';
+import CheckoutPage from './components/CheckoutPage';
 
 const queryClient = new QueryClient();
 
@@ -30,7 +31,8 @@ type AppStage =
   | "contact"
   | "login"
   | "signup"
-  | "forgot-password";
+  | "forgot-password"
+  | "checkout";
 
 // Route configuration
 const ROUTES = {
@@ -44,6 +46,7 @@ const ROUTES = {
   TSHIRT2: "/product/tshirt2",
   LOGIN: "/login",
   SIGNUP: "/signup",
+  CHECKOUT: "/checkout",
 } as const;
 
 
@@ -63,6 +66,7 @@ const App = () => {
     if (path === ROUTES.CONTACT) return "contact";
     if (path === ROUTES.LOGIN) return "login";  
     if (path === ROUTES.SIGNUP) return "signup";
+    if (path === ROUTES.CHECKOUT) return "checkout";
     if (
       path === ROUTES.HOODIE ||
       path === ROUTES.TSHIRT ||
@@ -142,6 +146,11 @@ const App = () => {
     window.history.pushState({}, "", ROUTES.SIGNUP);
   };
 
+  const navigateToCheckout = () => {
+    setStage("checkout");
+    window.history.pushState({}, "", ROUTES.CHECKOUT);
+  };
+
   const navigateToProduct = (productId: string) => {
     setSelectedProduct(productId);
     setStage("product");
@@ -180,6 +189,10 @@ const App = () => {
       } - KALLKEYY`,
       about: "About Us - KALLKEYY",
       contact: "Contact - KALLKEYY",
+      checkout: "Checkout - KALLKEYY",
+      login: "Login - KALLKEYY",
+      signup: "Sign Up - KALLKEYY",
+      "forgot-password": "Reset Password - KALLKEYY",
     };
 
     document.title = titles[stage] || "KALLKEYY";
@@ -319,6 +332,10 @@ const App = () => {
                   Back to Home
                 </button>
               </div>
+            )}
+
+            {stage === "checkout" && (
+              <CheckoutPage onBackToShop={navigateToShop} />
             )}
           </TooltipProvider>
         </CartProvider> 

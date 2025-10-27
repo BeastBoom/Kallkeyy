@@ -48,8 +48,32 @@ async function validateEmailWithAPI(email) {
         return { valid: false, message: 'Email domain does not exist' };
       }
 
+      // ✅ ADD THIS - Most important check!
+      if (data.smtp_check === false) {
+        return { 
+          valid: false, 
+          message: 'This email address does not exist. Please check and try again.' 
+        };
+      }
+
       if (data.disposable) {
         return { valid: false, message: 'Disposable email addresses are not allowed' };
+      }
+
+      // ✅ ADD THIS - Optional but recommended
+      if (data.catch_all === true) {
+        return { 
+          valid: false, 
+          message: 'Cannot verify this email address. Please use a different one.' 
+        };
+      }
+
+      // ✅ ADD THIS - Quality score check (optional)
+      if (data.score !== undefined && data.score < 0.5) {
+        return { 
+          valid: false, 
+          message: 'Email quality score is too low. Please use a valid email address.' 
+        };
       }
 
       // Email is valid
