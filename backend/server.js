@@ -1,13 +1,15 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import connectDB from './config/db.js';
-import subscriberRoutes from './routes/subscribers.js';
-import authRoutes from './routes/auth.js';
-import cartRoutes from './routes/cart.js';
-import paymentRoutes from './routes/payment.js';
-import otpRoutes from './routes/otp.js';
-import addressRoutes from './routes/address.js';
+const express = require('express');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const connectDB = require('./config/db');
+const subscriberRoutes = require('./routes/subscribers');
+const authRoutes = require('./routes/auth');
+const cartRoutes = require('./routes/cart');
+const paymentRoutes = require('./routes/payment');
+const otpRoutes = require('./routes/otp');
+const addressRoutes = require('./routes/address');
+const productRoutes = require('./routes/products');
+const reviewRoutes = require('./routes/reviews');
 
 // Load environment variables
 dotenv.config();
@@ -64,6 +66,8 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/otp', otpRoutes);
 app.use('/api/addresses', addressRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

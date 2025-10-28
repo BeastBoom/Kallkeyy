@@ -249,6 +249,7 @@ const App = () => {
                 onNavigateToContact={navigateToContact}
                 onNavigateToLogin={navigateToLogin}
                 onNavigateToSignup={navigateToSignup}
+                onNavigateToProduct={navigateToProduct}
               />
             )}
 
@@ -260,6 +261,7 @@ const App = () => {
                 onNavigateToContact={navigateToContact}
                 onNavigateToLogin={navigateToLogin}
                 onNavigateToSignup={navigateToSignup}
+                onNavigateToProduct={navigateToProduct}
               />
             )}
 
@@ -271,6 +273,7 @@ const App = () => {
                 onNavigateToContact={navigateToContact}
                 onNavigateToLogin={navigateToLogin}
                 onNavigateToSignup={navigateToSignup}
+                onNavigateToProduct={navigateToProduct}
               />
             )}
 
@@ -282,6 +285,7 @@ const App = () => {
                 onNavigateToContact={navigateToContact}
                 onNavigateToLogin={navigateToLogin}
                 onNavigateToSignup={navigateToSignup}
+                onNavigateToProduct={navigateToProduct}
               />
             )}
 

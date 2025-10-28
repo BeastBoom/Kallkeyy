@@ -5,6 +5,7 @@ const { OAuth2Client } = require('google-auth-library');
 const { generateVerificationCode, sendVerificationEmail } = require('../utils/emailService');
 const { validateEmailWithAPI } = require('../utils/emailValidation');
 const { validatePassword } = require('../utils/passwordValidation');
+const { validateName } = require('../utils/nameValidation');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -17,6 +18,20 @@ const generateToken = (userId) => {
 exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
+
+    // Validate name format
+    const nameValidation = validateName(name);
+    if (!nameValidation.valid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid name format',
+        errors: nameValidation.errors,
+        field: 'name'
+      });
+    }
+
+
+
 
     // ✅ STEP 1: Check if user already exists FIRST (fast database query)
     const existingUser = await User.findOne({ email });

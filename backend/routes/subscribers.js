@@ -1,10 +1,10 @@
-import express from 'express';
-import { body } from 'express-validator';
-import {
+const express = require('express');
+const { body } = require ('express-validator');
+const {
   subscribeNewsletter,
   getAllSubscribers,
   unsubscribe,
-} from '../controllers/subscriberController.js';
+} = require('../controllers/subscriberController');
 
 const router = express.Router();
 
@@ -21,4 +21,4 @@ router.post('/subscribe', validateEmail, subscribeNewsletter);
 router.get('/', getAllSubscribers);
 router.delete('/unsubscribe/:email', unsubscribe);
 
-export default router;
+module.exports = router;

@@ -155,10 +155,13 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
 
   // Pincode auto-fetch with 2-second delay
   useEffect(() => {
+    // Clear any existing timeout
     if (pincodeDebounce) {
       clearTimeout(pincodeDebounce);
+      setPincodeDebounce(null);
     }
 
+    // Only fetch if pincode is exactly 6 digits
     if (newAddress.pincode.length === 6) {
       const timeout = setTimeout(() => {
         fetchLocationFromPincode(newAddress.pincode);
@@ -167,11 +170,13 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
       setPincodeDebounce(timeout);
     }
 
+    // Cleanup function
     return () => {
       if (pincodeDebounce) {
         clearTimeout(pincodeDebounce);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newAddress.pincode]);
 
   const fetchLocationFromPincode = async (pincode: string) => {
@@ -594,7 +599,17 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
                     type="text"
                     placeholder="Enter full name"
                     value={newAddress.fullName}
-                    onChange={(e) => setNewAddress({ ...newAddress, fullName: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const sanitized = value.replace(/[^A-Za-z\s.]/g, '');
+                      setNewAddress({ ...newAddress, fullName: sanitized });
+                    }}
+                    onKeyPress={(e) => {
+                      if (!/[A-Za-z\s.]/.test(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
+                    required
                     className="form-control"
                     style={{
                       background: 'var(--color-surface)',
@@ -714,7 +729,17 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
                   <textarea
                     placeholder="House/Flat No., Street, Landmark, etc."
                     value={newAddress.address}
-                    onChange={(e) => setNewAddress({ ...newAddress, address: e.target.value })}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const sanitized = value.replace(/[^A-Za-z0-9\s.,-]/g, '');
+                      setNewAddress({ ...newAddress, address: sanitized });
+                    }}
+                    onKeyPress={(e) => {
+                      if (!/[A-Za-z0-9\s.,-]/.test(e.key)){
+                        e.preventDefault();
+                      }
+                    }}
+                    required
                     className="form-control"
                     style={{
                       background: 'var(--color-surface)',

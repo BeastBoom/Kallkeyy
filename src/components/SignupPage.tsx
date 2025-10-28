@@ -180,11 +180,20 @@ export default function SignupPage({ onNavigateToHome, onNavigateToLogin }: Sign
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" size={20} />
                 <Input
+                  id="name"
                   type="text"
+                  placeholder="Full Name"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="John Doe"
-                  className="pl-11 bg-white/5 border-white/10 text-white"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const sanitized = value.replace(/[^A-Za-z\s.]/g, '');
+                    setName(sanitized);
+                  }}
+                  onKeyPress={(e) => {
+                    if (!/[A-Za-z\s.]/.test(e.key)) {
+                      e.preventDefault();
+                    }
+                  }}
                   required
                 />
               </div>

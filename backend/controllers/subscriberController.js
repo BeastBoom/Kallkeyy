@@ -1,10 +1,10 @@
-import Subscriber from '../models/Subscriber.js';
-import { validationResult } from 'express-validator';
+const Subscriber = require('../models/Subscriber.js');
+const { validationResult } = require('express-validator');
 
 // @desc    Subscribe to newsletter
 // @route   POST /api/subscribers
 // @access  Public
-export const subscribeNewsletter = async (req, res) => {
+const subscribeNewsletter = async (req, res) => {
   try {
     // Check for validation errors
     const errors = validationResult(req);
@@ -61,7 +61,7 @@ export const subscribeNewsletter = async (req, res) => {
 // @desc    Get all subscribers (for admin use)
 // @route   GET /api/subscribers
 // @access  Public (should be protected in production)
-export const getAllSubscribers = async (req, res) => {
+const getAllSubscribers = async (req, res) => {
   try {
     const subscribers = await Subscriber.find({ isActive: true })
       .sort({ subscribedAt: -1 })
@@ -85,7 +85,7 @@ export const getAllSubscribers = async (req, res) => {
 // @desc    Unsubscribe from newsletter
 // @route   DELETE /api/subscribers/:email
 // @access  Public
-export const unsubscribe = async (req, res) => {
+const unsubscribe = async (req, res) => {
   try {
     const { email } = req.params;
 
@@ -113,4 +113,10 @@ export const unsubscribe = async (req, res) => {
       error: error.message,
     });
   }
+};
+
+module.exports = {
+  subscribeNewsletter,
+  getAllSubscribers,
+  unsubscribe,
 };
