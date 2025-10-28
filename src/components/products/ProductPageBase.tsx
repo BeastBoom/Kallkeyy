@@ -18,7 +18,7 @@ import {
   TrendingUp,
   Menu,
   X,
-  LogOut
+  LogOut,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCart } from "../../contexts/CartContext";
@@ -501,12 +501,12 @@ export default function ProductPageBase({
     toast({
       variant: "destructive",
       title: "Page Under Construction 🚧",
-      description: `${page} page is coming soon!`
-    })
-  }
+      description: `${page} page is coming soon!`,
+    });
+  };
 
   const formatDisplayName = (fullName: string): string => {
-    if (!fullName) return '';
+    if (!fullName) return "";
     const nameParts = fullName.trim().split(/\s+/);
     const firstName = nameParts[0];
     if (firstName.length <= 10) {
@@ -514,13 +514,12 @@ export default function ProductPageBase({
     }
     const initials = nameParts
       .slice(0, 3)
-      .map(part => part[0])
-      .join('')
+      .map((part) => part[0])
+      .join("")
       .toUpperCase();
-    
+
     return initials;
   };
-
 
   // Calculate days ago from date
   const getDaysAgo = (dateString: string): number => {
@@ -604,12 +603,15 @@ export default function ProductPageBase({
                 >
                   CONTACT
                 </button>
-                
+
                 {/* AUTH BUTTONS - Desktop */}
                 {user ? (
                   <>
                     <span className="text-white px-2 lg:px-3 py-2 flex items-center text-xs lg:text-sm whitespace-nowrap">
-                      HEY, <span className="text-[#DD0004] ml-1">{formatDisplayName(user.name)}</span>
+                      HEY,{" "}
+                      <span className="text-[#DD0004] ml-1">
+                        {formatDisplayName(user.name)}
+                      </span>
                     </span>
                     <button
                       onClick={logout}
@@ -697,13 +699,16 @@ export default function ProductPageBase({
               >
                 CONTACT
               </button>
-              
+
               {/* AUTH SECTION - Mobile */}
               <div className="border-t border-white/10 pt-3 mt-3">
                 {user ? (
                   <>
                     <div className="text-white px-4 py-2 mb-2 text-sm">
-                      HEY, <span className="text-[#DD0004]">{formatDisplayName(user.name)}</span>
+                      HEY,{" "}
+                      <span className="text-[#DD0004]">
+                        {formatDisplayName(user.name)}
+                      </span>
                     </div>
                     <button
                       onClick={() => {
@@ -1145,84 +1150,6 @@ export default function ProductPageBase({
                       ))}
                   </div>
 
-                  {/* Review Form */}
-                  {showReviewForm && (
-                    <form
-                      onSubmit={submitReview}
-                      className="space-y-4 p-4 bg-[#28282B]/50 rounded-lg border border-white/10"
-                    >
-                      {!user && (
-                        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-400">
-                          Please login to write a review
-                        </div>
-                      )}
-
-                      <div>
-                        <label className="text-sm font-semibold text-[#CCCCCC] mb-2 block">
-                          Rating <span className="text-[#DD0004]">*</span>
-                        </label>
-                        <div className="flex gap-2">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <button
-                              key={star}
-                              type="button"
-                              onClick={() => setUserRating(star)}
-                              className="p-1 hover:scale-110 transition-transform duration-300"
-                              disabled={!user}
-                            >
-                              <Star
-                                className={`w-6 h-6 ${
-                                  star <= userRating
-                                    ? "fill-[#DD0004] text-[#DD0004]"
-                                    : "text-[#808088]"
-                                }`}
-                              />
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="text-sm font-semibold text-[#CCCCCC] mb-2 block">
-                          Your Review{" "}
-                          <span className="text-[#808088]">(Optional)</span>
-                        </label>
-                        <textarea
-                          value={userReview}
-                          onChange={(e) => setUserReview(e.target.value)}
-                          placeholder={`Share your experience with the ${product.name.toLowerCase()}...`}
-                          rows={4}
-                          disabled={!user}
-                          className="w-full bg-[#1C1C21] border border-[#808088]/30 rounded-lg p-3 text-white focus:border-[#DD0004] focus:ring-2 focus:ring-[#DD0004]/20 transition-all duration-300 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
-                        />
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Button
-                          type="submit"
-                          disabled={
-                            !user || userRating === 0 || isSubmittingReview
-                          }
-                          className="flex-1 bg-[#DD0004] hover:bg-[#DD0004]/90 text-white font-bold transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {isSubmittingReview
-                            ? "Submitting..."
-                            : isEditingReview
-                            ? "Update Review"
-                            : "Submit Review"}
-                        </Button>
-                        <Button
-                          type="button"
-                          onClick={handleCancelEdit}
-                          variant="outline"
-                          className="border-white/20 hover:border-[#DD0004] transition-all duration-300"
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </form>
-                  )}
-
                   {/* Display Reviews */}
                   <div className="space-y-4">
                     {(() => {
@@ -1326,6 +1253,82 @@ export default function ProductPageBase({
                     </div>
                   )}
                 </>
+              )}
+
+              {/* Review Form */}
+              {showReviewForm && (
+                <form
+                  onSubmit={submitReview}
+                  className="space-y-4 p-4 bg-[#28282B]/50 rounded-lg border border-white/10"
+                >
+                  {!user && (
+                    <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-400">
+                      Please login to write a review
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="text-sm font-semibold text-[#CCCCCC] mb-2 block">
+                      Rating <span className="text-[#DD0004]">*</span>
+                    </label>
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setUserRating(star)}
+                          className="p-1 hover:scale-110 transition-transform duration-300"
+                          disabled={!user}
+                        >
+                          <Star
+                            className={`w-6 h-6 ${
+                              star <= userRating
+                                ? "fill-[#DD0004] text-[#DD0004]"
+                                : "text-[#808088]"
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-semibold text-[#CCCCCC] mb-2 block">
+                      Your Review{" "}
+                      <span className="text-[#808088]">(Optional)</span>
+                    </label>
+                    <textarea
+                      value={userReview}
+                      onChange={(e) => setUserReview(e.target.value)}
+                      placeholder={`Share your experience with the ${product.name.toLowerCase()}...`}
+                      rows={4}
+                      disabled={!user}
+                      className="w-full bg-[#1C1C21] border border-[#808088]/30 rounded-lg p-3 text-white focus:border-[#DD0004] focus:ring-2 focus:ring-[#DD0004]/20 transition-all duration-300 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      type="submit"
+                      disabled={!user || userRating === 0 || isSubmittingReview}
+                      className="flex-1 bg-[#DD0004] hover:bg-[#DD0004]/90 text-white font-bold transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSubmittingReview
+                        ? "Submitting..."
+                        : isEditingReview
+                        ? "Update Review"
+                        : "Submit Review"}
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={handleCancelEdit}
+                      variant="outline"
+                      className="border-white/20 hover:border-[#DD0004] transition-all duration-300"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
               )}
             </div>
           </div>
