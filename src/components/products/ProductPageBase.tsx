@@ -165,7 +165,7 @@ export default function ProductPageBase({
   const [activeIdx, setActiveIdx] = useState(0);
   const [productStock, setProductStock] = useState({
     inStock: true,
-    stock: { M: 10, L: 10, XL: 10, XXL: 10 },
+    stock: { M: 0, L: 0, XL: 0, XXL: 0 },
   });
   const [isLoadingStock, setIsLoadingStock] = useState(true);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -204,6 +204,7 @@ export default function ProductPageBase({
           }/api/products/${productId}`,
           {
             method: "GET",
+            credentials: 'include',
             headers: {
               "Content-Type": "application/json",
             },
@@ -221,10 +222,10 @@ export default function ProductPageBase({
         }
       } catch (error) {
         console.error("Failed to fetch product stock:", error);
-        // Default to in stock if API fails
+        // Default to out of stock if API fails
         setProductStock({
-          inStock: true,
-          stock: { M: 10, L: 10, XL: 10, XXL: 10 },
+          inStock: false,
+          stock: { M: 0, L: 0, XL: 0, XXL: 0 },
         });
       } finally {
         setIsLoadingStock(false);
@@ -245,6 +246,7 @@ export default function ProductPageBase({
           }/api/reviews/${productId}`,
           {
             method: "GET",
+            credentials: 'include',
             headers: {
               "Content-Type": "application/json",
             },
@@ -441,7 +443,26 @@ export default function ProductPageBase({
   };
 
   const handleSizeSelect = (size: string) => {
-    setSelectedSize(size);
+    // Check if size is in stock
+    const stockQty = productStock.stock[size as keyof typeof productStock.stock] || 0;
+    if (stockQty > 0) {
+      setSelectedSize(size);
+    }
+  };
+
+  // Helper function to check if a size has stock
+  const isSizeInStock = (size: string): boolean => {
+    return (productStock.stock[size as keyof typeof productStock.stock] || 0) > 0;
+  };
+
+  // Helper function to check if all sizes are out of stock
+  const isAllSizesOutOfStock = (): boolean => {
+    return Object.values(productStock.stock).every(qty => qty === 0);
+  };
+
+  // Get stock quantity for selected size
+  const getStockQuantity = (size: string): number => {
+    return productStock.stock[size as keyof typeof productStock.stock] || 0;
   };
 
   const handleShare = async () => {
@@ -498,14 +519,15 @@ export default function ProductPageBase({
 
       toast({
         title: "Added to Cart! 🎉",
-        description: `${product.name} - Size ${selectedSize} added successfully`,
+        description: `${product.name} - Size ${selectedSize}`,
       });
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || error?.message || "Please try again";
+      
       toast({
         variant: "destructive",
         title: "Failed to add to cart",
-        description:
-          error instanceof Error ? error.message : "Please try again",
+        description: errorMessage,
       });
     }
   };
@@ -865,15 +887,15 @@ export default function ProductPageBase({
               <div className="flex flex-wrap gap-3">
                 {isLoadingStock ? (
                   <Badge className="bg-gray-500 text-white px-4 py-1.5 rounded-full">
-                    Checking...
+                    Checking Stock...
                   </Badge>
-                ) : productStock.inStock ? (
-                  <Badge className="bg-green-500 text-white px-4 py-1.5 rounded-full">
-                    In Stock
+                ) : isAllSizesOutOfStock() ? (
+                  <Badge className="bg-red-500 text-white px-4 py-1.5 rounded-full font-bold">
+                    OUT OF STOCK
                   </Badge>
                 ) : (
-                  <Badge className="bg-red-500 text-white px-4 py-1.5 rounded-full">
-                    Out of Stock
+                  <Badge className="bg-green-500 text-white px-4 py-1.5 rounded-full">
+                    In Stock
                   </Badge>
                 )}
                 <Badge className="bg-white/10 text-white border border-white/20 px-3 py-1 text-xs font-bold">
@@ -1028,32 +1050,55 @@ export default function ProductPageBase({
                 </div>
               </div>
 
-              {/* Size buttons */}
+              {/* Size buttons with minimal stock indicators */}
               <div className="grid grid-cols-4 gap-3">
-                {Object.keys(SIZE_CHART).map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => handleSizeSelect(size)}
-                    className={`py-3 px-4 border rounded-lg font-bold transition-all duration-300 hover:scale-105 ${
-                      selectedSize === size
-                        ? "border-[#b90e0a] bg-[#b90e0a] text-white shadow-lg shadow-[#b90e0a]/20"
-                        : "border-[#808088]/30 hover:border-white hover:shadow-lg"
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
+                {Object.keys(SIZE_CHART).map((size) => {
+                  const isInStock = isSizeInStock(size);
+                  const isSelected = selectedSize === size;
+                  const stockQty = getStockQuantity(size);
+                  
+                  return (
+                    <div key={size} className="relative pb-4">
+                      <button
+                        onClick={() => handleSizeSelect(size)}
+                        disabled={!isInStock}
+                        className={`w-full py-3 px-4 border rounded-lg font-bold transition-all duration-300 relative overflow-hidden ${
+                          !isInStock
+                            ? "border-gray-600 bg-gray-800 text-gray-500 cursor-not-allowed opacity-50"
+                            : isSelected
+                            ? "border-[#b90e0a] bg-[#b90e0a] text-white shadow-lg shadow-[#b90e0a]/20 hover:scale-105"
+                            : "border-[#808088]/30 hover:border-white hover:shadow-lg hover:scale-105"
+                        }`}
+                      >
+                        {size}
+                        {!isInStock && (
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="w-[140%] h-[1.5px] bg-red-500 rotate-45" />
+                          </div>
+                        )}
+                      </button>
+                      {/* Only show stock when it's critically low (≤5) */}
+                      {isInStock && !isLoadingStock && stockQty <= 5 && (
+                        <div className="absolute -bottom-5 left-0 right-0 text-center">
+                          <span className="text-[10px] text-orange-400 font-bold animate-pulse">
+                            Only {stockQty} left!
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
             {/* Action Buttons */}
             <div className="space-y-4">
-              {!productStock.inStock ? (
+              {isAllSizesOutOfStock() ? (
                 <Button
                   disabled
                   className="w-full bg-gray-400 text-white cursor-not-allowed opacity-60 py-4 font-bold"
                 >
-                  CURRENTLY UNAVAILABLE
+                  OUT OF STOCK
                 </Button>
               ) : (
                 <Button
@@ -1062,7 +1107,12 @@ export default function ProductPageBase({
                   className="w-full bg-gradient-to-r from-[#b90e0a] to-[#FF0000] hover:from-[#FF0000] hover:to-[#b90e0a] text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] py-4"
                 >
                   <ShoppingBag className="mr-2 h-4 w-4" />
-                  {isLoadingStock ? "CHECKING STOCK..." : "ADD TO CART"}
+                  {isLoadingStock 
+                    ? "CHECKING STOCK..." 
+                    : !selectedSize 
+                    ? "SELECT A SIZE" 
+                    : "ADD TO CART"
+                  }
                 </Button>
               )}
 

@@ -19,6 +19,7 @@ export default function LoginPage({
 }: LoginPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const { login, googleLogin } = useAuth();
   const { toast } = useToast();
@@ -43,10 +44,10 @@ export default function LoginPage({
     setLoading(true);
 
     try {
-      await login(email, password);
+      await login(email, password, rememberMe);
       toast({
         title: 'Welcome back!',
-        description: 'Login successful'
+        description: rememberMe ? 'Login successful - You will stay signed in for a week' : 'Login successful'
       });
       onNavigateToHome();
     } catch (error) {
@@ -171,8 +172,19 @@ export default function LoginPage({
               </div>
             </div>
 
-            {/* Forgot Password Link */}
-            <div className="text-right">
+            {/* Remember Me and Forgot Password */}
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded border-white/20 bg-white/5 text-[#b90e0a] focus:ring-[#b90e0a] focus:ring-offset-0 cursor-pointer"
+                />
+                <span className="text-sm text-white/70 group-hover:text-white transition-colors">
+                  Remember me for 7 days
+                </span>
+              </label>
               <button
                 type="button"
                 onClick={onNavigateToForgotPassword}

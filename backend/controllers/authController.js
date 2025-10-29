@@ -10,8 +10,22 @@ const { validateName } = require('../utils/nameValidation');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Generate JWT token
-const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+const generateToken = (userId, rememberMe = false) => {
+  const expiresIn = rememberMe ? '7d' : '24h'; // 7 days if remember me, else 24 hours
+  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn });
+};
+
+// Set auth cookie
+const setAuthCookie = (res, token, rememberMe = false) => {
+  const maxAge = rememberMe ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000; // 7 days or 24 hours
+  
+  res.cookie('auth_token', token, {
+    httpOnly: true, // Prevents JavaScript access (XSS protection)
+    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+    sameSite: 'lax', // CSRF protection
+    maxAge: maxAge,
+    path: '/'
+  });
 };
 
 // Register user
@@ -76,8 +90,11 @@ exports.register = async (req, res) => {
 
     await user.save();
 
-    // Generate token
-    const token = generateToken(user._id);
+    // Generate token (default remember me for registration)
+    const token = generateToken(user._id, true);
+
+    // Set HTTP-only cookie
+    setAuthCookie(res, token, true);
 
     res.status(201).json({
       success: true,
@@ -102,7 +119,7 @@ exports.register = async (req, res) => {
 // Login user
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, rememberMe } = req.body;
 
     // Find user
     const user = await User.findOne({ email });
@@ -121,8 +138,11 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
-    // Generate token
-    const token = generateToken(user._id);
+    // Generate token with appropriate expiration
+    const token = generateToken(user._id, rememberMe);
+
+    // Set HTTP-only cookie
+    setAuthCookie(res, token, rememberMe);
 
     res.json({
       message: 'Login successful',
@@ -131,7 +151,8 @@ exports.login = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email
-      }
+      },
+      rememberMe: rememberMe || false
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -172,8 +193,11 @@ exports.googleAuth = async (req, res) => {
       await user.save();
     }
 
-    // Generate token
-    const token = generateToken(user._id);
+    // Generate token (default remember me for Google login)
+    const token = generateToken(user._id, true);
+
+    // Set HTTP-only cookie
+    setAuthCookie(res, token, true);
 
     res.json({
       message: 'Google authentication successful',
@@ -344,6 +368,82 @@ exports.getUserProfile = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to get user profile'
+    });
+  }
+};
+
+// Logout - Clear cookie
+exports.logout = async (req, res) => {
+  try {
+    // Clear the auth cookie
+    res.clearCookie('auth_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/'
+    });
+
+    res.json({
+      success: true,
+      message: 'Logged out successfully'
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to logout'
+    });
+  }
+};
+
+// Verify cookie token
+exports.verifyCookie = async (req, res) => {
+  try {
+    const token = req.cookies.auth_token;
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'No authentication cookie found'
+      });
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId).select('-password');
+
+    if (!user) {
+      // Clear invalid cookie
+      res.clearCookie('auth_token');
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    // Clear invalid cookie
+    res.clearCookie('auth_token');
+    
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Session expired'
+      });
+    }
+
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid authentication'
     });
   }
 };

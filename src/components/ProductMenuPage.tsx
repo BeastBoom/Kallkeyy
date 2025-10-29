@@ -59,10 +59,10 @@ interface FeatureCard {
 }
 
 const heroSlides: HeroSlide[] = [
-  // Slide 1: Astitva Act I Collection
+  // Slide 1: Astitva Act I Collection - SCROLLS TO PRODUCTS
   {
     id: "collection",
-    image: "/KaalDrishta-1.png", // Main collection image
+    image: "/KaalDrishta-1.png",
     title: "ASTITVA ACT-I",
     subtitle: "The First Chapter of Existence",
     description:
@@ -71,11 +71,11 @@ const heroSlides: HeroSlide[] = [
     price: "STARTING ₹999",
     isUpcoming: false,
     buttonText: "EXPLORE COLLECTION",
-    buttonAction: "scroll", // Scrolls to products section
+    buttonAction: "scroll",
   },
-  // Slide 2: KaalDrishta Flagship Hoodie
+  // Slide 2: KaalDrishta Flagship Hoodie - NAVIGATES TO PRODUCT PAGE
   {
-    id: "hoodie",
+    id: "kaaldrishta",
     image: "/KaalDrishta-1.png",
     title: "KAAL-DRISHTA",
     subtitle: "The Blazing Eye That Never Blinks",
@@ -85,25 +85,25 @@ const heroSlides: HeroSlide[] = [
     price: "₹2,199",
     isUpcoming: false,
     buttonText: "SHOP NOW",
-    buttonAction: "product", // Redirects to hoodie product page
+    buttonAction: "product",
   },
-  // Slide 3: 50% OFF SALE (Catchy)
+  // Slide 3: 50% OFF SALE - SCROLLS TO PRODUCTS (SUPER CATCHY!)
   {
     id: "sale",
-    image: "/Antahayugasya-1.png", // Use a product image as background
-    title: "LAUNCH SALE",
-    subtitle: "50% OFF on All Products",
+    image: "/Antahayugasya-1.png",
+    title: "🔥 LAUNCH SALE 🔥",
+    subtitle: "GET 50% OFF ON EVERYTHING!",
     description:
-      "🔥 Biggest sale of the season! Grab your favorite streetwear at HALF THE PRICE. Limited time only. First 100 orders get FREE SHIPPING! 🔥",
-    tag: "SALE",
-    price: "SAVE BIG",
+      "💥 BIGGEST SALE EVER! Hoodies from ₹1,099 | T-Shirts from ₹499! Limited Time Only. First 100 Orders Get FREE SHIPPING! Don't Miss Out! 💥",
+    tag: "LIVE NOW",
+    price: "UP TO 50% OFF",
     isUpcoming: false,
-    buttonText: "SHOP SALE NOW",
-    buttonAction: "scroll", // Scrolls to products section
+    buttonText: "GRAB THE DEALS NOW",
+    buttonAction: "scroll",
   },
-  // Slide 4: Smara Jivitam Signature T-Shirt
+  // Slide 4: Smara-Jivitam Signature T-Shirt - NAVIGATES TO PRODUCT PAGE
   {
-    id: "tshirt",
+    id: "smarajivitam",
     image: "/Smarajivitam-1.png",
     title: "SMARA-JIVITAM",
     subtitle: "The Signature Tee of KALLKEYY",
@@ -113,7 +113,7 @@ const heroSlides: HeroSlide[] = [
     price: "₹999",
     isUpcoming: false,
     buttonText: "GET YOURS NOW",
-    buttonAction: "product", // Redirects to tshirt product page
+    buttonAction: "product",
   },
 ];
 
@@ -138,7 +138,7 @@ const instagramReels: InstagramReel[] = [
 
 const products: Product[] = [
   {
-    id: "hoodie",
+    id: "kaaldrishta",
     name: "KAAL-DRISHTA",
     image: "/KaalDrishta-1.png",
     price: "₹2,199",
@@ -154,7 +154,7 @@ const products: Product[] = [
     category: "Hoodies",
   },
   {
-    id: "hoodie2",
+    id: "antahayugaysa",
     name: "ANTAHA-YUGAYSA",
     image: "/Antahayugasya-1.png",
     price: "₹2,199",
@@ -170,7 +170,7 @@ const products: Product[] = [
     category: "Hoodies",
   },
   {
-    id: "tshirt",
+    id: "smarajivitam",
     name: "SMARA-JIVITAM",
     image: "/Smarajivitam-1.png",
     price: "₹999",
@@ -186,7 +186,7 @@ const products: Product[] = [
     category: "T-Shirts",
   },
   {
-    id: "tshirt2",
+    id: "mrityobaddha",
     name: "MRITYO-BADDHA",
     image: "/Mrityobaddha-1.png",
     price: "₹999",
@@ -632,8 +632,8 @@ export default function ProductMenuPage({
             key={slide.id}
             className={`absolute inset-0 transition-all duration-1000 ${
               index === currentSlide
-                ? "opacity-100 scale-100"
-                : "opacity-0 scale-105 pointer-events-none"
+                ? "opacity-100 scale-100 z-10"
+                : "opacity-0 scale-105 pointer-events-none z-0"
             }`}
           >
             {/* Background Image */}
@@ -684,28 +684,17 @@ export default function ProductMenuPage({
                     </div>
                   )}
 
-                  {/* Dynamic Button - ENABLE POINTER EVENTS with proper routing */}
+                  {/* Dynamic Button - PROPERLY CONFIGURED FOR EACH SLIDE */}
                   <div className="flex gap-3 sm:gap-4 animate-slide-up animation-delay-800 pointer-events-auto pt-2">
                     <Button
-                      onClick={() => {
-                        console.log(
-                          "Slide button clicked:",
-                          slide.id,
-                          slide.buttonAction
-                        );
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
                         if (slide.buttonAction === "product") {
-                          // Navigate to specific product based on slide id
-                          if (slide.id === "hoodie") {
-                            onSelectProduct("hoodie");
-                          } else if (slide.id === "tshirt") {
-                            onSelectProduct("tshirt");
-                          } else {
-                            onSelectProduct(slide.id);
-                          }
+                          onSelectProduct(slide.id);
                         } else if (slide.buttonAction === "scroll") {
-                          // Scroll to products section
-                          const productsSection =
-                            document.querySelector("#products-section");
+                          const productsSection = document.querySelector("#products-section");
                           if (productsSection) {
                             productsSection.scrollIntoView({
                               behavior: "smooth",
@@ -723,50 +712,52 @@ export default function ProductMenuPage({
                 </div>
               </div>
             </div>
-
-            {/* Slide Indicators - WITH Z-INDEX */}
-            <div className="absolute bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 sm:gap-3 z-20">
-              {heroSlides.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => {
-                    setCurrentSlide(idx);
-                  }}
-                  aria-label={`Go to slide ${idx + 1}`}
-                  className={`h-1.5 sm:h-2 rounded-full transition-all duration-500 cursor-pointer ${
-                    idx === currentSlide
-                      ? "w-8 sm:w-12 bg-[#b90e0a] shadow-lg shadow-[#b90e0a]/50"
-                      : "w-1.5 sm:w-2 bg-white/30 hover:bg-white/50"
-                  }`}
-                />
-              ))}
-            </div>
-
-            {/* Navigation Arrows - WITH Z-INDEX */}
-            <button
-              onClick={() => {
-                setCurrentSlide((prev) =>
-                  prev === 0 ? heroSlides.length - 1 : prev - 1
-                );
-              }}
-              aria-label="Previous slide"
-              className="absolute left-2 sm:left-4 md:left-8 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-[#b90e0a] p-2 sm:p-3 rounded-full transition-all duration-300 hover:scale-110 z-20 cursor-pointer backdrop-blur-sm"
-            >
-              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
-            <button
-              onClick={() => {
-                setCurrentSlide((prev) =>
-                  prev === heroSlides.length - 1 ? 0 : prev + 1
-                );
-              }}
-              aria-label="Next slide"
-              className="absolute right-2 sm:right-4 md:right-8 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-[#b90e0a] p-2 sm:p-3 rounded-full transition-all duration-300 hover:scale-110 z-20 cursor-pointer backdrop-blur-sm"
-            >
-              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </button>
           </div>
         ))}
+
+        {/* Slide Indicators - MOVED OUTSIDE THE LOOP */}
+        <div className="absolute bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 sm:gap-3 z-30 pointer-events-auto">
+          {heroSlides.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setCurrentSlide(idx);
+              }}
+              aria-label={`Go to slide ${idx + 1}`}
+              className={`h-1.5 sm:h-2 rounded-full transition-all duration-500 cursor-pointer ${
+                idx === currentSlide
+                  ? "w-8 sm:w-12 bg-[#b90e0a] shadow-lg shadow-[#b90e0a]/50"
+                  : "w-1.5 sm:w-2 bg-white/30 hover:bg-white/50"
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Navigation Arrows - MOVED OUTSIDE THE LOOP */}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setCurrentSlide(currentSlide === 0 ? heroSlides.length - 1 : currentSlide - 1);
+          }}
+          aria-label="Previous slide"
+          className="absolute left-2 sm:left-4 md:left-8 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-[#b90e0a] p-2 sm:p-3 rounded-full transition-all duration-300 hover:scale-110 z-30 cursor-pointer backdrop-blur-sm pointer-events-auto"
+        >
+          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+        </button>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setCurrentSlide(currentSlide === heroSlides.length - 1 ? 0 : currentSlide + 1);
+          }}
+          aria-label="Next slide"
+          className="absolute right-2 sm:right-4 md:right-8 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-[#b90e0a] p-2 sm:p-3 rounded-full transition-all duration-300 hover:scale-110 z-30 cursor-pointer backdrop-blur-sm pointer-events-auto"
+        >
+          <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+        </button>
       </div>
 
       {/* HORIZONTAL SCROLLING MARQUEE */}

@@ -51,34 +51,25 @@ async function checkMXRecords(domain) {
     const addresses = await dns.resolveMx(domain);
     return addresses && addresses.length > 0;
   } catch (error) {
-    console.log(`MX record check failed for ${domain}:`, error.message);
     return false;
   }
 }
 
 // Validate email using Mailboxlayer API
 async function validateEmailWithAPI(email) {
-  console.log(`\n=== Starting email validation for: ${email} ===`);
-
   // Step 1: Basic email format check (STRICT)
   if (!basicEmailValidation(email)) {
-    console.log("❌ Failed basic email format validation");
     return {
       valid: false,
       message: "Invalid email format. Please enter a valid email address.",
     };
   }
-  console.log("✓ Passed basic email format validation");
 
   // Extract domain for MX check
   const domain = email.split("@")[1];
 
   // Step 2: If no API keys configured, use DNS MX record check as fallback
   if (MAILBOXLAYER_API_KEYS.length === 0) {
-    console.warn(
-      "⚠ No Mailboxlayer API keys configured, using DNS MX validation"
-    );
-
     const mxValid = await checkMXRecords(domain);
     if (!mxValid) {
       return {
@@ -87,7 +78,6 @@ async function validateEmailWithAPI(email) {
       };
     }
 
-    console.log("✓ Passed DNS MX validation (no API keys)");
     return { valid: true, message: "Email validated (DNS check)" };
   }
 
@@ -96,11 +86,6 @@ async function validateEmailWithAPI(email) {
 
   for (let attempt = 0; attempt < MAILBOXLAYER_API_KEYS.length; attempt++) {
     const apiKey = MAILBOXLAYER_API_KEYS[currentKeyIndex];
-    console.log(
-      `\n→ Trying API key ${currentKeyIndex + 1}/${
-        MAILBOXLAYER_API_KEYS.length
-      }`
-    );
 
     try {
       const response = await axios.get("https://apilayer.net/api/check", {
@@ -114,16 +99,13 @@ async function validateEmailWithAPI(email) {
       });
 
       const data = response.data;
-      console.log("Mailboxlayer API response:", JSON.stringify(data, null, 2));
 
       // Check if API returned an error
       if (data.error) {
         const errorCode = data.error.code;
-        console.log(`⚠ API error: ${errorCode} - ${data.error.info}`);
 
         // API key exhausted (code 104) - try next key
         if (errorCode === 104) {
-          console.log(`→ API key exhausted, trying next key...`);
           currentKeyIndex =
             (currentKeyIndex + 1) % MAILBOXLAYER_API_KEYS.length;
           lastApiError = `API key exhausted`;
@@ -139,7 +121,6 @@ async function validateEmailWithAPI(email) {
         }
 
         // Other API errors - try next key
-        console.log(`→ API error, trying next key...`);
         currentKeyIndex = (currentKeyIndex + 1) % MAILBOXLAYER_API_KEYS.length;
         lastApiError = data.error.info;
         continue;
@@ -149,64 +130,36 @@ async function validateEmailWithAPI(email) {
 
       // Check 1: Format validity (STRICT)
       if (data.format_valid === false) {
-        console.log("❌ API says format is invalid");
         return {
           valid: false,
           message: "Invalid email format. Please check your email address.",
         };
       }
-      console.log("✓ Format valid");
 
       // Check 2: MX records (STRICT)
       if (data.mx_found === false) {
-        console.log("❌ MX records not found");
         return {
           valid: false,
           message: "Email domain does not exist or cannot receive emails.",
         };
       }
-      console.log("✓ MX records found");
 
       // Check 3: Disposable email (STRICT)
       if (data.disposable === true) {
-        console.log("❌ Disposable email detected");
         return {
           valid: false,
           message:
             "Disposable email addresses are not allowed. Please use a permanent email.",
         };
       }
-      console.log("✓ Not disposable");
 
       // Check 4: SMTP check (STRICT - but allow if catch_all is true)
       if (data.smtp_check === false && data.catch_all !== true) {
-        console.log("❌ SMTP check failed and not a catch-all domain");
         return {
           valid: false,
           message: "Email address does not exist. Please check your email.",
         };
       }
-      console.log(
-        `✓ SMTP check passed (smtp: ${data.smtp_check}, catch_all: ${data.catch_all})`
-      );
-
-      // Check 5: Role-based emails (WARNING only, not blocking)
-      if (data.role === true) {
-        console.log("⚠ Role-based email (e.g., admin@, support@) - allowing");
-      }
-
-      // Check 6: Free email provider (INFO only, not blocking)
-      if (data.free === true) {
-        console.log("ℹ Free email provider detected - allowing");
-      }
-
-      // All checks passed!
-      console.log(`\n✅ Email ${email} validated successfully!`);
-      console.log(
-        `   Score: ${data.score || "N/A"}, Quality: ${
-          data.quality_score || "N/A"
-        }`
-      );
 
       return {
         valid: true,
@@ -229,14 +182,8 @@ async function validateEmailWithAPI(email) {
   }
 
   // Step 5: All API keys failed - use DNS MX as final fallback
-  console.warn(
-    "\n⚠ All Mailboxlayer API keys failed, falling back to DNS MX validation"
-  );
-  console.warn(`   Last error: ${lastApiError}`);
-
   const mxValid = await checkMXRecords(domain);
   if (!mxValid) {
-    console.log("❌ DNS MX check failed");
     return {
       valid: false,
       message:
@@ -244,7 +191,6 @@ async function validateEmailWithAPI(email) {
     };
   }
 
-  console.log("✓ Passed DNS MX fallback validation");
   return {
     valid: true,
     message: "Email validated (DNS fallback)",

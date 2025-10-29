@@ -7,10 +7,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import Preloader from "@/components/Preloader";
 import MainBrandPage from "@/components/MainBrandPage";
-import HoodiePage from "@/components/products/HoodiePage";
-import TshirtPage from "@/components/products/TshirtPage";
-import Hoodie2Page from "@/components/products/Hoodie2Page";
-import Tshirt2Page from "@/components/products/Tshirt2Page";
+import KaalDrishta from "@/components/products/KaalDrishta";
+import SmaraJivitam from "@/components/products/SmaraJivitam";
+import AntahaYugaysa from "@/components/products/AntahaYugaysa";
+import MrityoBaddha from "@/components/products/MrityoBaddha";
 import ProductMenuPage from "@/components/ProductMenuPage";
 import LoginPage from "@/components/LoginPage";
 import SignupPage from "@/components/SignupPage";
@@ -40,10 +40,10 @@ const ROUTES = {
   SHOP: "/shop",
   ABOUT: "/about",
   CONTACT: "/contact",
-  HOODIE: "/product/hoodie",
-  TSHIRT: "/product/tshirt",
-  HOODIE2: "/product/hoodie2",
-  TSHIRT2: "/product/tshirt2",
+  KAALDRISHTA: "/product/kaaldrishta",
+  SMARAJIVITAM: "/product/smarajivitam",
+  ANTAHAYUGAYSA: "/product/antahayugaysa",
+  MRITYOBADDHA: "/product/mrityobaddha",
   LOGIN: "/login",
   SIGNUP: "/signup",
   CHECKOUT: "/checkout",
@@ -53,7 +53,7 @@ const ROUTES = {
 
 const App = () => {
   const [stage, setStage] = useState<AppStage>("loading");
-  const [selectedProduct, setSelectedProduct] = useState<string>("hoodie");
+  const [selectedProduct, setSelectedProduct] = useState<string>("kaaldrishta");
   const navigateToForgotPassword = () => setStage("forgot-password");
 
   // Function to get current route from URL
@@ -68,10 +68,10 @@ const App = () => {
     if (path === ROUTES.SIGNUP) return "signup";
     if (path === ROUTES.CHECKOUT) return "checkout";
     if (
-      path === ROUTES.HOODIE ||
-      path === ROUTES.TSHIRT ||
-      path === ROUTES.HOODIE2 ||
-      path === ROUTES.TSHIRT2
+      path === ROUTES.KAALDRISHTA ||
+      path === ROUTES.SMARAJIVITAM ||
+      path === ROUTES.ANTAHAYUGAYSA ||
+      path === ROUTES.MRITYOBADDHA
     )
       return "product";
     return "main";
@@ -80,11 +80,11 @@ const App = () => {
   // Function to get product from URL
   const getProductFromURL = (): string => {
     const path = window.location.pathname;
-    if (path === ROUTES.HOODIE) return "hoodie";
-    if (path === ROUTES.TSHIRT) return "tshirt";
-    if (path === ROUTES.HOODIE2) return "hoodie2";
-    if (path === ROUTES.TSHIRT2) return "tshirt2";
-    return "hoodie"; // Default
+    if (path === ROUTES.KAALDRISHTA) return "kaaldrishta";
+    if (path === ROUTES.SMARAJIVITAM) return "smarajivitam";
+    if (path === ROUTES.ANTAHAYUGAYSA) return "antahayugaysa";
+    if (path === ROUTES.MRITYOBADDHA) return "mrityobaddha";
+    return "kaaldrishta"; // Default
   };
 
   // Initialize app based on current URL
@@ -156,20 +156,20 @@ const App = () => {
     setStage("product");
     let route;
     switch (productId) {
-      case "hoodie":
-        route = ROUTES.HOODIE;
+      case "kaaldrishta":
+        route = ROUTES.KAALDRISHTA;
         break;
-      case "tshirt":
-        route = ROUTES.TSHIRT;
+      case "smarajivitam":
+        route = ROUTES.SMARAJIVITAM;
         break;
-      case "hoodie2":
-        route = ROUTES.HOODIE2;
+      case "antahayugaysa":
+        route = ROUTES.ANTAHAYUGAYSA;
         break;
-      case "tshirt2":
-        route = ROUTES.TSHIRT2;
+      case "mrityobaddha":
+        route = ROUTES.MRITYOBADDHA;
         break;
       default:
-        route = ROUTES.HOODIE;
+        route = ROUTES.KAALDRISHTA;
     }
     window.history.pushState({}, "", route);
   };
@@ -214,12 +214,12 @@ const App = () => {
 
             {stage === "main" && (
               <MainBrandPage
-                onViewProduct={() => navigateToProduct("hoodie")}
+                onViewProduct={() => navigateToProduct("kaaldrishta")}
                 onViewProductMenu={navigateToShop}
-                onViewHoodie={() => navigateToProduct("hoodie")}
-                onViewTshirt={() => navigateToProduct("tshirt")}
-                onViewHoodie2={() => navigateToProduct("hoodie2")}
-                onViewTshirt2={() => navigateToProduct("tshirt2")}
+                onViewHoodie={() => navigateToProduct("kaaldrishta")}
+                onViewTshirt={() => navigateToProduct("smarajivitam")}
+                onViewHoodie2={() => navigateToProduct("antahayugaysa")}
+                onViewTshirt2={() => navigateToProduct("mrityobaddha")}
                 onNavigateToLogin={navigateToLogin}
                 onNavigateToSignup={navigateToSignup}
                 onNavigateToShop={navigateToShop}
@@ -241,8 +241,8 @@ const App = () => {
               />
             )}
 
-            {stage === "product" && selectedProduct === "hoodie" && (
-              <HoodiePage
+            {stage === "product" && selectedProduct === "kaaldrishta" && (
+              <KaalDrishta
                 onBackToMain={navigateToHome}
                 onNavigateToShop={navigateToShop}
                 onNavigateToAbout={navigateToAbout}
@@ -253,8 +253,8 @@ const App = () => {
               />
             )}
 
-            {stage === "product" && selectedProduct === "tshirt" && (
-              <TshirtPage
+            {stage === "product" && selectedProduct === "smarajivitam" && (
+              <SmaraJivitam
                 onBackToMain={navigateToHome}
                 onNavigateToShop={navigateToShop}
                 onNavigateToAbout={navigateToAbout}
@@ -265,8 +265,8 @@ const App = () => {
               />
             )}
 
-            {stage === "product" && selectedProduct === "hoodie2" && (
-              <Hoodie2Page
+            {stage === "product" && selectedProduct === "antahayugaysa" && (
+              <AntahaYugaysa
                 onBackToMain={navigateToHome}
                 onNavigateToShop={navigateToShop}
                 onNavigateToAbout={navigateToAbout}
@@ -277,8 +277,8 @@ const App = () => {
               />
             )}
 
-            {stage === "product" && selectedProduct === "tshirt2" && (
-              <Tshirt2Page
+            {stage === "product" && selectedProduct === "mrityobaddha" && (
+              <MrityoBaddha
                 onBackToMain={navigateToHome}
                 onNavigateToShop={navigateToShop}
                 onNavigateToAbout={navigateToAbout}

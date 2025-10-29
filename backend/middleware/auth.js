@@ -3,8 +3,13 @@ const User = require('../models/User');
 
 const auth = async (req, res, next) => {
   try {
-    // Get token from header
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    // Get token from header OR cookie (cookie has priority for seamless UX)
+    let token = req.header('Authorization')?.replace('Bearer ', '');
+    
+    // If no Authorization header, check for cookie
+    if (!token && req.cookies.auth_token) {
+      token = req.cookies.auth_token;
+    }
     
     if (!token) {
       return res.status(401).json({ message: 'No authentication token, access denied' });
@@ -27,6 +32,12 @@ const auth = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Auth middleware error:', error);
+    
+    // Clear invalid cookie if it exists
+    if (req.cookies.auth_token) {
+      res.clearCookie('auth_token');
+    }
+    
     res.status(401).json({ message: 'Token is not valid' });
   }
 };

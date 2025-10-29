@@ -48,8 +48,6 @@ exports.sendOTP = async (req, res) => {
       to: formattedPhone,
     });
 
-    console.log(`OTP sent to ${phone}: ${otp}`);
-
     res.status(200).json({
       success: true,
       message: "OTP sent successfully",
@@ -142,8 +140,6 @@ exports.verifyOTP = async (req, res) => {
     }
 
     otpStore.delete(phone);
-
-    console.log(`Phone verified for user ${userId}: ${phone}`);
 
     res.status(200).json({
       success: true,

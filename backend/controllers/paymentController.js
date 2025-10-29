@@ -2,6 +2,7 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
+const Product = require('../models/Product');
 const axios = require('axios');
 
 // Initialize Razorpay
@@ -24,6 +25,41 @@ exports.createOrder = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Cart is empty'
+      });
+    }
+
+    // CRITICAL: Validate stock availability before creating order
+    const unavailableItems = [];
+    for (const item of cart.items) {
+      const product = await Product.findOne({ productId: item.productId });
+      
+      if (!product) {
+        unavailableItems.push({
+          productName: item.productName,
+          size: item.size,
+          reason: 'Product no longer available'
+        });
+        continue;
+      }
+
+      const totalStock = product.stock[item.size] || 0;
+
+      if (totalStock < item.quantity) {
+        unavailableItems.push({
+          productName: item.productName,
+          size: item.size,
+          requestedQuantity: item.quantity,
+          availableQuantity: totalStock,
+          reason: totalStock === 0 ? 'Out of stock' : `Only ${totalStock} available`
+        });
+      }
+    }
+
+    if (unavailableItems.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Some items in your cart are no longer available',
+        unavailableItems
       });
     }
 
@@ -106,15 +142,37 @@ exports.verifyPayment = async (req, res) => {
         { new: true }
       );
 
+      if (!order) {
+        return res.status(404).json({
+          success: false,
+          message: 'Order not found'
+        });
+      }
+
+      // 🔥 CRITICAL: Deduct stock from products
+      for (const item of order.items) {
+        await Product.findOneAndUpdate(
+          { productId: item.productId },
+          {
+            $inc: {
+              [`stock.${item.size}`]: -item.quantity
+            }
+          }
+        );
+      }
+
       // Clear cart
       await Cart.findOneAndUpdate(
         { userId: req.user._id },
         { items: [], totalItems: 0, totalPrice: 0 }
       );
 
-      // Create Shiprocket order (optional, can be done in background)
+      // Create Shiprocket order (if enabled)
       if (process.env.SHIPROCKET_ENABLED === 'true') {
-        await createShiprocketOrder(order);
+        // Run in background - don't wait for response
+        createShiprocketOrder(order).catch(err => {
+          console.error('⚠️  Shiprocket order creation failed (non-blocking):', err.message);
+        });
       }
 
       res.status(200).json({
@@ -207,13 +265,9 @@ exports.getUserOrders = async (req, res) => {
   }
 };
 
-// Helper function to create Shiprocket order
-// Optimized Shiprocket helper function
-async function createShiprocketOrder(order) {
+// Helper function to get Shiprocket auth token
+async function getShiprocketToken() {
   try {
-    const axios = require('axios');
-
-    // Authenticate with Shiprocket
     const authResponse = await axios.post(
       'https://apiv2.shiprocket.in/v1/external/auth/login',
       {
@@ -221,8 +275,20 @@ async function createShiprocketOrder(order) {
         password: process.env.SHIPROCKET_PASSWORD
       }
     );
+    return authResponse.data.token;
+  } catch (error) {
+    console.error('❌ Shiprocket authentication failed:', error.response?.data || error.message);
+    throw new Error('Shiprocket authentication failed');
+  }
+}
 
-    const token = authResponse.data.token;
+// Helper function to create Shiprocket order
+async function createShiprocketOrder(order) {
+  try {
+    console.log(`🚀 Creating Shiprocket order for: ${order.orderId}`);
+    
+    // Get auth token
+    const token = await getShiprocketToken();
 
     // Create order payload (optimized for streetwear)
     const orderPayload = {
@@ -230,7 +296,7 @@ async function createShiprocketOrder(order) {
       order_date: new Date().toISOString().split('T')[0],
       pickup_location: process.env.SHIPROCKET_PICKUP_LOCATION || 'Primary',
       channel_id: "",
-      comment: "KALLKEYY Order",
+      comment: "KALLKEYY Streetwear Order",
       billing_customer_name: order.shippingAddress.fullName,
       billing_last_name: "",
       billing_address: order.shippingAddress.address,
@@ -257,11 +323,13 @@ async function createShiprocketOrder(order) {
       transaction_charges: 0,
       total_discount: 0,
       sub_total: order.amount,
-      length: 30,  // Typical for clothing
+      length: 30,  // Typical for clothing (cm)
       breadth: 25,
       height: 5,
-      weight: 0.5  // Adjust based on your products
+      weight: 0.5  // kg - adjust based on your products
     };
+
+    console.log('📦 Shiprocket payload:', JSON.stringify(orderPayload, null, 2));
 
     // Create Shiprocket order
     const shiprocketResponse = await axios.post(
@@ -275,6 +343,8 @@ async function createShiprocketOrder(order) {
       }
     );
 
+    console.log('✅ Shiprocket response:', JSON.stringify(shiprocketResponse.data, null, 2));
+
     // Update order with Shiprocket details
     await Order.findByIdAndUpdate(order._id, {
       shiprocketOrderId: shiprocketResponse.data.order_id,
@@ -282,10 +352,185 @@ async function createShiprocketOrder(order) {
       status: 'processing'
     });
 
-    console.log('✅ Shiprocket order created:', shiprocketResponse.data.order_id);
+    console.log(`✅ Shiprocket order created successfully:`, {
+      orderId: shiprocketResponse.data.order_id,
+      shipmentId: shiprocketResponse.data.shipment_id
+    });
+
     return shiprocketResponse.data;
   } catch (error) {
-    console.error('❌ Shiprocket error:', error.response?.data || error.message);
+    console.error('❌ Shiprocket order creation failed:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
+    
+    // Update order to note Shiprocket failure
+    await Order.findByIdAndUpdate(order._id, {
+      $push: {
+        notes: `Shiprocket creation failed: ${error.response?.data?.message || error.message}`
+      }
+    }).catch(err => console.error('Failed to update order with error note:', err));
+    
     // Don't throw - log and continue (order still valid even if Shiprocket fails)
+    throw error;
   }
 }
+
+// Get order tracking details from Shiprocket
+exports.getOrderTracking = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    // Check if order belongs to user
+    if (order.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Unauthorized access'
+      });
+    }
+
+    // If Shiprocket is not enabled or no shipment ID, return basic order info
+    if (!order.shiprocketShipmentId) {
+      return res.status(200).json({
+        success: true,
+        order: {
+          orderId: order.orderId,
+          status: order.status,
+          paymentStatus: order.paymentStatus,
+          trackingAvailable: false
+        }
+      });
+    }
+
+    // Fetch tracking from Shiprocket
+    try {
+      const token = await getShiprocketToken();
+      
+      const trackingResponse = await axios.get(
+        `https://apiv2.shiprocket.in/v1/external/courier/track/shipment/${order.shiprocketShipmentId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      res.status(200).json({
+        success: true,
+        order: {
+          orderId: order.orderId,
+          status: order.status,
+          paymentStatus: order.paymentStatus,
+          trackingAvailable: true,
+          tracking: trackingResponse.data
+        }
+      });
+    } catch (trackingError) {
+      // If tracking fetch fails, return order without tracking
+      console.error('Failed to fetch Shiprocket tracking:', trackingError.message);
+      
+      res.status(200).json({
+        success: true,
+        order: {
+          orderId: order.orderId,
+          status: order.status,
+          paymentStatus: order.paymentStatus,
+          awbCode: order.awbCode,
+          courierName: order.courierName,
+          trackingUrl: order.trackingUrl,
+          trackingAvailable: false,
+          trackingError: 'Unable to fetch live tracking'
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Get order tracking error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get order tracking',
+      error: error.message
+    });
+  }
+};
+
+// Shiprocket webhook handler
+exports.shiprocketWebhook = async (req, res) => {
+  try {
+    console.log('📨 Shiprocket webhook received:', JSON.stringify(req.body, null, 2));
+
+    const webhookData = req.body;
+    
+    // Find order by Shiprocket order ID
+    const order = await Order.findOne({ 
+      shiprocketOrderId: webhookData.order_id 
+    });
+
+    if (!order) {
+      console.log(`⚠️  Order not found for Shiprocket ID: ${webhookData.order_id}`);
+      return res.status(200).json({ success: true, message: 'Order not found' });
+    }
+
+    // Update order based on webhook event
+    const updates = {};
+
+    // Handle different webhook events
+    switch (webhookData.current_status) {
+      case 'PICKUP SCHEDULED':
+      case 'PICKUP QUEUED':
+        updates.status = 'processing';
+        break;
+      
+      case 'SHIPPED':
+      case 'IN TRANSIT':
+        updates.status = 'shipped';
+        updates.awbCode = webhookData.awb_code;
+        updates.courierName = webhookData.courier_name;
+        break;
+      
+      case 'OUT FOR DELIVERY':
+        updates.status = 'shipped';
+        updates.awbCode = webhookData.awb_code;
+        updates.courierName = webhookData.courier_name;
+        break;
+      
+      case 'DELIVERED':
+        updates.status = 'delivered';
+        updates.awbCode = webhookData.awb_code;
+        updates.courierName = webhookData.courier_name;
+        break;
+      
+      case 'CANCELED':
+      case 'RTO INITIATED':
+      case 'RTO DELIVERED':
+        updates.status = 'cancelled';
+        break;
+    }
+
+    // Add tracking URL if available
+    if (webhookData.awb_code) {
+      updates.trackingUrl = `https://shiprocket.co/tracking/${webhookData.awb_code}`;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      await Order.findByIdAndUpdate(order._id, updates);
+      console.log(`✅ Order ${order.orderId} updated:`, updates);
+    }
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('❌ Shiprocket webhook error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+};

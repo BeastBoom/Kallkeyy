@@ -12,7 +12,7 @@ interface Props {
   onNavigateToProduct?: (productId: string) => void;
 }
 
-const HOODIE2_DATA = {
+const ANTAHA_YUGAYSA_DATA = {
   name: "ANTAHA-YUGAYSA",
   price: "₹2,199",
   originalPrice: "₹4,499",
@@ -35,7 +35,7 @@ const HOODIE2_DATA = {
   productType: "hoodie" as const,
 };
 
-export default function Hoodie2Page({
+export default function AntahaYugaysa({
   onBackToMain,
   onNavigateToShop,
   onNavigateToAbout,
@@ -46,8 +46,8 @@ export default function Hoodie2Page({
 }: Props) {
   return (
     <ProductPageBase
-      product={HOODIE2_DATA}
-      productId="hoodie2"
+      product={ANTAHA_YUGAYSA_DATA}
+      productId="antahayugaysa"
       onBackToMain={onBackToMain}
       onNavigateToShop={onNavigateToShop}
       onNavigateToAbout={onNavigateToAbout}
@@ -58,3 +58,4 @@ export default function Hoodie2Page({
     />
   );
 }
+

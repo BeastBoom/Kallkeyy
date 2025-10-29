@@ -37,6 +37,7 @@ const cartSchema = new mongoose.Schema({
     unique: true
   },
   items: [cartItemSchema],
+  savedForLater: [cartItemSchema],
   totalItems: {
     type: Number,
     default: 0

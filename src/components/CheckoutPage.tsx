@@ -100,7 +100,7 @@ const INDIAN_STATES = [
 ];
 
 export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
-  const { items, totalPrice, clearCart } = useCart();
+  const { items, totalPrice, clearCart, saveForLater, fetchCart } = useCart();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [fetchingPincode, setFetchingPincode] = useState(false);
@@ -133,13 +133,11 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
     const checkPhoneVerification = async () => {
       // Wait for user to be loaded from AuthContext
       if (!user) {
-        console.log("Waiting for user to load...");
         return;
       }
 
       // Check if cart is empty - redirect to shop
       if (items.length === 0) {
-        console.log("Cart is empty, no need to check phone verification");
         return;
       }
 
@@ -156,11 +154,10 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
         }
 
         const response = await fetch(`${API_URL}/api/auth/profile`, {
+          credentials: 'include',
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await response.json();
-
-        console.log("Phone verification check:", data);
 
         if (data.success && data.user.phone && data.user.phoneVerified) {
           // Phone is verified in database
@@ -171,7 +168,6 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
           await fetchAddresses();
         } else {
           // Phone not verified - show modal
-          console.log("Phone not verified, showing modal");
           localStorage.removeItem("userPhone");
           localStorage.removeItem("phoneVerified");
           setShowPhoneVerification(true);
@@ -189,6 +185,7 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/api/addresses`, {
+        credentials: 'include',
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
@@ -210,7 +207,6 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
   };
 
   const handlePhoneVerificationComplete = async (phone: string) => {
-    console.log("Phone verification completed for:", phone);
     setUserPhone(phone);
     setPhoneVerified(true);
     setShowPhoneVerification(false);
@@ -353,6 +349,7 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/api/addresses/${addressId}`, {
         method: "DELETE",
+        credentials: 'include',
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -390,6 +387,46 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
 
     setLoading(true);
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please login to continue");
+        window.location.href = "/login";
+        setLoading(false);
+        return;
+      }
+
+      // Validate cart stock before proceeding
+      const stockValidation = await fetch(`${API_URL}/api/cart/validate`, {
+        method: "POST",
+        credentials: 'include',
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const stockData = await stockValidation.json();
+      
+      if (!stockData.success) {
+        alert("Failed to validate cart items. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      if (!stockData.allItemsAvailable) {
+        const outOfStockItems = stockData.itemsWithStock
+          .filter((item: any) => !item.inStock)
+          .map((item: any) => `• ${item.productName} (Size ${item.size}) - ${item.reason}`)
+          .join('\n');
+        
+        alert(
+          `⚠️ Some items in your cart are out of stock:\n\n${outOfStockItems}\n\nPlease remove out-of-stock items or move them to "Save for Later" before proceeding.`
+        );
+        
+        setLoading(false);
+        return;
+      }
+
       const res = await loadRazorpayScript();
       if (!res) {
         alert(
@@ -399,15 +436,9 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
         return;
       }
 
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("Please login to continue");
-        window.location.href = "/login";
-        return;
-      }
-
       const response = await fetch(`${API_URL}/api/payment/create-order`, {
         method: "POST",
+        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -1016,45 +1047,74 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
               {items.map((item, index) => (
                 <div
                   key={`${item.productId}-${item.size}-${index}`}
-                  className="flex gap-4 p-3 rounded"
+                  className="p-3 rounded"
                   style={{
                     background: "var(--color-secondary)",
-                    border: "1px solid var(--color-card-border)",
+                    border: item.inStock === false ? "2px solid #ef4444" : "1px solid var(--color-card-border)",
                   }}
                 >
-                  {item.image && (
-                    <img
-                      src={item.image}
-                      alt={item.productName}
-                      className="w-20 h-20 object-cover rounded"
-                      style={{ border: "1px solid var(--color-border)" }}
-                    />
+                  {/* Stock Warning Badge */}
+                  {item.inStock === false && (
+                    <div 
+                      className="flex items-center gap-2 mb-2 p-2 rounded"
+                      style={{
+                        background: "rgba(239, 68, 68, 0.1)",
+                        border: "1px solid rgba(239, 68, 68, 0.3)"
+                      }}
+                    >
+                      <span style={{ color: "#ef4444", fontSize: "0.875rem", fontWeight: 600 }}>
+                        ⚠️ {item.reason || 'Out of Stock'}
+                      </span>
+                    </div>
                   )}
-                  <div className="flex-1">
-                    <h3
-                      className="font-medium mb-1"
-                      style={{
-                        color: "var(--color-text)",
-                        fontSize: "var(--font-size-base)",
-                      }}
-                    >
-                      {item.productName}
-                    </h3>
-                    <p
-                      className="text-sm"
-                      style={{ color: "var(--color-text-secondary)" }}
-                    >
-                      Size: {item.size} • Qty: {item.quantity}
-                    </p>
-                    <p
-                      className="font-semibold mt-2"
-                      style={{
-                        color: "var(--color-primary)",
-                        fontSize: "var(--font-size-base)",
-                      }}
-                    >
-                      ₹{(item.price * item.quantity).toFixed(2)}
-                    </p>
+
+                  <div className="flex gap-4">
+                    {item.image && (
+                      <img
+                        src={item.image}
+                        alt={item.productName}
+                        className="w-20 h-20 object-cover rounded"
+                        style={{ border: "1px solid var(--color-border)" }}
+                      />
+                    )}
+                    <div className="flex-1">
+                      <h3
+                        className="font-medium mb-1"
+                        style={{
+                          color: "var(--color-text)",
+                          fontSize: "var(--font-size-base)",
+                        }}
+                      >
+                        {item.productName}
+                      </h3>
+                      <p
+                        className="text-sm"
+                        style={{ color: "var(--color-text-secondary)" }}
+                      >
+                        Size: {item.size} • Qty: {item.quantity}
+                      </p>
+                      <p
+                        className="font-semibold mt-2"
+                        style={{
+                          color: "var(--color-primary)",
+                          fontSize: "var(--font-size-base)",
+                        }}
+                      >
+                        ₹{(item.price * item.quantity).toFixed(2)}
+                      </p>
+
+                      {/* Save for Later Button */}
+                      <button
+                        onClick={async () => {
+                          await saveForLater(item.productId, item.size);
+                          await fetchCart(); // Refresh cart to update stock status
+                        }}
+                        className="mt-2 text-xs hover:underline flex items-center gap-1"
+                        style={{ color: "#3b82f6" }}
+                      >
+                        <span>📌</span> Save for Later
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

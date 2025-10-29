@@ -55,7 +55,10 @@ const orderSchema = new mongoose.Schema({
   shiprocketShipmentId: String,
   awbCode: String,
   courierName: String,
-  trackingUrl: String
+  trackingUrl: String,
+  notes: [{
+    type: String
+  }]
 }, {
   timestamps: true
 });

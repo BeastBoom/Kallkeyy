@@ -88,7 +88,6 @@ export default function PhoneVerificationModal({
         // Save to localStorage
         localStorage.setItem("userPhone", data.phone);
         localStorage.setItem("phoneVerified", "true");
-        console.log("Phone verified successfully:", data.phone);
         onVerificationComplete(data.phone);
       } else {
         setError(data.message || "Invalid OTP");

@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const subscriberRoutes = require('./routes/subscribers');
@@ -56,6 +57,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Middleware
+app.use(cookieParser()); // Parse cookies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

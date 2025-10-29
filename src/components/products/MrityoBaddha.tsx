@@ -3,8 +3,8 @@
 import ProductPageBase from "./ProductPageBase";
 
 interface Props {
-  onBackToMain?: () => void;
-  onNavigateToShop?: () => void;
+  onBackToMain: () => void;
+  onNavigateToShop: () => void;
   onNavigateToAbout?: () => void;
   onNavigateToContact?: () => void;
   onNavigateToLogin: () => void;
@@ -12,19 +12,19 @@ interface Props {
   onNavigateToProduct?: (productId: string) => void;
 }
 
-const TSHIRT_DATA = {
-  name: "SMARA-JIVITAM",
+const MRITYO_BADDHA_DATA = {
+  name: "MRITYO-BADDHA",
   price: "₹999",
   originalPrice: "₹1,999",
   salePrice: "₹999",
-  tag: "NEW DROP",
+  tag: "TRENDING",
   description:
-    '"SMARA JIVITAM — THE ASCENSION" Wings erupt from chaos, forged in will and fire. The sword of self-doubt strikes, but every wound becomes light. Smara Jivitam — proof that no sky limits you but your own mind. Rise. Break. Evolve.',
+    '"MRITYO-BADDHA — BOUND BY DEATH" A graphic tee that embodies the struggle against mortality. 280 GSM premium cotton with oversized boxy fit.',
   images: [
-    "/Smarajivitam-1.png",
-    "/Smarajivitam.mp4",
-    "/Smarajivitam-2.png",
-    "/Smarajivitam-3.png",
+    "/Mrityobaddha-1.png",
+    "/Mrityobaddha.mp4",
+    "/Mrityobaddha-2.png",
+    "/Mrityobaddha-3.png",
   ],
   material: [
     "Oversized unisex fit",
@@ -35,7 +35,7 @@ const TSHIRT_DATA = {
   productType: "tshirt" as const,
 };
 
-export default function TshirtPage({
+export default function MrityoBaddha({
   onBackToMain,
   onNavigateToShop,
   onNavigateToAbout,
@@ -46,8 +46,8 @@ export default function TshirtPage({
 }: Props) {
   return (
     <ProductPageBase
-      product={TSHIRT_DATA}
-      productId="tshirt"
+      product={MRITYO_BADDHA_DATA}
+      productId="mrityobaddha"
       onBackToMain={onBackToMain}
       onNavigateToShop={onNavigateToShop}
       onNavigateToAbout={onNavigateToAbout}
@@ -58,3 +58,4 @@ export default function TshirtPage({
     />
   );
 }
+
