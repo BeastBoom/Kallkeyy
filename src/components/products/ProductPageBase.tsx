@@ -72,17 +72,17 @@ interface Review {
 
 // Size charts for different product types
 const HOODIE_SIZE_CHART = {
-  M: { chest: "38-40", garmentChest: "46", length: "27", shoulder: "18" },
-  L: { chest: "40-42", garmentChest: "48", length: "28", shoulder: "19" },
-  XL: { chest: "42-44", garmentChest: "50", length: "29", shoulder: "20" },
-  XXL: { chest: "44-46", garmentChest: "52", length: "30", shoulder: "21" },
+  M: { chest: "38-40", garmentChest: "46", length: "27.5", shoulder: "24.5" },
+  L: { chest: "40-42", garmentChest: "48", length: "28.5", shoulder: "25" },
+  XL: { chest: "42-44", garmentChest: "50", length: "29.5", shoulder: "25.5" },
+  XXL: { chest: "44-46", garmentChest: "52", length: "30", shoulder: "26" },
 };
 
 const TSHIRT_SIZE_CHART = {
-  M: { chest: "38-40", garmentChest: "44", length: "26", shoulder: "17" },
-  L: { chest: "40-42", garmentChest: "46", length: "27", shoulder: "18" },
-  XL: { chest: "42-44", garmentChest: "48", length: "28", shoulder: "19" },
-  XXL: { chest: "44-46", garmentChest: "50", length: "29", shoulder: "20" },
+  M: { chest: "38-40", garmentChest: "46", length: "27.5", shoulder: "24.5" },
+  L: { chest: "40-42", garmentChest: "48", length: "28.5", shoulder: "25" },
+  XL: { chest: "42-44", garmentChest: "50", length: "29.5", shoulder: "25.5" },
+  XXL: { chest: "44-46", garmentChest: "52", length: "30.5", shoulder: "26" },
 };
 
 // List of all available products (to exclude current product)

@@ -62,7 +62,7 @@ const heroSlides: HeroSlide[] = [
   // Slide 1: Astitva Act I Collection - SCROLLS TO PRODUCTS
   {
     id: "collection",
-    image: "/KaalDrishta-1.png",
+    image: "/astitva.png",
     title: "ASTITVA ACT-I",
     subtitle: "The First Chapter of Existence",
     description:
