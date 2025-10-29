@@ -203,7 +203,7 @@ export default function ForgotPasswordPage({ onNavigateToLogin }: ForgotPassword
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-[#DD0004] to-[#FF0000] hover:from-[#FF0000] hover:to-[#DD0004] text-white font-bold py-6"
+                className="w-full bg-gradient-to-r from-[#b90e0a] to-[#FF0000] hover:from-[#FF0000] hover:to-[#b90e0a] text-white font-bold py-6"
               >
                 {loading ? 'Sending...' : 'Send Verification Code'}
               </Button>
@@ -237,7 +237,7 @@ export default function ForgotPasswordPage({ onNavigateToLogin }: ForgotPassword
               <Button
                 type="submit"
                 disabled={loading || code.length !== 6}
-                className="w-full bg-gradient-to-r from-[#DD0004] to-[#FF0000] hover:from-[#FF0000] hover:to-[#DD0004] text-white font-bold py-6"
+                className="w-full bg-gradient-to-r from-[#b90e0a] to-[#FF0000] hover:from-[#FF0000] hover:to-[#b90e0a] text-white font-bold py-6"
               >
                 {loading ? 'Verifying...' : 'Verify Code'}
               </Button>
@@ -294,7 +294,7 @@ export default function ForgotPasswordPage({ onNavigateToLogin }: ForgotPassword
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-[#DD0004] to-[#FF0000] hover:from-[#FF0000] hover:to-[#DD0004] text-white font-bold py-6"
+                className="w-full bg-gradient-to-r from-[#b90e0a] to-[#FF0000] hover:from-[#FF0000] hover:to-[#b90e0a] text-white font-bold py-6"
               >
                 {loading ? 'Resetting...' : 'Reset Password'}
               </Button>

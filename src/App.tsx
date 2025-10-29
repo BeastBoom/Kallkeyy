@@ -317,7 +317,7 @@ const App = () => {
                 </h1>
                 <button
                   onClick={navigateToHome}
-                  className="bg-[#DD0004] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#BB0003]"
+                  className="bg-[#b90e0a] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#BB0003]"
                 >
                   Back to Home
                 </button>
@@ -331,7 +331,7 @@ const App = () => {
                 </h1>
                 <button
                   onClick={navigateToHome}
-                  className="bg-[#DD0004] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#BB0003]"
+                  className="bg-[#b90e0a] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#BB0003]"
                 >
                   Back to Home
                 </button>

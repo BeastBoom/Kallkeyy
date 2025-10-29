@@ -13,11 +13,11 @@ interface Props {
 }
 
 const HOODIE2_DATA = {
-  name: "KALLKEYY OVERSIZED HOODIE",
-  price: "₹3,299",
+  name: "ANTAHA-YUGAYSA",
+  price: "₹2,199",
   tag: "NEW LAUNCH",
   description:
-    "Premium oversized hoodie with dropped shoulders. Bold graphics and maximum comfort. Heavy 450 GSM fabric with screen-printed graphics.",
+    "“ANTAHA-YUGAYSA — HANDS OF GOD” When the divine clock shattered, time imploded into itself, through a wormhole. The Hands of God reached—not to save, but to rewrite. From that fracture, Antaha-Yugaysa was born—where endings wear eternity, and creation remembers its own destruction.",
   images: [
     "/hoodie2-main.jpg",
     "/hoodie2-back.jpg",
@@ -25,11 +25,10 @@ const HOODIE2_DATA = {
     "/product-hoodie.jpg"  // Fallback to existing image
   ],
   material: [
-    "• 80% Cotton, 20% Polyester blend",
-    "• 450gsm heavyweight construction",
-    "• Oversized drop-shoulder fit",
-    "• Machine wash cold, tumble dry low",
-    "• Do not bleach or iron directly on print",
+    "Oversized unisex fit",
+    "350gsm comfortable fabric",
+    "Boxy fit with drop shoulders",
+    "Do not bleach or iron directly on print",
   ],
 };
 

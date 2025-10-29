@@ -536,8 +536,8 @@ export default function ProductPageBase({
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       {/* Background Effects */}
-      <div className="fixed inset-0 bg-gradient-to-br from-[#DD0004]/5 via-transparent to-transparent pointer-events-none" />
-      <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-[#DD0004]/10 rounded-full blur-3xl pointer-events-none opacity-20" />
+      <div className="fixed inset-0 bg-gradient-to-br from-[#b90e0a]/5 via-transparent to-transparent pointer-events-none" />
+      <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-[#b90e0a]/10 rounded-full blur-3xl pointer-events-none opacity-20" />
 
       {/* NAVBAR */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-black/90 backdrop-blur-md">
@@ -546,7 +546,7 @@ export default function ProductPageBase({
             {/* LEFT: Text Logo (Responsive sizing) */}
             <div className="flex-shrink-0 z-10">
               <h1
-                className="text-xl sm:text-2xl lg:text-3xl font-black tracking-wider hover:text-[#DD0004] transition-colors duration-300 cursor-pointer"
+                className="text-xl sm:text-2xl lg:text-3xl font-black tracking-wider hover:text-[#b90e0a] transition-colors duration-300 cursor-pointer"
                 onClick={onBackToMain}
               >
                 KALLKEYY
@@ -569,7 +569,7 @@ export default function ProductPageBase({
               <div className="hidden lg:flex gap-2 text-sm lg:text-base font-bold">
                 <button
                   onClick={() => onBackToMain()}
-                  className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                  className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
                 >
                   HOME
                 </button>
@@ -579,7 +579,7 @@ export default function ProductPageBase({
                       ? onNavigateToShop()
                       : handleUnavailablePage("Shop")
                   }
-                  className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                  className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
                 >
                   SHOP
                 </button>
@@ -589,7 +589,7 @@ export default function ProductPageBase({
                       ? onNavigateToAbout()
                       : handleUnavailablePage("About")
                   }
-                  className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                  className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
                 >
                   ABOUT
                 </button>
@@ -599,7 +599,7 @@ export default function ProductPageBase({
                       ? onNavigateToContact()
                       : handleUnavailablePage("Contact")
                   }
-                  className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                  className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
                 >
                   CONTACT
                 </button>
@@ -609,13 +609,13 @@ export default function ProductPageBase({
                   <>
                     <span className="text-white px-2 lg:px-3 py-2 flex items-center text-xs lg:text-sm whitespace-nowrap">
                       HEY,{" "}
-                      <span className="text-[#DD0004] ml-1">
+                      <span className="text-[#b90e0a] ml-1">
                         {formatDisplayName(user.name)}
                       </span>
                     </span>
                     <button
                       onClick={logout}
-                      className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg flex items-center gap-1 whitespace-nowrap"
+                      className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg flex items-center gap-1 whitespace-nowrap"
                     >
                       <LogOut size={14} className="lg:w-4 lg:h-4" />
                       <span className="text-xs lg:text-sm">LOGOUT</span>
@@ -625,13 +625,13 @@ export default function ProductPageBase({
                   <>
                     <button
                       onClick={() => onNavigateToLogin()}
-                      className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap text-xs lg:text-sm"
+                      className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap text-xs lg:text-sm"
                     >
                       LOGIN
                     </button>
                     <button
                       onClick={() => onNavigateToSignup()}
-                      className="bg-[#DD0004] hover:bg-[#DD0004]/80 transition-colors duration-300 px-3 lg:px-4 py-2 rounded-lg ml-1 whitespace-nowrap text-xs lg:text-sm"
+                      className="bg-[#b90e0a] hover:bg-[#b90e0a]/80 transition-colors duration-300 px-3 lg:px-4 py-2 rounded-lg ml-1 whitespace-nowrap text-xs lg:text-sm"
                     >
                       SIGN UP
                     </button>
@@ -641,7 +641,7 @@ export default function ProductPageBase({
 
               {/* Hamburger Menu Button (Mobile/Tablet) */}
               <button
-                className="lg:hidden text-white hover:text-[#DD0004] transition-colors p-2 -mr-2"
+                className="lg:hidden text-white hover:text-[#b90e0a] transition-colors p-2 -mr-2"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label="Toggle menu"
               >
@@ -662,7 +662,7 @@ export default function ProductPageBase({
                   onBackToMain();
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 HOME
               </button>
@@ -673,7 +673,7 @@ export default function ProductPageBase({
                     : handleUnavailablePage("Shop");
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 SHOP
               </button>
@@ -684,7 +684,7 @@ export default function ProductPageBase({
                     : handleUnavailablePage("About");
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 ABOUT
               </button>
@@ -695,7 +695,7 @@ export default function ProductPageBase({
                     : handleUnavailablePage("Contact");
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 CONTACT
               </button>
@@ -706,7 +706,7 @@ export default function ProductPageBase({
                   <>
                     <div className="text-white px-4 py-2 mb-2 text-sm">
                       HEY,{" "}
-                      <span className="text-[#DD0004]">
+                      <span className="text-[#b90e0a]">
                         {formatDisplayName(user.name)}
                       </span>
                     </div>
@@ -715,7 +715,7 @@ export default function ProductPageBase({
                         logout();
                         setMobileMenuOpen(false);
                       }}
-                      className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg flex items-center gap-2 text-base font-semibold"
+                      className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg flex items-center gap-2 text-base font-semibold"
                     >
                       <LogOut size={18} />
                       LOGOUT
@@ -728,7 +728,7 @@ export default function ProductPageBase({
                         onNavigateToLogin();
                         setMobileMenuOpen(false);
                       }}
-                      className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                      className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
                     >
                       LOGIN
                     </button>
@@ -737,7 +737,7 @@ export default function ProductPageBase({
                         onNavigateToSignup();
                         setMobileMenuOpen(false);
                       }}
-                      className="w-full bg-[#DD0004] hover:bg-[#DD0004]/80 transition-colors duration-300 px-4 py-2.5 rounded-lg text-center mt-2 text-base font-semibold"
+                      className="w-full bg-[#b90e0a] hover:bg-[#b90e0a]/80 transition-colors duration-300 px-4 py-2.5 rounded-lg text-center mt-2 text-base font-semibold"
                     >
                       SIGN UP
                     </button>
@@ -775,7 +775,7 @@ export default function ProductPageBase({
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
               <div className="absolute bottom-6 left-6 right-6">
                 <div className="flex items-center justify-between">
-                  <Badge className="bg-[#DD0004] text-white border-none px-4 py-2 text-sm font-bold">
+                  <Badge className="bg-[#b90e0a] text-white border-none px-4 py-2 text-sm font-bold">
                     KALLKEYY
                   </Badge>
                   <Badge className="bg-white/10 backdrop-blur-sm text-white border-white/20 px-4 py-2 text-sm font-bold">
@@ -783,8 +783,8 @@ export default function ProductPageBase({
                   </Badge>
                 </div>
               </div>
-              <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-[#DD0004]/50" />
-              <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-[#DD0004]/50" />
+              <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-[#b90e0a]/50" />
+              <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-[#b90e0a]/50" />
             </div>
 
             <div className="grid grid-cols-4 gap-4">
@@ -793,9 +793,9 @@ export default function ProductPageBase({
                   key={i}
                   onClick={() => setActiveIdx(i)}
                   aria-label={`View image ${i + 1}`}
-                  className={`aspect-square rounded-lg overflow-hidden border transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#DD0004] ${
+                  className={`aspect-square rounded-lg overflow-hidden border transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#b90e0a] ${
                     activeIdx === i
-                      ? "border-[#DD0004] ring-1 ring-[#DD0004]"
+                      ? "border-[#b90e0a] ring-1 ring-[#b90e0a]"
                       : "border-[#808088]/30 hover:border-white"
                   }`}
                 >
@@ -844,7 +844,7 @@ export default function ProductPageBase({
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className="w-5 h-5 fill-[#DD0004] text-[#DD0004]"
+                      className="w-5 h-5 fill-[#b90e0a] text-[#b90e0a]"
                     />
                   ))}
                 </div>
@@ -854,7 +854,7 @@ export default function ProductPageBase({
                 </span>
               </div>
 
-              <p className="text-2xl font-bold text-[#DD0004]">
+              <p className="text-2xl font-bold text-[#b90e0a]">
                 {product.price}
               </p>
 
@@ -876,7 +876,7 @@ export default function ProductPageBase({
                       key={i}
                       className="flex flex-col items-center gap-2 p-4 bg-[#28282B] rounded-lg border border-white/10"
                     >
-                      <item.icon className="w-6 h-6 text-[#DD0004]" />
+                      <item.icon className="w-6 h-6 text-[#b90e0a]" />
                       <span className="text-xs text-center text-[#CCCCCC]">
                         {item.text}
                       </span>
@@ -896,7 +896,7 @@ export default function ProductPageBase({
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowSizeChart(!showSizeChart)}
-                  className="border border-[#DD0004] text-[#DD0004] hover:bg-[#DD0004] hover:text-white transition-all duration-300 hover:scale-105"
+                  className="border border-[#b90e0a] text-[#b90e0a] hover:bg-[#b90e0a] hover:text-white transition-all duration-300 hover:scale-105"
                 >
                   <Ruler className="w-4 h-4 mr-2" />
                   Size Chart{" "}
@@ -955,7 +955,7 @@ export default function ProductPageBase({
                     onClick={() => handleSizeSelect(size)}
                     className={`py-3 px-4 border rounded-lg font-bold transition-all duration-300 hover:scale-105 ${
                       selectedSize === size
-                        ? "border-[#DD0004] bg-[#DD0004] text-white shadow-lg shadow-[#DD0004]/20"
+                        ? "border-[#b90e0a] bg-[#b90e0a] text-white shadow-lg shadow-[#b90e0a]/20"
                         : "border-[#808088]/30 hover:border-white hover:shadow-lg"
                     }`}
                   >
@@ -978,7 +978,7 @@ export default function ProductPageBase({
                 <Button
                   onClick={handleAddToCart}
                   disabled={!selectedSize || isLoadingStock}
-                  className="w-full bg-gradient-to-r from-[#DD0004] to-[#FF0000] hover:from-[#FF0000] hover:to-[#DD0004] text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] py-4"
+                  className="w-full bg-gradient-to-r from-[#b90e0a] to-[#FF0000] hover:from-[#FF0000] hover:to-[#b90e0a] text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] py-4"
                 >
                   <ShoppingBag className="mr-2 h-4 w-4" />
                   {isLoadingStock ? "CHECKING STOCK..." : "ADD TO CART"}
@@ -989,7 +989,7 @@ export default function ProductPageBase({
                 <Button
                   onClick={handleShare}
                   variant="outline"
-                  className="border-white/20 hover:border-[#DD0004] transition-all duration-300 hover:scale-105"
+                  className="border-white/20 hover:border-[#b90e0a] transition-all duration-300 hover:scale-105"
                 >
                   <Share2 className="w-5 h-5 mr-2" />
                   Share
@@ -1004,7 +1004,7 @@ export default function ProductPageBase({
           {/* Material & Care - Full Width */}
           <div className="border-t border-white/10 pt-8 space-y-4">
             <h3 className="text-sm font-bold text-white tracking-wider flex items-center gap-3">
-              <TrendingUp className="w-5 h-5 text-[#DD0004]" />
+              <TrendingUp className="w-5 h-5 text-[#b90e0a]" />
               MATERIAL & CARE
             </h3>
             <div className="bg-[#28282B] rounded-lg p-6 border border-white/10">
@@ -1014,7 +1014,7 @@ export default function ProductPageBase({
                     key={i}
                     className="text-sm text-[#CCCCCC] flex items-start gap-2"
                   >
-                    <span className="text-[#DD0004] mt-1">•</span>
+                    <span className="text-[#b90e0a] mt-1">•</span>
                     <span>{item}</span>
                   </p>
                 ))}
@@ -1049,7 +1049,7 @@ export default function ProductPageBase({
                         setUserReview("");
                         setShowReviewForm(true);
                       }}
-                      className="bg-[#DD0004] hover:bg-[#DD0004]/90 text-white font-bold transition-all duration-300 hover:scale-105"
+                      className="bg-[#b90e0a] hover:bg-[#b90e0a]/90 text-white font-bold transition-all duration-300 hover:scale-105"
                     >
                       <Star className="w-4 h-4 mr-2" />
                       Write First Review
@@ -1071,7 +1071,7 @@ export default function ProductPageBase({
                             key={i}
                             className={`w-5 h-5 ${
                               i < Math.round(reviewStats.averageRating)
-                                ? "fill-[#DD0004] text-[#DD0004]"
+                                ? "fill-[#b90e0a] text-[#b90e0a]"
                                 : "text-[#808088]"
                             }`}
                           />
@@ -1102,7 +1102,7 @@ export default function ProductPageBase({
                             </span>
                             <div className="flex-1 bg-[#1C1C21] rounded-full h-3 overflow-hidden">
                               <div
-                                className="bg-[#DD0004] h-full transition-all duration-500"
+                                className="bg-[#b90e0a] h-full transition-all duration-500"
                                 style={{ width: `${percentage}%` }}
                               />
                             </div>
@@ -1127,7 +1127,7 @@ export default function ProductPageBase({
                           onClick={handleEditReview}
                           variant="outline"
                           size="sm"
-                          className="border-[#DD0004] text-[#DD0004] hover:bg-[#DD0004] hover:text-white transition-all duration-300 hover:scale-105"
+                          className="border-[#b90e0a] text-[#b90e0a] hover:bg-[#b90e0a] hover:text-white transition-all duration-300 hover:scale-105"
                         >
                           <Star className="w-4 h-4 mr-2" />
                           Edit Your Review
@@ -1142,7 +1142,7 @@ export default function ProductPageBase({
                           }}
                           variant="outline"
                           size="sm"
-                          className="border-[#DD0004] text-[#DD0004] hover:bg-[#DD0004] hover:text-white transition-all duration-300 hover:scale-105"
+                          className="border-[#b90e0a] text-[#b90e0a] hover:bg-[#b90e0a] hover:text-white transition-all duration-300 hover:scale-105"
                         >
                           <Star className="w-4 h-4 mr-2" />
                           Write Review
@@ -1181,12 +1181,12 @@ export default function ProductPageBase({
                             key={review._id}
                             className={`p-4 rounded-lg border ${
                               isUserReview
-                                ? "bg-[#DD0004]/10 border-[#DD0004]/30"
+                                ? "bg-[#b90e0a]/10 border-[#b90e0a]/30"
                                 : "bg-[#28282B] border-white/10"
                             }`}
                           >
                             <div className="flex items-start gap-4">
-                              <div className="w-10 h-10 rounded-full bg-[#DD0004] flex items-center justify-center text-white font-bold flex-shrink-0">
+                              <div className="w-10 h-10 rounded-full bg-[#b90e0a] flex items-center justify-center text-white font-bold flex-shrink-0">
                                 {review.name.charAt(0).toUpperCase()}
                               </div>
                               <div className="flex-1 space-y-2">
@@ -1195,7 +1195,7 @@ export default function ProductPageBase({
                                     <h4 className="font-bold text-white flex items-center gap-2">
                                       {review.name}
                                       {isUserReview && (
-                                        <Badge className="bg-[#DD0004] text-white text-xs px-2 py-0.5">
+                                        <Badge className="bg-[#b90e0a] text-white text-xs px-2 py-0.5">
                                           Your Review
                                         </Badge>
                                       )}
@@ -1211,7 +1211,7 @@ export default function ProductPageBase({
                                       key={j}
                                       className={`w-4 h-4 ${
                                         j < review.rating
-                                          ? "fill-[#DD0004] text-[#DD0004]"
+                                          ? "fill-[#b90e0a] text-[#b90e0a]"
                                           : "text-[#808088]"
                                       }`}
                                     />
@@ -1236,7 +1236,7 @@ export default function ProductPageBase({
                       <Button
                         onClick={() => setShowAllReviews(!showAllReviews)}
                         variant="outline"
-                        className="border-white/20 hover:border-[#DD0004] transition-all duration-300 hover:scale-105"
+                        className="border-white/20 hover:border-[#b90e0a] transition-all duration-300 hover:scale-105"
                       >
                         {showAllReviews ? (
                           <>
@@ -1269,7 +1269,7 @@ export default function ProductPageBase({
 
                   <div>
                     <label className="text-sm font-semibold text-[#CCCCCC] mb-2 block">
-                      Rating <span className="text-[#DD0004]">*</span>
+                      Rating <span className="text-[#b90e0a]">*</span>
                     </label>
                     <div className="flex gap-2">
                       {[1, 2, 3, 4, 5].map((star) => (
@@ -1283,7 +1283,7 @@ export default function ProductPageBase({
                           <Star
                             className={`w-6 h-6 ${
                               star <= userRating
-                                ? "fill-[#DD0004] text-[#DD0004]"
+                                ? "fill-[#b90e0a] text-[#b90e0a]"
                                 : "text-[#808088]"
                             }`}
                           />
@@ -1303,7 +1303,7 @@ export default function ProductPageBase({
                       placeholder={`Share your experience with the ${product.name.toLowerCase()}...`}
                       rows={4}
                       disabled={!user}
-                      className="w-full bg-[#1C1C21] border border-[#808088]/30 rounded-lg p-3 text-white focus:border-[#DD0004] focus:ring-2 focus:ring-[#DD0004]/20 transition-all duration-300 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full bg-[#1C1C21] border border-[#808088]/30 rounded-lg p-3 text-white focus:border-[#b90e0a] focus:ring-2 focus:ring-[#b90e0a]/20 transition-all duration-300 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
 
@@ -1311,7 +1311,7 @@ export default function ProductPageBase({
                     <Button
                       type="submit"
                       disabled={!user || userRating === 0 || isSubmittingReview}
-                      className="flex-1 bg-[#DD0004] hover:bg-[#DD0004]/90 text-white font-bold transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 bg-[#b90e0a] hover:bg-[#b90e0a]/90 text-white font-bold transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSubmittingReview
                         ? "Submitting..."
@@ -1323,7 +1323,7 @@ export default function ProductPageBase({
                       type="button"
                       onClick={handleCancelEdit}
                       variant="outline"
-                      className="border-white/20 hover:border-[#DD0004] transition-all duration-300"
+                      className="border-white/20 hover:border-[#b90e0a] transition-all duration-300"
                     >
                       Cancel
                     </Button>
@@ -1343,7 +1343,7 @@ export default function ProductPageBase({
                 <div
                   key={otherProduct.id}
                   onClick={() => onNavigateToProduct?.(otherProduct.id)}
-                  className="group bg-[#28282B] rounded-lg border border-white/10 overflow-hidden hover:border-[#DD0004] transition-all duration-300 cursor-pointer hover:scale-105"
+                  className="group bg-[#28282B] rounded-lg border border-white/10 overflow-hidden hover:border-[#b90e0a] transition-all duration-300 cursor-pointer hover:scale-105"
                 >
                   <div className="aspect-square overflow-hidden">
                     <img
@@ -1363,7 +1363,7 @@ export default function ProductPageBase({
                     <h4 className="font-bold text-white text-sm">
                       {otherProduct.name}
                     </h4>
-                    <p className="text-[#DD0004] font-bold">
+                    <p className="text-[#b90e0a] font-bold">
                       {otherProduct.price}
                     </p>
                     <Button
@@ -1373,7 +1373,7 @@ export default function ProductPageBase({
                       }}
                       variant="outline"
                       size="sm"
-                      className="w-full border-[#DD0004] text-[#DD0004] hover:bg-[#DD0004] hover:text-white transition-all duration-300"
+                      className="w-full border-[#b90e0a] text-[#b90e0a] hover:bg-[#b90e0a] hover:text-white transition-all duration-300"
                     >
                       View Product
                     </Button>

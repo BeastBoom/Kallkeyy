@@ -40,12 +40,12 @@ export const FloatingCart: React.FC = () => {
       {/* Floating Cart Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 bg-[#DD0004] hover:bg-[#BB0003] text-white rounded-full p-4 shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95"
+        className="fixed bottom-6 right-6 z-50 bg-[#b90e0a] hover:bg-[#BB0003] text-white rounded-full p-4 shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95"
         aria-label="Shopping Cart"
       >
         <ShoppingBag className="w-6 h-6" />
         {totalItems > 0 && (
-          <span className="absolute -top-2 -right-2 bg-white text-[#DD0004] text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg animate-pulse">
+          <span className="absolute -top-2 -right-2 bg-white text-[#b90e0a] text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-lg animate-pulse">
             {totalItems}
           </span>
         )}
@@ -103,7 +103,7 @@ export const FloatingCart: React.FC = () => {
                           {item.productName}
                         </h3>
                         <p className="text-white/60 text-xs">Size: {item.size}</p>
-                        <p className="text-[#DD0004] font-bold text-sm mt-1">
+                        <p className="text-[#b90e0a] font-bold text-sm mt-1">
                           ₹{item.price}
                         </p>
 
@@ -147,7 +147,7 @@ export const FloatingCart: React.FC = () => {
                 {/* Total */}
                 <div className="flex items-center justify-between text-white">
                   <span className="text-lg font-semibold">Total:</span>
-                  <span className="text-2xl font-bold text-[#DD0004]">₹{totalPrice}</span>
+                  <span className="text-2xl font-bold text-[#b90e0a]">₹{totalPrice}</span>
                 </div>
 
                 {/* Checkout Button */}
@@ -155,7 +155,7 @@ export const FloatingCart: React.FC = () => {
                   onClick={() => {
                     window.location.href = '/checkout'; // Or use your navigation prop
                   }}
-                  className="w-full bg-[#DD0004] text-white py-3 rounded hover:bg-gray-800"
+                  className="w-full bg-[#b90e0a] text-white py-3 rounded hover:bg-gray-800"
                 >
                   Proceed to Checkout
                 </button>

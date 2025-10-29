@@ -13,18 +13,17 @@ interface Props {
 }
 
 const TSHIRT_DATA = {
-  name: "KALLKEYY SIGNATURE TEE",
-  price: "₹1,499",
+  name: "SMARA-JIVITAM",
+  price: "₹999",
   tag: "NEW DROP",
   description:
-    "Classic fit t-shirt with bold graphics and premium cotton construction. Features signature KALLKEYY branding, comfortable crew neck, and durable stitching. Perfect for everyday street style.",
+    "“SMARA JIVITAM — THE ASCENSION” Wings erupt from chaos, forged in will and fire. The sword of self-doubt strikes, but every wound becomes light. Smara Jivitam — proof that no sky limits you but your own mind. Rise. Break. Evolve.",
   images: ["/hoodie-front.png", "/hoodie-side.png", "/product-hoodie.jpg", "/hoodie.png"],
   material: [
-    "• 100% Premium Combed Cotton",
-    "• 180gsm fabric weight",
-    "• Pre-shrunk and enzyme washed",
-    "• Machine wash cold, tumble dry low",
-    "• Do not bleach or iron directly on print",
+    "Oversized unisex fit",
+    "240gsm French Terry Cotton",
+    "Boxy fit with drop shoulders",
+    "Do not bleach or iron directly on print",
   ],
 }
 

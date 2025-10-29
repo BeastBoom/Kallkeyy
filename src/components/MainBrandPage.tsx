@@ -108,7 +108,7 @@ export default function MainBrandPage({
           </div>
         ))}
 
-        <div className="absolute top-1/4 w-full h-px bg-gradient-to-r from-transparent via-[#DD0004]/30 to-transparent animate-slide-horizontal" />
+        <div className="absolute top-1/4 w-full h-px bg-gradient-to-r from-transparent via-[#b90e0a]/30 to-transparent animate-slide-horizontal" />
         <div className="absolute bottom-1/3 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent animate-slide-horizontal-reverse" />
 
         <svg
@@ -126,7 +126,7 @@ export default function MainBrandPage({
             cx="50"
             cy="50"
             r="20"
-            stroke="#DD0004"
+            stroke="#b90e0a"
             strokeWidth="1"
             fill="none"
             opacity="0.2"
@@ -156,7 +156,7 @@ export default function MainBrandPage({
         >
           <path
             d="M20,80 Q50,20 80,80"
-            stroke="#DD0004"
+            stroke="#b90e0a"
             strokeWidth="2"
             fill="none"
             opacity="0.2"
@@ -184,7 +184,7 @@ export default function MainBrandPage({
             {/* LEFT: Text Logo (Responsive sizing) */}
             <div className="flex-shrink-0 z-10">
               <h1
-                className="text-xl sm:text-2xl lg:text-3xl font-black tracking-wider hover:text-[#DD0004] transition-colors duration-300 cursor-pointer"
+                className="text-lg sm:text-xl lg:text-2xl font-bold tracking-wider hover:text-[#b90e0a] transition-colors duration-300 cursor-pointer font-akira"
                 onClick={onBackToMain}
               >
                 KALLKEYY
@@ -207,7 +207,7 @@ export default function MainBrandPage({
               <div className="hidden lg:flex gap-2 text-sm lg:text-base font-bold">
                 <button
                   onClick={() => onBackToMain()}
-                  className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                  className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
                 >
                   HOME
                 </button>
@@ -217,7 +217,7 @@ export default function MainBrandPage({
                       ? onNavigateToShop()
                       : handleUnavailablePage("Shop")
                   }
-                  className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                  className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
                 >
                   SHOP
                 </button>
@@ -227,7 +227,7 @@ export default function MainBrandPage({
                       ? onNavigateToAbout()
                       : handleUnavailablePage("About")
                   }
-                  className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                  className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
                 >
                   ABOUT
                 </button>
@@ -237,7 +237,7 @@ export default function MainBrandPage({
                       ? onNavigateToContact()
                       : handleUnavailablePage("Contact")
                   }
-                  className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                  className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
                 >
                   CONTACT
                 </button>
@@ -246,11 +246,11 @@ export default function MainBrandPage({
                 {user ? (
                   <>
                     <span className="text-white px-2 lg:px-3 py-2 flex items-center text-xs lg:text-sm whitespace-nowrap">
-                      HEY, <span className="text-[#DD0004] ml-1">{formatDisplayName(user.name)}</span>
+                      HEY, <span className="text-[#b90e0a] ml-1">{formatDisplayName(user.name)}</span>
                     </span>
                     <button
                       onClick={logout}
-                      className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg flex items-center gap-1 whitespace-nowrap"
+                      className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg flex items-center gap-1 whitespace-nowrap"
                     >
                       <LogOut size={14} className="lg:w-4 lg:h-4" />
                       <span className="text-xs lg:text-sm">LOGOUT</span>
@@ -260,13 +260,13 @@ export default function MainBrandPage({
                   <>
                     <button
                       onClick={() => onNavigateToLogin()}
-                      className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap text-xs lg:text-sm"
+                      className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap text-xs lg:text-sm"
                     >
                       LOGIN
                     </button>
                     <button
                       onClick={() => onNavigateToSignup()}
-                      className="bg-[#DD0004] hover:bg-[#DD0004]/80 transition-colors duration-300 px-3 lg:px-4 py-2 rounded-lg ml-1 whitespace-nowrap text-xs lg:text-sm"
+                      className="bg-[#b90e0a] hover:bg-[#b90e0a]/80 transition-colors duration-300 px-3 lg:px-4 py-2 rounded-lg ml-1 whitespace-nowrap text-xs lg:text-sm"
                     >
                       SIGN UP
                     </button>
@@ -276,7 +276,7 @@ export default function MainBrandPage({
 
               {/* Hamburger Menu Button (Mobile/Tablet) */}
               <button
-                className="lg:hidden text-white hover:text-[#DD0004] transition-colors p-2 -mr-2"
+                className="lg:hidden text-white hover:text-[#b90e0a] transition-colors p-2 -mr-2"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label="Toggle menu"
               >
@@ -297,7 +297,7 @@ export default function MainBrandPage({
                   onBackToMain();
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 HOME
               </button>
@@ -308,7 +308,7 @@ export default function MainBrandPage({
                     : handleUnavailablePage("Shop");
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 SHOP
               </button>
@@ -319,7 +319,7 @@ export default function MainBrandPage({
                     : handleUnavailablePage("About");
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 ABOUT
               </button>
@@ -330,7 +330,7 @@ export default function MainBrandPage({
                     : handleUnavailablePage("Contact");
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 CONTACT
               </button>
@@ -340,14 +340,14 @@ export default function MainBrandPage({
                 {user ? (
                   <>
                     <div className="text-white px-4 py-2 mb-2 text-sm">
-                      HEY, <span className="text-[#DD0004]">{formatDisplayName(user.name)}</span>
+                      HEY, <span className="text-[#b90e0a]">{formatDisplayName(user.name)}</span>
                     </div>
                     <button
                       onClick={() => {
                         logout();
                         setMobileMenuOpen(false);
                       }}
-                      className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg flex items-center gap-2 text-base font-semibold"
+                      className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg flex items-center gap-2 text-base font-semibold"
                     >
                       <LogOut size={18} />
                       LOGOUT
@@ -360,7 +360,7 @@ export default function MainBrandPage({
                         onNavigateToLogin();
                         setMobileMenuOpen(false);
                       }}
-                      className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                      className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
                     >
                       LOGIN
                     </button>
@@ -369,7 +369,7 @@ export default function MainBrandPage({
                         onNavigateToSignup();
                         setMobileMenuOpen(false);
                       }}
-                      className="w-full bg-[#DD0004] hover:bg-[#DD0004]/80 transition-colors duration-300 px-4 py-2.5 rounded-lg text-center mt-2 text-base font-semibold"
+                      className="w-full bg-[#b90e0a] hover:bg-[#b90e0a]/80 transition-colors duration-300 px-4 py-2.5 rounded-lg text-center mt-2 text-base font-semibold"
                     >
                       SIGN UP
                     </button>
@@ -389,12 +389,12 @@ export default function MainBrandPage({
       >
         {/* CHANGE: Removed orange decorations, kept only white and red */}
         <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-10 left-10 w-20 h-20 border-2 border-[#DD0004] rotate-45 animate-pulse-glow"></div>
+          <div className="absolute top-10 left-10 w-20 h-20 border-2 border-[#b90e0a] rotate-45 animate-pulse-glow"></div>
           <div className="absolute top-20 right-20 w-16 h-16 border border-white rotate-12 animate-float"></div>
-          <div className="absolute bottom-20 left-20 w-12 h-12 bg-[#DD0004] rotate-45 animate-bounce-subtle"></div>
+          <div className="absolute bottom-20 left-20 w-12 h-12 bg-[#b90e0a] rotate-45 animate-bounce-subtle"></div>
           <div className="absolute bottom-10 right-10 w-24 h-24 border-2 border-white rotate-12 animate-spin-slow"></div>
           <div className="absolute top-1/2 left-1/4 w-8 h-8 bg-white rotate-45 animate-pulse-glow"></div>
-          <div className="absolute top-1/3 right-1/3 w-14 h-14 border border-[#DD0004] rotate-45 animate-float"></div>
+          <div className="absolute top-1/3 right-1/3 w-14 h-14 border border-[#b90e0a] rotate-45 animate-float"></div>
         </div>
 
         <div
@@ -404,13 +404,13 @@ export default function MainBrandPage({
               : "opacity-0 translate-y-10"
           }`}
         >
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 tracking-tight">
-            BORN FROM THE
-            <span className="text-[#DD0004] block animate-color-pulse">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 text-center font-akira">
+            <span className="block text-center">BORN FROM THE</span>
+            <span className="text-[#b90e0a] block text-center">
               UNDERGROUND
             </span>
           </h1>
-          <div className="w-32 h-1 bg-[#DD0004] mx-auto mb-8 animate-expand-width"></div>
+          <div className="w-32 h-1 bg-[#B20404] mx-auto mb-8 animate-expand-width"></div>
           <p className="text-xl md:text-2xl text-[#808088] max-w-2xl mx-auto mb-12 leading-relaxed animate-fade-in-delayed">
             KALLKEYY redefines streetwear with authentic design, premium
             materials, and unapologetic style. This is more than clothing—this
@@ -418,7 +418,7 @@ export default function MainBrandPage({
           </p>
           <Button
             onClick={onViewProductMenu}
-            className="bg-[#DD0004] hover:bg-[#DD0004]/80 text-white font-bold px-12 py-4 text-xl shadow-2xl hover:shadow-[#DD0004]/20 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 animate-bounce-in"
+            className="bg-[#b90e0a] hover:bg-[#b90e0a]/80 text-white font-bold px-12 py-4 text-xl shadow-2xl hover:shadow-[#b90e0a]/20 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 animate-bounce-in"
           >
             SHOP THE DROP
           </Button>
@@ -431,7 +431,7 @@ export default function MainBrandPage({
         className="py-20 px-4 bg-[#1a0a0a] relative"
       >
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-1/4 w-32 h-32 border border-[#DD0004]/30 rotate-45 animate-spin-very-slow"></div>
+          <div className="absolute top-20 left-1/4 w-32 h-32 border border-[#b90e0a]/30 rotate-45 animate-spin-very-slow"></div>
           <div className="absolute bottom-20 right-1/4 w-24 h-24 border border-white/20 rotate-12 animate-float-slow"></div>
         </div>
 
@@ -444,9 +444,9 @@ export default function MainBrandPage({
             }`}
           >
             <h2 className="text-4xl md:text-5xl font-black mb-6">
-              FEATURED <span className="text-[#DD0004]">DROPS</span>
+              FEATURED <span className="text-[#b90e0a]">DROPS</span>
             </h2>
-            <div className="w-20 h-1 bg-[#DD0004] mx-auto mb-6 animate-expand-width"></div>
+            <div className="w-20 h-1 bg-[#b90e0a] mx-auto mb-6 animate-expand-width"></div>
             <p className="text-lg text-[#808088] max-w-2xl mx-auto">
               Our signature pieces that define the KALLKEYY aesthetic. Limited
               quantities, maximum impact.
@@ -455,7 +455,7 @@ export default function MainBrandPage({
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Hoodie Highlight */}
-            <div className="group relative bg-black rounded-xl overflow-hidden border-2 border-[#808088]/20 hover:border-[#DD0004] transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#DD0004]/20">
+            <div className="group relative bg-black rounded-xl overflow-hidden border-2 border-[#808088]/20 hover:border-[#b90e0a] transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#b90e0a]/20">
               <div className="aspect-square bg-[#808088]/10 relative overflow-hidden">
                 <img
                   src="/product-hoodie.jpg"
@@ -467,13 +467,13 @@ export default function MainBrandPage({
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
                 <div className="absolute top-4 left-4">
-                  <span className="bg-[#DD0004] text-white px-3 py-1 text-xs font-bold rounded-full">
+                  <span className="bg-[#b90e0a] text-white px-3 py-1 text-xs font-bold rounded-full">
                     FLAGSHIP
                   </span>
                 </div>
               </div>
               <div className="p-6 space-y-4">
-                <h3 className="text-2xl font-black group-hover:text-[#DD0004] transition-colors duration-300">
+                <h3 className="text-2xl font-black group-hover:text-[#b90e0a] transition-colors duration-300">
                   ESSENTIAL HOODIE
                 </h3>
                 <p className="text-[#808088]">
@@ -482,7 +482,7 @@ export default function MainBrandPage({
                 <div className="flex gap-3">
                   <Button
                     onClick={onViewHoodie}
-                    className="flex-1 bg-[#DD0004] hover:bg-[#DD0004]/80 text-white font-bold transition-all duration-300 hover:scale-105"
+                    className="flex-1 bg-[#b90e0a] hover:bg-[#b90e0a]/80 text-white font-bold transition-all duration-300 hover:scale-105"
                   >
                     VIEW DETAILS
                   </Button>
@@ -491,7 +491,7 @@ export default function MainBrandPage({
             </div>
 
             {/* NEW Hoodie 2 Highlight */}
-            <div className="group relative bg-black rounded-xl overflow-hidden border-2 border-[#808088]/20 hover:border-[#DD0004] transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#DD0004]/20">
+            <div className="group relative bg-black rounded-xl overflow-hidden border-2 border-[#808088]/20 hover:border-[#b90e0a] transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#b90e0a]/20">
               <div className="aspect-square bg-[#808088]/10 relative overflow-hidden">
                 <img
                   src="/hoodie2-main.jpg"
@@ -503,13 +503,13 @@ export default function MainBrandPage({
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
                 <div className="absolute top-4 left-4">
-                  <span className="bg-[#DD0004] text-white px-3 py-1 text-xs font-bold rounded-full">
+                  <span className="bg-[#b90e0a] text-white px-3 py-1 text-xs font-bold rounded-full">
                     NEW LAUNCH
                   </span>
                 </div>
               </div>
               <div className="p-6 space-y-4">
-                <h3 className="text-2xl font-black group-hover:text-[#DD0004] transition-colors duration-300">
+                <h3 className="text-2xl font-black group-hover:text-[#b90e0a] transition-colors duration-300">
                   OVERSIZED HOODIE
                 </h3>
                 <p className="text-[#808088]">
@@ -519,7 +519,7 @@ export default function MainBrandPage({
                 <div className="flex gap-3">
                   <Button
                     onClick={onViewHoodie2}
-                    className="flex-1 bg-[#DD0004] hover:bg-[#DD0004]/80 text-white font-bold transition-all duration-300 hover:scale-105"
+                    className="flex-1 bg-[#b90e0a] hover:bg-[#b90e0a]/80 text-white font-bold transition-all duration-300 hover:scale-105"
                   >
                     VIEW DETAILS
                   </Button>
@@ -528,7 +528,7 @@ export default function MainBrandPage({
             </div>
 
             {/* T-Shirt Highlight */}
-            <div className="group relative bg-black rounded-xl overflow-hidden border-2 border-[#808088]/20 hover:border-[#DD0004] transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#DD0004]/20">
+            <div className="group relative bg-black rounded-xl overflow-hidden border-2 border-[#808088]/20 hover:border-[#b90e0a] transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#b90e0a]/20">
               <div className="aspect-square bg-[#808088]/10 relative overflow-hidden">
                 <img
                   src="/hoodie-front.png"
@@ -540,13 +540,13 @@ export default function MainBrandPage({
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
                 <div className="absolute top-4 left-4">
-                  <span className="bg-[#DD0004] text-white px-3 py-1 text-xs font-bold rounded-full">
+                  <span className="bg-[#b90e0a] text-white px-3 py-1 text-xs font-bold rounded-full">
                     NEW DROP
                   </span>
                 </div>
               </div>
               <div className="p-6 space-y-4">
-                <h3 className="text-2xl font-black group-hover:text-[#DD0004] transition-colors duration-300">
+                <h3 className="text-2xl font-black group-hover:text-[#b90e0a] transition-colors duration-300">
                   SIGNATURE TEE
                 </h3>
                 <p className="text-[#808088]">
@@ -556,7 +556,7 @@ export default function MainBrandPage({
                 <div className="flex gap-3">
                   <Button
                     onClick={onViewTshirt}
-                    className="flex-1 bg-[#DD0004] hover:bg-[#DD0004]/80 text-white font-bold transition-all duration-300 hover:scale-105"
+                    className="flex-1 bg-[#b90e0a] hover:bg-[#b90e0a]/80 text-white font-bold transition-all duration-300 hover:scale-105"
                   >
                     VIEW DETAILS
                   </Button>
@@ -571,7 +571,7 @@ export default function MainBrandPage({
       <section id="animate-about" className="py-20 px-4 relative">
         {/* Background decorations */}
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-1/4 w-32 h-32 border border-[#DD0004]/30 rotate-45 animate-spin-very-slow"></div>
+          <div className="absolute top-20 left-1/4 w-32 h-32 border border-[#b90e0a]/30 rotate-45 animate-spin-very-slow"></div>
           <div className="absolute bottom-20 right-1/4 w-24 h-24 border border-white/20 rotate-12 animate-float-slow"></div>
         </div>
 
@@ -587,19 +587,18 @@ export default function MainBrandPage({
               <h2 className="text-4xl md:text-5xl font-black mb-6">
                 OUR STORY
               </h2>
-              <div className="w-20 h-1 bg-[#DD0004] mb-6 animate-expand-width"></div>
+              <div className="w-20 h-1 bg-[#b90e0a] mb-6 animate-expand-width"></div>
               <p className="text-lg text-[#808088] mb-6 leading-relaxed animate-fade-in-up">
-                Founded in the heart of urban culture, KALLKEYY emerged from the
-                streets with a vision to create authentic streetwear that speaks
-                to the soul of every individual who dares to be different.
-              </p>
-              <p
-                className="text-lg text-[#808088] mb-8 leading-relaxed animate-fade-in-up"
-                style={{ animationDelay: "0.2s" }}
-              >
-                Every piece is crafted with meticulous attention to detail,
-                using premium materials and cutting-edge design techniques that
-                honor both tradition and innovation.
+                Streetwear has always made noise — but it never spoke our voice. 
+                Born from the pulse of urban life, KALLKEYY creates pieces for those 
+                who don’t fit in — and never want to. For the ones who wear their truth, 
+                not just their clothes.
+                <br /><br />
+                KALLKEYY was built to bridge a gap — to give you streetwear that’s more than style, 
+                more than hype. It’s identity. It’s defiance. It’s a statement.
+                <br /><br />
+                Rooted in the rhythm of the streets, every KALLKEYY piece is a blend of precision and passion 
+                — designed with care, crafted with the finest materials, and built to merge heritage with modern edge.
               </p>
               <Button
                 onClick={onViewProductMenu}
@@ -612,8 +611,8 @@ export default function MainBrandPage({
             </div>
             <div className="relative animate-slide-in-right">
               <div className="aspect-square bg-[#28282B] rounded-lg shadow-2xl relative overflow-hidden group hover:scale-105 transition-transform duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#DD0004]/20 to-transparent"></div>
-                <div className="absolute bottom-4 left-4 text-2xl font-black group-hover:text-[#DD0004] transition-colors duration-300">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#b90e0a]/20 to-transparent"></div>
+                <div className="absolute bottom-4 left-4 text-2xl font-black group-hover:text-[#b90e0a] transition-colors duration-300">
                   KALLKEYY
                 </div>
                 {/* Placeholder for image */}
@@ -621,7 +620,7 @@ export default function MainBrandPage({
                   🔥
                 </div>
               </div>
-              <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-[#DD0004] rotate-45 opacity-80 animate-bounce-subtle"></div>
+              <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-[#b90e0a] rotate-45 opacity-80 animate-bounce-subtle"></div>
             </div>
           </div>
         </div>
@@ -680,7 +679,7 @@ export default function MainBrandPage({
             ].map((item, i) => (
               <div
                 key={i}
-                className={`bg-black p-8 rounded-lg shadow-xl border-l-4 border-[#DD0004] hover:transform hover:scale-105 transition-all duration-500 hover:shadow-2xl hover:shadow-[#DD0004]/10 group ${
+                className={`bg-black p-8 rounded-lg shadow-xl border-l-4 border-[#b90e0a] hover:transform hover:scale-105 transition-all duration-500 hover:shadow-2xl hover:shadow-[#b90e0a]/10 group ${
                   isVisible["animate-values"]
                     ? "animate-bounce-in"
                     : "opacity-0"
@@ -690,7 +689,7 @@ export default function MainBrandPage({
                 <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
                   {item.icon}
                 </div>
-                <h3 className="text-2xl font-bold mb-4 text-[#DD0004] group-hover:glow transition-all duration-300">
+                <h3 className="text-2xl font-bold mb-4 text-[#b90e0a] group-hover:glow transition-all duration-300">
                   {item.title}
                 </h3>
                 <p className="text-[#808088] leading-relaxed group-hover:text-white transition-colors duration-300">
@@ -714,8 +713,8 @@ export default function MainBrandPage({
           >
             <div className="relative order-2 lg:order-1 animate-slide-in-left">
               <div className="aspect-video bg-[#28282B] rounded-lg shadow-2xl relative overflow-hidden group hover:scale-105 transition-transform duration-300">
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#DD0004]/30 to-transparent"></div>
-                <div className="absolute bottom-4 right-4 text-xl font-bold group-hover:text-[#DD0004] transition-colors duration-300">
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#b90e0a]/30 to-transparent"></div>
+                <div className="absolute bottom-4 right-4 text-xl font-bold group-hover:text-[#b90e0a] transition-colors duration-300">
                   CRAFTSMANSHIP
                 </div>
                 {/* Placeholder for image */}
@@ -723,13 +722,13 @@ export default function MainBrandPage({
                   ✂️
                 </div>
               </div>
-              <div className="absolute -top-4 -left-4 w-16 h-16 border-2 border-[#DD0004] rotate-45 animate-spin-slow"></div>
+              <div className="absolute -top-4 -left-4 w-16 h-16 border-2 border-[#b90e0a] rotate-45 animate-spin-slow"></div>
             </div>
             <div className="order-1 lg:order-2 animate-slide-in-right">
               <h2 className="text-4xl md:text-5xl font-black mb-6">
                 DESIGN PROCESS
               </h2>
-              <div className="w-20 h-1 bg-[#DD0004] mb-6 animate-expand-width"></div>
+              <div className="w-20 h-1 bg-[#b90e0a] mb-6 animate-expand-width"></div>
               <p className="text-lg text-[#808088] mb-6 leading-relaxed animate-fade-in-up">
                 From concept sketches to final production, every KALLKEYY piece
                 undergoes rigorous design iterations and quality checks to
@@ -747,10 +746,10 @@ export default function MainBrandPage({
                     className="flex items-center space-x-4 animate-slide-in-right hover:translate-x-2 transition-transform duration-300"
                     style={{ animationDelay: `${i * 0.1}s` }}
                   >
-                    <div className="w-8 h-8 bg-[#DD0004] rounded-full flex items-center justify-center text-black font-bold hover:scale-110 transition-transform duration-300">
+                    <div className="w-8 h-8 bg-[#b90e0a] rounded-full flex items-center justify-center text-black font-bold hover:scale-110 transition-transform duration-300">
                       {i + 1}
                     </div>
-                    <span className="text-lg hover:text-[#DD0004] transition-colors duration-300">
+                    <span className="text-lg hover:text-[#b90e0a] transition-colors duration-300">
                       {step}
                     </span>
                   </div>
@@ -758,7 +757,7 @@ export default function MainBrandPage({
               </div>
               <Button
                 onClick={onViewHoodie}
-                className="bg-white text-black hover:bg-[#DD0004] hover:text-white font-bold px-8 py-3 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl animate-bounce-in"
+                className="bg-white text-black hover:bg-[#b90e0a] hover:text-white font-bold px-8 py-3 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl animate-bounce-in"
                 style={{ animationDelay: "0.6s" }}
               >
                 VIEW FLAGSHIP PIECE
@@ -783,9 +782,9 @@ export default function MainBrandPage({
             }`}
           >
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-black mb-4 md:mb-6">
-              FOLLOW <span className="text-[#DD0004]">OUR JOURNEY</span>
+              FOLLOW <span className="text-[#b90e0a]">OUR JOURNEY</span>
             </h2>
-            <div className="w-20 h-1 bg-[#DD0004] mx-auto mb-4 md:mb-6 animate-expand-width" />
+            <div className="w-20 h-1 bg-[#b90e0a] mx-auto mb-4 md:mb-6 animate-expand-width" />
             <p className="text-base md:text-lg text-[#808088] max-w-2xl mx-auto px-4">
               Get an inside look at our latest drops, behind-the-scenes content,
               and street culture inspiration
@@ -802,7 +801,7 @@ export default function MainBrandPage({
               ].map((url, i) => (
                 <div
                   key={i}
-                  className={`flex-shrink-0 bg-black rounded-xl overflow-hidden border border-white/10 hover:border-[#DD0004]/30 transition-all duration-300 hover:scale-105 ${
+                  className={`flex-shrink-0 bg-black rounded-xl overflow-hidden border border-white/10 hover:border-[#b90e0a]/30 transition-all duration-300 hover:scale-105 ${
                     isVisible["animate-social"]
                       ? "animate-bounce-in"
                       : "opacity-0"
@@ -821,7 +820,7 @@ export default function MainBrandPage({
                       captioned={false}
                       placeholderSpinner={
                         <div className="flex items-center justify-center h-full">
-                          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#DD0004]" />
+                          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#b90e0a]" />
                         </div>
                       }
                     />
@@ -836,7 +835,7 @@ export default function MainBrandPage({
               onClick={() =>
                 window.open("https://www.instagram.com/kall.keyy/", "_blank")
               }
-              className="bg-[#DD0004] hover:bg-[#DD0004]/80 text-white font-bold px-6 py-3 md:px-8 md:py-3 text-base md:text-lg transition-all duration-300 hover:scale-105"
+              className="bg-[#b90e0a] hover:bg-[#b90e0a]/80 text-white font-bold px-6 py-3 md:px-8 md:py-3 text-base md:text-lg transition-all duration-300 hover:scale-105"
             >
               VIEW MORE ON INSTAGRAM
             </Button>
@@ -847,7 +846,7 @@ export default function MainBrandPage({
       {/* CTA Section */}
       <section
         id="animate-cta"
-        className="py-20 px-4 bg-[#DD0004] text-white relative overflow-hidden"
+        className="py-20 px-4 bg-[#b90e0a] text-white relative overflow-hidden"
       >
         {/* Animated background elements */}
         <div className="absolute inset-0 opacity-20">
@@ -917,7 +916,7 @@ export default function MainBrandPage({
                   <div
                     key={social}
                     onClick={() => handleUnavailablePage(social)}
-                    className="w-10 h-10 bg-[#28282B] rounded-full flex items-center justify-center hover:bg-[#DD0004] transition-all duration-300 cursor-pointer hover:scale-110 hover:rotate-12 animate-bounce-in"
+                    className="w-10 h-10 bg-[#28282B] rounded-full flex items-center justify-center hover:bg-[#b90e0a] transition-all duration-300 cursor-pointer hover:scale-110 hover:rotate-12 animate-bounce-in"
                     style={{ animationDelay: `${i * 0.1}s` }}
                   >
                     {social}
@@ -1006,7 +1005,7 @@ export default function MainBrandPage({
         @keyframes color-pulse {
           0%,
           100% {
-            color: #dd0004;
+            color: #b90e0a;
           }
           50% {
             color: #ff1a1a;

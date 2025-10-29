@@ -291,7 +291,7 @@ export default function SignupPage({ onNavigateToHome, onNavigateToLogin }: Sign
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-[#DD0004] to-[#FF0000] hover:from-[#FF0000] hover:to-[#DD0004] text-white font-bold py-6"
+              className="w-full bg-gradient-to-r from-[#b90e0a] to-[#FF0000] hover:from-[#FF0000] hover:to-[#b90e0a] text-white font-bold py-6"
             >
               {loading ? 'Creating Account...' : 'Sign Up'}
             </Button>
@@ -302,7 +302,7 @@ export default function SignupPage({ onNavigateToHome, onNavigateToLogin }: Sign
             Already have an account?{' '}
             <button
               onClick={onNavigateToLogin}
-              className="text-[#DD0004] hover:text-[#FF0000] font-semibold transition-colors"
+              className="text-[#b90e0a] hover:text-[#FF0000] font-semibold transition-colors"
             >
               Login
             </button>

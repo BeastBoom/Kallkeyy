@@ -207,25 +207,25 @@ const featureCards: FeatureCard[] = [
   {
     icon: <Shield className="w-8 h-8" />,
     title: "PREMIUM QUALITY",
-    description: "Only the finest materials make it into our pieces",
+    description: "We don’t chase trends — we craft longevity. Every Kallkeyy piece is built to feel heavy, last longer, and age better with time. From reinforced stitching to custom fabrics, quality isn’t a feature — it’s our foundation.",
     highlight: "Heavyweight fabrics & reinforced stitching",
   },
   {
     icon: <Zap className="w-8 h-8" />,
     title: "LIMITED DROPS",
-    description: "Exclusive releases that sell out fast",
+    description: "We believe exclusivity builds identity. Each drop is limited, deliberate, and designed to sell out, ensuring that what you wear stays rare and personal — not mass-produced noise.",
     highlight: "Small batches, high demand",
   },
   {
     icon: <Star className="w-8 h-8" />,
     title: "AUTHENTIC DESIGN",
-    description: "True street culture, no compromises",
+    description: "No fake hype. No borrowed ideas. Kallkeyy represents real street culture, blending raw energy with clean design. Every silhouette, print, and stitch carries intent, attitude, and originality.",
     highlight: "Born from the streets",
   },
   {
     icon: <Heart className="w-8 h-8" />,
     title: "COMMUNITY FIRST",
-    description: "Built by and for the culture",
+    description: "Kallkeyy isn’t a brand — it’s a movement. We grow with the culture, not above it. From feedback to collabs, your voice defines the direction — because the streets decide what’s real.",
     highlight: "Your voice shapes our brand",
   },
 ];
@@ -409,7 +409,7 @@ export default function ProductMenuPage({
             {/* LEFT: Text Logo (Responsive sizing) */}
             <div className="flex-shrink-0 z-10">
               <h1
-                className="text-xl sm:text-2xl lg:text-3xl font-black tracking-wider hover:text-[#DD0004] transition-colors duration-300 cursor-pointer"
+                className="text-xl sm:text-2xl lg:text-3xl font-black tracking-wider hover:text-[#b90e0a] transition-colors duration-300 cursor-pointer"
                 onClick={onBackToMain}
               >
                 KALLKEYY
@@ -432,7 +432,7 @@ export default function ProductMenuPage({
               <div className="hidden lg:flex gap-2 text-sm lg:text-base font-bold">
                 <button
                   onClick={() => onBackToMain()}
-                  className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                  className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
                 >
                   HOME
                 </button>
@@ -442,7 +442,7 @@ export default function ProductMenuPage({
                       ? onNavigateToShop()
                       : handleUnavailablePage("Shop")
                   }
-                  className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                  className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
                 >
                   SHOP
                 </button>
@@ -452,7 +452,7 @@ export default function ProductMenuPage({
                       ? onNavigateToAbout()
                       : handleUnavailablePage("About")
                   }
-                  className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                  className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
                 >
                   ABOUT
                 </button>
@@ -462,7 +462,7 @@ export default function ProductMenuPage({
                       ? onNavigateToContact()
                       : handleUnavailablePage("Contact")
                   }
-                  className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                  className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
                 >
                   CONTACT
                 </button>
@@ -471,11 +471,11 @@ export default function ProductMenuPage({
                 {user ? (
                   <>
                     <span className="text-white px-2 lg:px-3 py-2 flex items-center text-xs lg:text-sm whitespace-nowrap">
-                      HEY, <span className="text-[#DD0004] ml-1">{formatDisplayName(user.name)}</span>
+                      HEY, <span className="text-[#b90e0a] ml-1">{formatDisplayName(user.name)}</span>
                     </span>
                     <button
                       onClick={logout}
-                      className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg flex items-center gap-1 whitespace-nowrap"
+                      className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg flex items-center gap-1 whitespace-nowrap"
                     >
                       <LogOut size={14} className="lg:w-4 lg:h-4" />
                       <span className="text-xs lg:text-sm">LOGOUT</span>
@@ -485,13 +485,13 @@ export default function ProductMenuPage({
                   <>
                     <button
                       onClick={() => onNavigateToLogin()}
-                      className="hover:text-[#DD0004] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap text-xs lg:text-sm"
+                      className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap text-xs lg:text-sm"
                     >
                       LOGIN
                     </button>
                     <button
                       onClick={() => onNavigateToSignup()}
-                      className="bg-[#DD0004] hover:bg-[#DD0004]/80 transition-colors duration-300 px-3 lg:px-4 py-2 rounded-lg ml-1 whitespace-nowrap text-xs lg:text-sm"
+                      className="bg-[#b90e0a] hover:bg-[#b90e0a]/80 transition-colors duration-300 px-3 lg:px-4 py-2 rounded-lg ml-1 whitespace-nowrap text-xs lg:text-sm"
                     >
                       SIGN UP
                     </button>
@@ -501,7 +501,7 @@ export default function ProductMenuPage({
 
               {/* Hamburger Menu Button (Mobile/Tablet) */}
               <button
-                className="lg:hidden text-white hover:text-[#DD0004] transition-colors p-2 -mr-2"
+                className="lg:hidden text-white hover:text-[#b90e0a] transition-colors p-2 -mr-2"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label="Toggle menu"
               >
@@ -522,7 +522,7 @@ export default function ProductMenuPage({
                   onBackToMain();
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 HOME
               </button>
@@ -533,7 +533,7 @@ export default function ProductMenuPage({
                     : handleUnavailablePage("Shop");
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 SHOP
               </button>
@@ -544,7 +544,7 @@ export default function ProductMenuPage({
                     : handleUnavailablePage("About");
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 ABOUT
               </button>
@@ -555,7 +555,7 @@ export default function ProductMenuPage({
                     : handleUnavailablePage("Contact");
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 CONTACT
               </button>
@@ -565,14 +565,14 @@ export default function ProductMenuPage({
                 {user ? (
                   <>
                     <div className="text-white px-4 py-2 mb-2 text-sm">
-                      HEY, <span className="text-[#DD0004]">{formatDisplayName(user.name)}</span>
+                      HEY, <span className="text-[#b90e0a]">{formatDisplayName(user.name)}</span>
                     </div>
                     <button
                       onClick={() => {
                         logout();
                         setMobileMenuOpen(false);
                       }}
-                      className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg flex items-center gap-2 text-base font-semibold"
+                      className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg flex items-center gap-2 text-base font-semibold"
                     >
                       <LogOut size={18} />
                       LOGOUT
@@ -585,7 +585,7 @@ export default function ProductMenuPage({
                         onNavigateToLogin();
                         setMobileMenuOpen(false);
                       }}
-                      className="block w-full text-left hover:text-[#DD0004] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                      className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
                     >
                       LOGIN
                     </button>
@@ -594,7 +594,7 @@ export default function ProductMenuPage({
                         onNavigateToSignup();
                         setMobileMenuOpen(false);
                       }}
-                      className="w-full bg-[#DD0004] hover:bg-[#DD0004]/80 transition-colors duration-300 px-4 py-2.5 rounded-lg text-center mt-2 text-base font-semibold"
+                      className="w-full bg-[#b90e0a] hover:bg-[#b90e0a]/80 transition-colors duration-300 px-4 py-2.5 rounded-lg text-center mt-2 text-base font-semibold"
                     >
                       SIGN UP
                     </button>
@@ -635,7 +635,7 @@ export default function ProductMenuPage({
               <div className="container mx-auto px-4 md:px-8 max-w-7xl">
                 <div className="max-w-2xl space-y-4 md:space-y-6">
                   {/* Tag */}
-                  <span className="inline-block bg-[#DD0004] text-white px-4 py-2 text-sm font-bold rounded-full animate-pulse">
+                  <span className="inline-block bg-[#b90e0a] text-white px-4 py-2 text-sm font-bold rounded-full animate-pulse">
                     {slide.tag}
                   </span>
 
@@ -645,7 +645,7 @@ export default function ProductMenuPage({
                   </h1>
 
                   {/* Subtitle */}
-                  <p className="text-xl md:text-2xl text-[#DD0004] font-bold animate-slide-up animation-delay-200">
+                  <p className="text-xl md:text-2xl text-[#b90e0a] font-bold animate-slide-up animation-delay-200">
                     {slide.subtitle}
                   </p>
 
@@ -673,7 +673,7 @@ export default function ProductMenuPage({
                             ?.scrollIntoView({ behavior: "smooth" });
                         }
                       }}
-                      className="bg-[#DD0004] hover:bg-[#DD0004]/80 text-white font-bold px-6 py-3 md:px-8 md:py-4 text-base md:text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl group cursor-pointer"
+                      className="bg-[#b90e0a] hover:bg-[#b90e0a]/80 text-white font-bold px-6 py-3 md:px-8 md:py-4 text-base md:text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl group cursor-pointer"
                     >
                       {slide.buttonText}
                       <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2 group-hover:translate-x-1 transition-transform inline" />
@@ -691,7 +691,7 @@ export default function ProductMenuPage({
                   onClick={() => setCurrentSlide(idx)}
                   className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
                     idx === currentSlide
-                      ? "w-12 bg-[#DD0004]"
+                      ? "w-12 bg-[#b90e0a]"
                       : "w-2 bg-white/30 hover:bg-white/50"
                   }`}
                 />
@@ -705,7 +705,7 @@ export default function ProductMenuPage({
                   prev === 0 ? heroSlides.length - 1 : prev - 1
                 )
               }
-              className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-[#DD0004] p-3 rounded-full transition-all duration-300 hover:scale-110 z-20 cursor-pointer"
+              className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-[#b90e0a] p-3 rounded-full transition-all duration-300 hover:scale-110 z-20 cursor-pointer"
             >
               <ChevronLeft className="w-6 h-6 text-white" />
             </button>
@@ -715,7 +715,7 @@ export default function ProductMenuPage({
                   prev === heroSlides.length - 1 ? 0 : prev + 1
                 )
               }
-              className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-[#DD0004] p-3 rounded-full transition-all duration-300 hover:scale-110 z-20 cursor-pointer"
+              className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-[#b90e0a] p-3 rounded-full transition-all duration-300 hover:scale-110 z-20 cursor-pointer"
             >
               <ChevronRight className="w-6 h-6 text-white" />
             </button>
@@ -733,15 +733,15 @@ export default function ProductMenuPage({
                 className="flex items-center flex-shrink-0"
               >
                 <span className="text-2xl md:text-4xl font-black text-white/10 mx-6">
-                  STREET CULTURE
+                  DIVINITY IN DRIP
                 </span>
-                <span className="text-2xl md:text-4xl font-black text-[#DD0004]/30 mx-6">
+                <span className="text-2xl md:text-4xl font-black text-[#b90e0a]/30 mx-6">
                   ★
                 </span>
                 <span className="text-2xl md:text-4xl font-black text-white/10 mx-6">
-                  AUTHENTIC STYLE
+                  PLACEHOLDER
                 </span>
-                <span className="text-2xl md:text-4xl font-black text-[#DD0004]/30 mx-6">
+                <span className="text-2xl md:text-4xl font-black text-[#b90e0a]/30 mx-6">
                   ★
                 </span>
               </div>
@@ -757,15 +757,15 @@ export default function ProductMenuPage({
                 className="flex items-center flex-shrink-0"
               >
                 <span className="text-2xl md:text-4xl font-black text-white/10 mx-6">
-                  STREET CULTURE
+                  DIVINITY IN DRIP
                 </span>
-                <span className="text-2xl md:text-4xl font-black text-[#DD0004]/30 mx-6">
+                <span className="text-2xl md:text-4xl font-black text-[#b90e0a]/30 mx-6">
                   ★
                 </span>
                 <span className="text-2xl md:text-4xl font-black text-white/10 mx-6">
-                  AUTHENTIC STYLE
+                  PLACEHOLDER
                 </span>
-                <span className="text-2xl md:text-4xl font-black text-[#DD0004]/30 mx-6">
+                <span className="text-2xl md:text-4xl font-black text-[#b90e0a]/30 mx-6">
                   ★
                 </span>
               </div>
@@ -780,12 +780,12 @@ export default function ProductMenuPage({
         <section id="products-section" className="py-16 px-4 bg-black">
           <div className="max-w-7xl mx-auto text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-black mb-4">
-              OUR <span className="text-[#DD0004]">COLLECTION</span>
+              <span className="text-[#b90e0a]">ASTITVA</span> ACT-I
             </h2>
-            <div className="w-32 h-1 bg-[#DD0004] mx-auto mb-6" />
+            <div className="w-32 h-1 bg-[#b90e0a] mx-auto mb-6" />
             <p className="text-[#808088] text-lg max-w-2xl mx-auto leading-relaxed">
-              Limited edition pieces crafted for those who dare to stand out. Each
-              design tells a story of rebellion and authenticity.
+              Statement pieces crafted for those who dare to stand out. Each
+              design tells a story of divinity and existence.
             </p>
           </div>
         </section>
@@ -798,8 +798,8 @@ export default function ProductMenuPage({
               onClick={() => setSelectedCategory(category)}
               className={`px-6 py-3 rounded-full font-bold transition-all duration-300 ${
                 selectedCategory === category
-                  ? "bg-[#DD0004] text-white scale-105 shadow-lg"
-                  : "bg-[#28282B] text-white hover:bg-[#DD0004]/20 hover:scale-105"
+                  ? "bg-[#b90e0a] text-white scale-105 shadow-lg"
+                  : "bg-[#28282B] text-white hover:bg-[#b90e0a]/20 hover:scale-105"
               }`}
             >
               {category}
@@ -812,7 +812,7 @@ export default function ProductMenuPage({
           {filteredProducts.map((product, index) => (
             <div
               key={product.id}
-              className="w-[calc(50%-0.5rem)] md:w-[calc(50%-0.75rem)] lg:w-[calc(25%-1.125rem)] max-w-[280px] group relative bg-[#28282B] rounded-xl overflow-hidden border border-[#808088]/20 hover:border-[#DD0004] transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#DD0004]/20"
+              className="w-[calc(50%-0.5rem)] md:w-[calc(50%-0.75rem)] lg:w-[calc(25%-1.125rem)] max-w-[280px] group relative bg-[#28282B] rounded-xl overflow-hidden border border-[#808088]/20 hover:border-[#b90e0a] transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#b90e0a]/20"
               onMouseEnter={() => setHoveredProduct(product.id)}
               onMouseLeave={() => setHoveredProduct(null)}
             >
@@ -830,7 +830,7 @@ export default function ProductMenuPage({
                 
                 {/* Tag Badge */}
                 <div className="absolute top-3 left-3">
-                  <span className="bg-[#DD0004] text-white px-2 py-1 text-xs font-bold rounded-full">
+                  <span className="bg-[#b90e0a] text-white px-2 py-1 text-xs font-bold rounded-full">
                     {product.tag}
                   </span>
                 </div>
@@ -843,7 +843,7 @@ export default function ProductMenuPage({
                 >
                   <Button
                     onClick={() => onSelectProduct(product.id)}
-                    className="bg-[#DD0004] hover:bg-[#DD0004]/80 text-white font-bold px-4 py-2 text-sm transition-all duration-300 hover:scale-110"
+                    className="bg-[#b90e0a] hover:bg-[#b90e0a]/80 text-white font-bold px-4 py-2 text-sm transition-all duration-300 hover:scale-110"
                   >
                     VIEW DETAILS
                   </Button>
@@ -852,7 +852,7 @@ export default function ProductMenuPage({
 
               {/* Product Info */}
               <div className="p-4 space-y-2">
-                <h3 className="text-lg font-black group-hover:text-[#DD0004] transition-colors duration-300 line-clamp-1">
+                <h3 className="text-lg font-black group-hover:text-[#b90e0a] transition-colors duration-300 line-clamp-1">
                   {product.name}
                 </h3>
                 <p className="text-[#808088] text-sm line-clamp-2">
@@ -862,7 +862,7 @@ export default function ProductMenuPage({
                   <span className="text-xl font-bold text-white">{product.price}</span>
                   <button
                     onClick={() => onSelectProduct(product.id)}
-                    className="text-[#DD0004] hover:text-[#DD0004]/80 transition-colors duration-300"
+                    className="text-[#b90e0a] hover:text-[#b90e0a]/80 transition-colors duration-300"
                   >
                     <ArrowRight className="w-5 h-5" />
                   </button>
@@ -876,32 +876,32 @@ export default function ProductMenuPage({
         <div className="max-w-7xl mx-auto mb-24">
           <div className="text-center mb-12">
             <h3 className="text-3xl md:text-5xl font-black mb-4">
-              WHY <span className="text-[#DD0004]">KALLKEYY</span>
+              WHY <span className="text-[#b90e0a]">KALLKEYY</span> ?
             </h3>
-            <div className="w-24 h-1 bg-[#DD0004] mx-auto" />
+            <div className="w-24 h-1 bg-[#b90e0a] mx-auto" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {featureCards.map((card, i) => (
               <div
                 key={i}
-                className="group relative bg-gradient-to-br from-[#28282B] to-[#1C1C21] rounded-xl p-8 border border-white/10 hover:border-[#DD0004]/50 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#DD0004]/10"
+                className="group relative bg-gradient-to-br from-[#28282B] to-[#1C1C21] rounded-xl p-8 border border-white/10 hover:border-[#b90e0a]/50 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#b90e0a]/10"
               >
-                <div className="text-[#DD0004] mb-4 group-hover:scale-110 transition-transform duration-300">
+                <div className="text-[#b90e0a] mb-4 group-hover:scale-110 transition-transform duration-300">
                   {card.icon}
                 </div>
-                <h4 className="text-lg font-bold mb-2 group-hover:text-[#DD0004] transition-colors">
+                <h4 className="text-lg font-bold mb-2 group-hover:text-[#b90e0a] transition-colors">
                   {card.title}
                 </h4>
                 <p className="text-[#808088] text-sm mb-3 leading-relaxed">
                   {card.description}
                 </p>
-                <div className="text-xs text-[#DD0004] font-semibold">
+                <div className="text-xs text-[#b90e0a] font-semibold">
                   {card.highlight}
                 </div>
 
                 {/* Animated corner accent */}
-                <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-[#DD0004]/0 group-hover:border-[#DD0004] transition-all duration-300" />
+                <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-[#b90e0a]/0 group-hover:border-[#b90e0a] transition-all duration-300" />
               </div>
             ))}
           </div>
@@ -927,18 +927,21 @@ export default function ProductMenuPage({
             <div className="relative z-10">
               <div className="text-center mb-12">
                 <h3 className="text-3xl md:text-5xl font-black mb-4">
-                  OUR <span className="text-[#DD0004]">STORY</span>
+                  OUR <span className="text-[#b90e0a]">STORY</span>
                 </h3>
-                <div className="w-24 h-1 bg-[#DD0004] mx-auto mb-6" />
+                <div className="w-24 h-1 bg-[#b90e0a] mx-auto mb-6" />
               </div>
 
               <div className="grid md:grid-cols-2 gap-12 items-center">
                 <div className="space-y-6">
                   <p className="text-[#CCCCCC] text-lg leading-relaxed">
-                    KALLKEYY was born from the streets, inspired by the raw
-                    energy of urban culture. We create pieces that speak to
+                    Streetwear has always been loud, but it never spoke our language. Inspired by the raw
+                    energy of urban culture, we create pieces that speak to
                     those who refuse to blend in, who wear their identity with
                     pride.
+                    <br /><br/>
+                    We created KALLKEYY to fill a void – to bring you streetwear
+                    that’s not just about fashion, but about making a statement.
                   </p>
                   <p className="text-[#808088] text-base leading-relaxed">
                     Every stitch, every design choice is intentional. We're not
@@ -946,30 +949,30 @@ export default function ProductMenuPage({
                     movement, and redefining what streetwear means.
                   </p>
                   <div className="flex flex-wrap gap-4 pt-4">
-                    <div className="bg-black/50 px-6 py-3 rounded-full border border-[#DD0004]/30">
-                      <span className="text-[#DD0004] font-bold">
-                        EST. 2024
+                    <div className="bg-black/50 px-6 py-3 rounded-full border border-[#b90e0a]/30">
+                      <span className="text-[#b90e0a] font-bold">
+                        EST. 2025
                       </span>
                     </div>
-                    <div className="bg-black/50 px-6 py-3 rounded-full border border-[#DD0004]/30">
+                    <div className="bg-black/50 px-6 py-3 rounded-full border border-[#b90e0a]/30">
                       <span className="text-white font-bold">
                         100% AUTHENTIC
                       </span>
                     </div>
-                    <div className="bg-black/50 px-6 py-3 rounded-full border border-[#DD0004]/30">
+                    <div className="bg-black/50 px-6 py-3 rounded-full border border-[#b90e0a]/30">
                       <span className="text-white font-bold">
-                        MADE FOR STREETS
+                        STREETWEAR
                       </span>
                     </div>
                   </div>
                 </div>
 
                 <div className="relative">
-                  <div className="aspect-square rounded-2xl bg-gradient-to-br from-[#DD0004]/20 to-transparent border border-[#DD0004]/30 flex items-center justify-center">
-                    <TrendingUp className="w-24 h-24 text-[#DD0004]/40" />
+                  <div className="aspect-square rounded-2xl bg-gradient-to-br from-[#b90e0a]/20 to-transparent border border-[#b90e0a]/30 flex items-center justify-center">
+                    <TrendingUp className="w-24 h-24 text-[#b90e0a]/40" />
                   </div>
-                  <div className="absolute -bottom-4 -right-4 bg-[#DD0004] text-white px-6 py-3 rounded-xl font-bold shadow-2xl">
-                    10K+ COMMUNITY
+                  <div className="absolute -bottom-4 -right-4 bg-[#b90e0a] text-white px-6 py-3 rounded-xl font-bold shadow-2xl">
+                    GROWING COMMUNITY
                   </div>
                 </div>
               </div>
@@ -982,9 +985,9 @@ export default function ProductMenuPage({
         <div className="w-full mx-auto mb-24 px-4">
           <div className="text-center mb-12">
             <h3 className="text-3xl md:text-5xl font-black mb-4">
-              FOLLOW <span className="text-[#DD0004]">OUR JOURNEY</span>
+              FOLLOW <span className="text-[#b90e0a]">OUR JOURNEY</span>
             </h3>
-            <div className="w-24 h-1 bg-[#DD0004] mx-auto mb-4" />
+            <div className="w-24 h-1 bg-[#b90e0a] mx-auto mb-4" />
             <p className="text-[#808088] text-base md:text-lg">
               Check out our latest drops and behind-the-scenes content
             </p>
@@ -1034,7 +1037,7 @@ export default function ProductMenuPage({
                             marginTop: "10px",
                           }}
                         >
-                          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#DD0004]" />
+                          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#b90e0a]" />
                         </div>
                       }
                     />
@@ -1064,7 +1067,7 @@ export default function ProductMenuPage({
               onClick={() =>
                 window.open("https://www.instagram.com/kall.keyy/", "_blank")
               }
-              className="bg-[#DD0004] hover:bg-[#BB0003] text-white font-bold px-6 py-3 md:px-8 md:py-4 text-base md:text-lg 
+              className="bg-[#b90e0a] hover:bg-[#BB0003] text-white font-bold px-6 py-3 md:px-8 md:py-4 text-base md:text-lg 
                  transition-all duration-300 hover:scale-105 hover:shadow-2xl group"
             >
               <Instagram className="w-4 h-4 md:w-5 md:h-5 mr-2" />
@@ -1076,7 +1079,7 @@ export default function ProductMenuPage({
 
         {/* NEWSLETTER SECTION - ENHANCED */}
         <div className="max-w-4xl mx-auto mb-24">
-          <div className="relative bg-gradient-to-r from-[#DD0004]/10 via-[#28282B] to-[#DD0004]/10 rounded-3xl p-8 md:p-12 border border-[#DD0004]/30 overflow-hidden">
+          <div className="relative bg-gradient-to-r from-[#b90e0a]/10 via-[#28282B] to-[#b90e0a]/10 rounded-3xl p-8 md:p-12 border border-[#b90e0a]/30 overflow-hidden">
             {/* Animated background */}
             <div className="absolute inset-0 opacity-10">
               <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(221,0,4,0.2)_50%,transparent_75%)] bg-[length:250%_250%] animate-gradient" />
@@ -1084,7 +1087,7 @@ export default function ProductMenuPage({
 
             <div className="relative z-10 text-center">
               <h3 className="text-3xl md:text-4xl font-black mb-4">
-                STAY IN THE <span className="text-[#DD0004]">LOOP</span>
+                STAY IN THE <span className="text-[#b90e0a]">LOOP</span>
               </h3>
               <p className="text-[#808088] mb-8 text-lg">
                 Get early access to new drops, exclusive content, and special
@@ -1099,14 +1102,14 @@ export default function ProductMenuPage({
                   placeholder="Enter your email"
                   className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg 
                text-white placeholder:text-white/50 focus:outline-none 
-               focus:border-[#DD0004] transition-colors"
+               focus:border-[#b90e0a] transition-colors"
                   disabled={isSubmitting} // ADD THIS
                   required // ADD THIS
                 />
                 <button
                   type="submit"
                   disabled={isSubmitting} // ADD THIS
-                  className="px-6 py-3 bg-[#DD0004] text-white rounded-lg font-bold 
+                  className="px-6 py-3 bg-[#b90e0a] text-white rounded-lg font-bold 
                hover:bg-[#BB0003] transition-colors whitespace-nowrap
                disabled:opacity-50 disabled:cursor-not-allowed" // ADD disabled styles
                 >
@@ -1114,10 +1117,6 @@ export default function ProductMenuPage({
                   {/* UPDATE TEXT */}
                 </button>
               </form>
-
-              <p className="text-xs text-[#808088] mt-4">
-                Join 10,000+ streetwear enthusiasts getting exclusive updates
-              </p>
             </div>
           </div>
         </div>
@@ -1130,15 +1129,14 @@ export default function ProductMenuPage({
             <div className="md:col-span-2 animate-fade-in-up">
               <h3 className="text-3xl font-black mb-4">KALLKEYY</h3>
               <p className="text-[#808088] mb-4 max-w-md">
-                Authentic streetwear for the next generation. Born from the
-                underground, crafted for tomorrow.
+                Based on a prophecy untold, KALLKEYY is more than just streetwear; it's a movement. Every Design has a story, every stitch a purpose.
               </p>
               <div className="flex space-x-4">
                 {["IG", "TW", "FB"].map((social, i) => (
                   <div
                     key={social}
                     onClick={() => handleUnavailablePage(social)}
-                    className="w-10 h-10 bg-[#28282B] rounded-full flex items-center justify-center hover:bg-[#DD0004] transition-all duration-300 cursor-pointer hover:scale-110 hover:rotate-12 animate-bounce-in"
+                    className="w-10 h-10 bg-[#28282B] rounded-full flex items-center justify-center hover:bg-[#b90e0a] transition-all duration-300 cursor-pointer hover:scale-110 hover:rotate-12 animate-bounce-in"
                     style={{ animationDelay: `${i * 0.1}s` }}
                   >
                     {social}

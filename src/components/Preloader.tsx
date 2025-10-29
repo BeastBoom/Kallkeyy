@@ -36,7 +36,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
         {[...Array(8)].map((_, i) => (
           <div
             key={i}
-            className="absolute rounded-full border-2 border-[#DD0004]/20"
+            className="absolute rounded-full border-2 border-[#b90e0a]/20"
             style={{
               width: `${300 + i * 150}px`,
               height: `${300 + i * 150}px`,
@@ -68,13 +68,13 @@ export default function Preloader({ onComplete }: PreloaderProps) {
 
       {/* Central pulse ring - Changed from orange to red */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-96 h-96 rounded-full border border-[#DD0004]/30 animate-ping" />
+        <div className="w-96 h-96 rounded-full border border-[#b90e0a]/30 animate-ping" />
         <div
-          className="absolute w-64 h-64 rounded-full border border-[#DD0004]/50 animate-ping"
+          className="absolute w-64 h-64 rounded-full border border-[#b90e0a]/50 animate-ping"
           style={{ animationDelay: "0.5s" }}
         />
         <div
-          className="absolute w-32 h-32 rounded-full border border-[#DD0004]/70 animate-ping"
+          className="absolute w-32 h-32 rounded-full border border-[#b90e0a]/70 animate-ping"
           style={{ animationDelay: "1s" }}
         />
       </div>
@@ -84,14 +84,14 @@ export default function Preloader({ onComplete }: PreloaderProps) {
         <div className="relative">
           <h1 className="text-6xl md:text-8xl font-black text-white tracking-wider mb-8 animate-pulse">KALLKEYY</h1>
           {/* Glowing outline effect - Changed from orange to red */}
-          <div className="absolute inset-0 text-6xl md:text-8xl font-black text-[#DD0004]/20 tracking-wider animate-pulse scale-105">
+          <div className="absolute inset-0 text-6xl md:text-8xl font-black text-[#b90e0a]/20 tracking-wider animate-pulse scale-105">
             KALLKEYY
           </div>
         </div>
 
         <p
           key={idx}
-          className="text-xl md:text-2xl font-semibold text-[#DD0004] animate-fade-in"
+          className="text-xl md:text-2xl font-semibold text-[#b90e0a] animate-fade-in"
           style={{
             animation: "textSlide 0.8s ease-out",
           }}
@@ -105,7 +105,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
             <div
               key={i}
               className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                i === idx ? "bg-[#DD0004] scale-125" : "bg-white/30"
+                i === idx ? "bg-[#b90e0a] scale-125" : "bg-white/30"
               }`}
             />
           ))}

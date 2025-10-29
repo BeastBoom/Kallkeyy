@@ -13,11 +13,11 @@ interface Props {
 }
 
 const TSHIRT2_DATA = {
-  name: "KALLKEYY GRAPHIC TEE PRO",
-  price: "₹1,699",
+  name: "MRITYO-BADDHA",
+  price: "₹999",
   tag: "TRENDING",
   description:
-    "Premium graphic tee with exclusive artwork. Made for those who stand out. 280 GSM premium cotton with oversized boxy fit.",
+    "“MRITYO-BADDHA — BOUND BY DEATH” A graphic tee that embodies the struggle against mortality. 280 GSM premium cotton with oversized boxy fit.",
   images: [
     "/tshirt2-front.jpg",
     "/tshirt2-back.jpg",
@@ -25,11 +25,10 @@ const TSHIRT2_DATA = {
     "/hoodie-front.png"  // Fallback to existing image
   ],
   material: [
-    "• 100% Premium Cotton",
-    "• 280gsm heavyweight construction",
-    "• Oversized boxy fit",
-    "• Pre-shrunk and enzyme washed",
-    "• Machine wash cold, hang dry",
+    "Oversized unisex fit",
+    "240gsm French Terry Cotton",
+    "Boxy fit with drop shoulders",
+    "Do not bleach or iron directly on print",
   ],
 };
 

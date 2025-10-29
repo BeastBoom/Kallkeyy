@@ -13,18 +13,17 @@ interface Props {
 }
 
 const HOODIE_DATA = {
-  name: "KALLKEYY ESSENTIAL HOODIE",
-  price: "₹2,999",
+  name: "KAAL-DRISHTA",
+  price: "₹2,199",
   tag: "FLAGSHIP",
   description:
-    "Premium cotton-blend hoodie with signature fit and street-ready design. Features embroidered wordmark, red accent details, and heavyweight construction built to last. Limited quantities available.",
+    "KAALDRISHTA — the blazing eye that never blinks. Born from the ashes of forgotten gods, its wings burn through illusion. Omnipresent, it sees past life and death — the watcher of endings, the guardian of rebirth. Nothing escapes its divine sight.",
   images: ["/product-hoodie.jpg", "/hoodie-side.png", "/hoodie-front.png", "/hoodie.png"],
   material: [
-    "• 80% Premium Cotton, 20% Polyester blend",
-    "• 400gsm heavyweight construction",
-    "• Pre-shrunk and enzyme washed",
-    "• Machine wash cold, tumble dry low",
-    "• Do not bleach or iron directly on print",
+    "Oversized unisex fit",
+    "350gsm comfortable fabric",
+    "Boxy fit with drop shoulders",
+    "Do not bleach or iron directly on print",
   ],
 }
 
