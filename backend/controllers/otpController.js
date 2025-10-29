@@ -1,10 +1,10 @@
-const twilio = require('twilio');
-const User = require('../models/User');
+const twilio = require("twilio");
+const User = require("../models/User");
 
 // Initialize Twilio client
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN,
+  process.env.TWILIO_AUTH_TOKEN
 );
 
 // Store OTPs temporarily
@@ -23,7 +23,7 @@ exports.sendOTP = async (req, res) => {
     if (!phone || phone.length !== 10) {
       return res.status(400).json({
         success: false,
-        message: 'Valid 10-digit phone number is required'
+        message: "Valid 10-digit phone number is required",
       });
     }
 
@@ -35,7 +35,7 @@ exports.sendOTP = async (req, res) => {
     otpStore.set(phone, {
       otp,
       expiresAt,
-      attempts: 0
+      attempts: 0,
     });
 
     // Format phone number for Twilio
@@ -45,23 +45,22 @@ exports.sendOTP = async (req, res) => {
     await client.messages.create({
       body: `Your KALLKEYY verification code is: ${otp}. Valid for 10 minutes. Do not share this code.`,
       from: process.env.TWILIO_PHONE_NUMBER,
-      to: formattedPhone
+      to: formattedPhone,
     });
 
     console.log(`OTP sent to ${phone}: ${otp}`);
 
     res.status(200).json({
       success: true,
-      message: 'OTP sent successfully',
-      expiresIn: 600
+      message: "OTP sent successfully",
+      expiresIn: 600,
     });
-
   } catch (error) {
-    console.error('OTP send error:', error);
+    console.error("OTP send error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to send OTP. Please try again.',
-      error: error.message
+      message: "Failed to send OTP. Please try again.",
+      error: error.message,
     });
   }
 };
@@ -69,12 +68,22 @@ exports.sendOTP = async (req, res) => {
 // Verify OTP and save phone to user
 exports.verifyOTP = async (req, res) => {
   try {
-    const { phone, otp, userId } = req.body;
+    const { phone, otp } = req.body;
+
+    // Get userId from authenticated user (set by auth middleware)
+    const userId = req.userId;
 
     if (!phone || !otp) {
       return res.status(400).json({
         success: false,
-        message: 'Phone number and OTP are required'
+        message: "Phone number and OTP are required",
+      });
+    }
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
       });
     }
 
@@ -83,7 +92,7 @@ exports.verifyOTP = async (req, res) => {
     if (!storedData) {
       return res.status(400).json({
         success: false,
-        message: 'No OTP found for this number. Please request a new one.'
+        message: "No OTP found for this number. Please request a new one.",
       });
     }
 
@@ -92,7 +101,7 @@ exports.verifyOTP = async (req, res) => {
       otpStore.delete(phone);
       return res.status(400).json({
         success: false,
-        message: 'OTP has expired. Please request a new one.'
+        message: "OTP has expired. Please request a new one.",
       });
     }
 
@@ -101,7 +110,7 @@ exports.verifyOTP = async (req, res) => {
       otpStore.delete(phone);
       return res.status(400).json({
         success: false,
-        message: 'Too many failed attempts. Please request a new OTP.'
+        message: "Too many failed attempts. Please request a new OTP.",
       });
     }
 
@@ -111,36 +120,43 @@ exports.verifyOTP = async (req, res) => {
       otpStore.set(phone, storedData);
       return res.status(400).json({
         success: false,
-        message: `Invalid OTP. ${5 - storedData.attempts} attempts remaining.`
+        message: `Invalid OTP. ${5 - storedData.attempts} attempts remaining.`,
       });
     }
 
     // OTP verified successfully - Update user with phone number
-    if (userId) {
-      await User.findByIdAndUpdate(userId, {
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
         phone: phone,
-        phoneVerified: true
+        phoneVerified: true,
+      },
+      { new: true } // Return the updated document
+    ).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
       });
     }
 
     otpStore.delete(phone);
 
-    // Generate verification token
-    const verificationToken = Buffer.from(`${phone}_${Date.now()}`).toString('base64');
+    console.log(`Phone verified for user ${userId}: ${phone}`);
 
     res.status(200).json({
       success: true,
-      message: 'Phone number verified successfully',
-      verificationToken,
-      phone
+      message: "Phone number verified successfully",
+      phone: updatedUser.phone,
+      phoneVerified: updatedUser.phoneVerified,
     });
-
   } catch (error) {
-    console.error('OTP verification error:', error);
+    console.error("OTP verification error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to verify OTP. Please try again.',
-      error: error.message
+      message: "Failed to verify OTP. Please try again.",
+      error: error.message,
     });
   }
 };
@@ -152,10 +168,10 @@ exports.resendOTP = async (req, res) => {
     otpStore.delete(phone);
     return exports.sendOTP(req, res);
   } catch (error) {
-    console.error('OTP resend error:', error);
+    console.error("OTP resend error:", error);
     res.status(500).json({
       success: false,
-      message: 'Failed to resend OTP. Please try again.'
+      message: "Failed to resend OTP. Please try again.",
     });
   }
 };

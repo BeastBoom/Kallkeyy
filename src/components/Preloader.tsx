@@ -1,35 +1,45 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 
 interface PreloaderProps {
-  onComplete: () => void
+  onComplete: () => void;
 }
 
-const TAGLINES = ["Streetwear Reimagined", "Comfort Meets Style", "Urban Expression", "Coming Soon"]
+const TAGLINES = [
+  "Streetwear Reimagined",
+  "Comfort Meets Style",
+  "Urban Expression",
+  "Astitva Act-I",
+];
 
 export default function Preloader({ onComplete }: PreloaderProps) {
-  const [idx, setIdx] = useState(0)
-  const [fadeOut, setFadeOut] = useState(false)
+  const [idx, setIdx] = useState(0);
+  const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    const rotate = setInterval(() => setIdx((p) => (p + 1) % TAGLINES.length), 800)
+    const rotate = setInterval(
+      () => setIdx((p) => (p + 1) % TAGLINES.length),
+      800
+    );
 
     const timer = setTimeout(() => {
-      clearInterval(rotate)
-      setFadeOut(true)
-      setTimeout(onComplete, 800)
-    }, 3200)
+      clearInterval(rotate);
+      setFadeOut(true);
+      setTimeout(onComplete, 800);
+    }, 3200);
 
     return () => {
-      clearInterval(rotate)
-      clearTimeout(timer)
-    }
-  }, [onComplete])
+      clearInterval(rotate);
+      clearTimeout(timer);
+    };
+  }, [onComplete]);
 
   return (
     <div
-      className={`fixed inset-0 z-50 bg-black flex items-center justify-center transition-all duration-800 ${fadeOut ? "opacity-0 scale-110" : "opacity-100 scale-100"}`}
+      className={`fixed inset-0 z-50 bg-black flex items-center justify-center transition-all duration-800 ${
+        fadeOut ? "opacity-0 scale-110" : "opacity-100 scale-100"
+      }`}
     >
       {/* Animated sunray circles - Changed from orange to red */}
       <div className="absolute inset-0 overflow-hidden">
@@ -82,7 +92,9 @@ export default function Preloader({ onComplete }: PreloaderProps) {
       {/* Main content */}
       <div className="relative z-10 text-center">
         <div className="relative">
-          <h1 className="text-6xl md:text-8xl font-black text-white tracking-wider mb-8 animate-pulse">KALLKEYY</h1>
+          <h1 className="text-6xl md:text-8xl font-black text-white tracking-wider mb-8 animate-pulse">
+            KALLKEYY
+          </h1>
           {/* Glowing outline effect - Changed from orange to red */}
           <div className="absolute inset-0 text-6xl md:text-8xl font-black text-[#b90e0a]/20 tracking-wider animate-pulse scale-105">
             KALLKEYY
@@ -125,5 +137,5 @@ export default function Preloader({ onComplete }: PreloaderProps) {
         }
       `}</style>
     </div>
-  )
+  );
 }

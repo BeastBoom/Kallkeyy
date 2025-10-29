@@ -9,20 +9,22 @@ interface Props {
   onNavigateToContact?: () => void;
   onNavigateToLogin: () => void;
   onNavigateToSignup: () => void;
-  onNavigateToProduct?: (productId: string) => void
+  onNavigateToProduct?: (productId: string) => void;
 }
 
 const HOODIE2_DATA = {
   name: "ANTAHA-YUGAYSA",
   price: "₹2,199",
+  originalPrice: "₹4,499",
+  salePrice: "₹2,199",
   tag: "NEW LAUNCH",
   description:
-    "“ANTAHA-YUGAYSA — HANDS OF GOD” When the divine clock shattered, time imploded into itself, through a wormhole. The Hands of God reached—not to save, but to rewrite. From that fracture, Antaha-Yugaysa was born—where endings wear eternity, and creation remembers its own destruction.",
+    '"ANTAHA-YUGAYSA — HANDS OF GOD" When the divine clock shattered, time imploded into itself, through a wormhole. The Hands of God reached—not to save, but to rewrite. From that fracture, Antaha-Yugaysa was born—where endings wear eternity, and creation remembers its own destruction.',
   images: [
-    "/hoodie2-main.jpg",
-    "/hoodie2-back.jpg",
-    "/hoodie2-detail.jpg",
-    "/product-hoodie.jpg"  // Fallback to existing image
+    "/Antahayugasya-1.png",
+    "/antahayugasya.mp4",
+    "/Antahayugasya-2.png",
+    "/Antahayugasya-3.png",
   ],
   material: [
     "Oversized unisex fit",
@@ -30,6 +32,7 @@ const HOODIE2_DATA = {
     "Boxy fit with drop shoulders",
     "Do not bleach or iron directly on print",
   ],
+  productType: "hoodie" as const,
 };
 
 export default function Hoodie2Page({
@@ -39,7 +42,7 @@ export default function Hoodie2Page({
   onNavigateToContact,
   onNavigateToLogin,
   onNavigateToSignup,
-  onNavigateToProduct
+  onNavigateToProduct,
 }: Props) {
   return (
     <ProductPageBase

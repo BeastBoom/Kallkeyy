@@ -45,15 +45,15 @@ export default function MainBrandPage({
 
   const handleUnavailablePage = (pageName: string) => {
     toast({
-      title: "Coming Soon",
-      description: `Sorry, the ${pageName} page is not available yet. Stay tuned!`,
+      title: "Under Development",
+      description: `The ${pageName} page is currently being developed. Check back soon!`,
       duration: 3000,
     });
   };
 
   // Helper function to format user display name
   const formatDisplayName = (fullName: string): string => {
-    if (!fullName) return '';
+    if (!fullName) return "";
     const nameParts = fullName.trim().split(/\s+/);
     const firstName = nameParts[0];
     if (firstName.length <= 10) {
@@ -61,13 +61,12 @@ export default function MainBrandPage({
     }
     const initials = nameParts
       .slice(0, 3)
-      .map(part => part[0])
-      .join('')
+      .map((part) => part[0])
+      .join("")
       .toUpperCase();
-    
+
     return initials;
   };
-
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -184,7 +183,7 @@ export default function MainBrandPage({
             {/* LEFT: Text Logo (Responsive sizing) */}
             <div className="flex-shrink-0 z-10">
               <h1
-                className="text-lg sm:text-xl lg:text-2xl font-bold tracking-wider hover:text-[#b90e0a] transition-colors duration-300 cursor-pointer font-akira"
+                className="text-xl sm:text-2xl lg:text-3xl font-black tracking-wider hover:text-[#b90e0a] transition-colors duration-300 cursor-pointer font-akira"
                 onClick={onBackToMain}
               >
                 KALLKEYY
@@ -241,12 +240,15 @@ export default function MainBrandPage({
                 >
                   CONTACT
                 </button>
-                
+
                 {/* AUTH BUTTONS - Desktop */}
                 {user ? (
                   <>
                     <span className="text-white px-2 lg:px-3 py-2 flex items-center text-xs lg:text-sm whitespace-nowrap">
-                      HEY, <span className="text-[#b90e0a] ml-1">{formatDisplayName(user.name)}</span>
+                      HEY,{" "}
+                      <span className="text-[#b90e0a] ml-1">
+                        {formatDisplayName(user.name)}
+                      </span>
                     </span>
                     <button
                       onClick={logout}
@@ -303,9 +305,11 @@ export default function MainBrandPage({
               </button>
               <button
                 onClick={() => {
-                  onNavigateToShop
-                    ? onNavigateToShop()
-                    : handleUnavailablePage("Shop");
+                  if (onNavigateToShop) {
+                    onNavigateToShop();
+                  } else {
+                    handleUnavailablePage("Shop");
+                  }
                   setMobileMenuOpen(false);
                 }}
                 className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
@@ -314,9 +318,11 @@ export default function MainBrandPage({
               </button>
               <button
                 onClick={() => {
-                  onNavigateToAbout
-                    ? onNavigateToAbout()
-                    : handleUnavailablePage("About");
+                  if (onNavigateToAbout) {
+                    onNavigateToAbout();
+                  } else {
+                    handleUnavailablePage("About");
+                  }
                   setMobileMenuOpen(false);
                 }}
                 className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
@@ -325,22 +331,27 @@ export default function MainBrandPage({
               </button>
               <button
                 onClick={() => {
-                  onNavigateToContact
-                    ? onNavigateToContact()
-                    : handleUnavailablePage("Contact");
+                  if (onNavigateToContact) {
+                    onNavigateToContact();
+                  } else {
+                    handleUnavailablePage("Contact");
+                  }
                   setMobileMenuOpen(false);
                 }}
                 className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 CONTACT
               </button>
-              
+
               {/* AUTH SECTION - Mobile */}
               <div className="border-t border-white/10 pt-3 mt-3">
                 {user ? (
                   <>
                     <div className="text-white px-4 py-2 mb-2 text-sm">
-                      HEY, <span className="text-[#b90e0a]">{formatDisplayName(user.name)}</span>
+                      HEY,{" "}
+                      <span className="text-[#b90e0a]">
+                        {formatDisplayName(user.name)}
+                      </span>
                     </div>
                     <button
                       onClick={() => {
@@ -381,7 +392,6 @@ export default function MainBrandPage({
         </div>
       </nav>
 
-
       {/* Hero Section */}
       <section
         id="animate-hero"
@@ -404,11 +414,9 @@ export default function MainBrandPage({
               : "opacity-0 translate-y-10"
           }`}
         >
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 text-center font-akira">
-            <span className="block text-center">BORN FROM THE</span>
-            <span className="text-[#b90e0a] block text-center">
-              UNDERGROUND
-            </span>
+          <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-black mb-6 font-akira px-4 w-full flex flex-col items-center">
+            <span className="block">BORN FROM THE</span>
+            <span className="text-[#b90e0a] block">UNDERGROUND</span>
           </h1>
           <div className="w-32 h-1 bg-[#B20404] mx-auto mb-8 animate-expand-width"></div>
           <p className="text-xl md:text-2xl text-[#808088] max-w-2xl mx-auto mb-12 leading-relaxed animate-fade-in-delayed">
@@ -443,7 +451,7 @@ export default function MainBrandPage({
                 : "opacity-0 translate-y-20"
             }`}
           >
-            <h2 className="text-4xl md:text-5xl font-black mb-6">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-6 font-akira">
               FEATURED <span className="text-[#b90e0a]">DROPS</span>
             </h2>
             <div className="w-20 h-1 bg-[#b90e0a] mx-auto mb-6 animate-expand-width"></div>
@@ -453,14 +461,14 @@ export default function MainBrandPage({
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
             {/* Hoodie Highlight */}
-            <div className="group relative bg-black rounded-xl overflow-hidden border-2 border-[#808088]/20 hover:border-[#b90e0a] transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#b90e0a]/20">
+            <div className="group relative bg-black rounded-xl overflow-hidden border-2 border-[#808088]/20 hover:border-[#b90e0a] transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#b90e0a]/20 flex flex-col">
               <div className="aspect-square bg-[#808088]/10 relative overflow-hidden">
                 <img
-                  src="/product-hoodie.jpg"
-                  alt="KALLKEYY Essential Hoodie"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  src="/KaalDrishta-1.png"
+                  alt="KAAL-DRISHTA"
+                  className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
                   onError={(e) =>
                     ((e.currentTarget as HTMLImageElement).style.opacity = "0")
                   }
@@ -472,17 +480,18 @@ export default function MainBrandPage({
                   </span>
                 </div>
               </div>
-              <div className="p-6 space-y-4">
-                <h3 className="text-2xl font-black group-hover:text-[#b90e0a] transition-colors duration-300">
-                  ESSENTIAL HOODIE
+              <div className="p-3 md:p-4 lg:p-6 flex flex-col flex-grow">
+                <h3 className="text-base md:text-xl lg:text-2xl font-black group-hover:text-[#b90e0a] transition-colors duration-300 min-h-[2.5rem] md:min-h-[3rem] flex items-center">
+                  KAAL-DRISHTA
                 </h3>
-                <p className="text-[#808088]">
-                  Premium heavyweight hoodie with signature embroidered details.
+                <p className="text-xs md:text-sm lg:text-base text-[#808088] line-clamp-2 my-2 md:my-3 flex-grow min-h-[2.5rem] md:min-h-[3rem]">
+                  The blazing eye that never blinks. Oversized premium hoodie
+                  with divine graphics.
                 </p>
-                <div className="flex gap-3">
+                <div className="flex gap-2 md:gap-3 mt-auto">
                   <Button
                     onClick={onViewHoodie}
-                    className="flex-1 bg-[#b90e0a] hover:bg-[#b90e0a]/80 text-white font-bold transition-all duration-300 hover:scale-105"
+                    className="flex-1 bg-[#b90e0a] hover:bg-[#b90e0a]/80 text-white font-bold transition-all duration-300 hover:scale-105 text-xs md:text-sm py-2 md:py-3"
                   >
                     VIEW DETAILS
                   </Button>
@@ -491,12 +500,12 @@ export default function MainBrandPage({
             </div>
 
             {/* NEW Hoodie 2 Highlight */}
-            <div className="group relative bg-black rounded-xl overflow-hidden border-2 border-[#808088]/20 hover:border-[#b90e0a] transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#b90e0a]/20">
+            <div className="group relative bg-black rounded-xl overflow-hidden border-2 border-[#808088]/20 hover:border-[#b90e0a] transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#b90e0a]/20 flex flex-col">
               <div className="aspect-square bg-[#808088]/10 relative overflow-hidden">
                 <img
-                  src="/hoodie2-main.jpg"
-                  alt="KALLKEYY Oversized Hoodie"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  src="/Antahayugasya-1.png"
+                  alt="ANTAHA-YUGAYSA"
+                  className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
                   onError={(e) =>
                     ((e.currentTarget as HTMLImageElement).style.opacity = "0")
                   }
@@ -508,18 +517,18 @@ export default function MainBrandPage({
                   </span>
                 </div>
               </div>
-              <div className="p-6 space-y-4">
-                <h3 className="text-2xl font-black group-hover:text-[#b90e0a] transition-colors duration-300">
-                  OVERSIZED HOODIE
+              <div className="p-3 md:p-4 lg:p-6 flex flex-col flex-grow">
+                <h3 className="text-base md:text-xl lg:text-2xl font-black group-hover:text-[#b90e0a] transition-colors duration-300 min-h-[2.5rem] md:min-h-[3rem] flex items-center">
+                  ANTAHA-YUGAYSA
                 </h3>
-                <p className="text-[#808088]">
-                  Premium oversized hoodie with dropped shoulders and bold
-                  graphics.
+                <p className="text-xs md:text-sm lg:text-base text-[#808088] line-clamp-2 my-2 md:my-3 flex-grow min-h-[2.5rem] md:min-h-[3rem]">
+                  Hands of God. Premium oversized hoodie where endings wear
+                  eternity.
                 </p>
-                <div className="flex gap-3">
+                <div className="flex gap-2 md:gap-3 mt-auto">
                   <Button
                     onClick={onViewHoodie2}
-                    className="flex-1 bg-[#b90e0a] hover:bg-[#b90e0a]/80 text-white font-bold transition-all duration-300 hover:scale-105"
+                    className="flex-1 bg-[#b90e0a] hover:bg-[#b90e0a]/80 text-white font-bold transition-all duration-300 hover:scale-105 text-xs md:text-sm py-2 md:py-3"
                   >
                     VIEW DETAILS
                   </Button>
@@ -528,12 +537,12 @@ export default function MainBrandPage({
             </div>
 
             {/* T-Shirt Highlight */}
-            <div className="group relative bg-black rounded-xl overflow-hidden border-2 border-[#808088]/20 hover:border-[#b90e0a] transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#b90e0a]/20">
+            <div className="group relative bg-black rounded-xl overflow-hidden border-2 border-[#808088]/20 hover:border-[#b90e0a] transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#b90e0a]/20 flex flex-col">
               <div className="aspect-square bg-[#808088]/10 relative overflow-hidden">
                 <img
-                  src="/hoodie-front.png"
-                  alt="KALLKEYY Signature Tee"
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  src="/Smarajivitam-1.png"
+                  alt="SMARA-JIVITAM"
+                  className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
                   onError={(e) =>
                     ((e.currentTarget as HTMLImageElement).style.opacity = "0")
                   }
@@ -545,18 +554,18 @@ export default function MainBrandPage({
                   </span>
                 </div>
               </div>
-              <div className="p-6 space-y-4">
-                <h3 className="text-2xl font-black group-hover:text-[#b90e0a] transition-colors duration-300">
-                  SIGNATURE TEE
+              <div className="p-3 md:p-4 lg:p-6 flex flex-col flex-grow">
+                <h3 className="text-base md:text-xl lg:text-2xl font-black group-hover:text-[#b90e0a] transition-colors duration-300 min-h-[2.5rem] md:min-h-[3rem] flex items-center">
+                  SMARA-JIVITAM
                 </h3>
-                <p className="text-[#808088]">
-                  Classic fit tee with bold graphics. Crafted from premium
-                  cotton.
+                <p className="text-xs md:text-sm lg:text-base text-[#808088] line-clamp-2 my-2 md:my-3 flex-grow min-h-[2.5rem] md:min-h-[3rem]">
+                  The Ascension. Wings erupt from chaos, forged in will and
+                  fire.
                 </p>
-                <div className="flex gap-3">
+                <div className="flex gap-2 md:gap-3 mt-auto">
                   <Button
                     onClick={onViewTshirt}
-                    className="flex-1 bg-[#b90e0a] hover:bg-[#b90e0a]/80 text-white font-bold transition-all duration-300 hover:scale-105"
+                    className="flex-1 bg-[#b90e0a] hover:bg-[#b90e0a]/80 text-white font-bold transition-all duration-300 hover:scale-105 text-xs md:text-sm py-2 md:py-3"
                   >
                     VIEW DETAILS
                   </Button>
@@ -584,21 +593,26 @@ export default function MainBrandPage({
             }`}
           >
             <div className="space-y-6 animate-slide-in-left">
-              <h2 className="text-4xl md:text-5xl font-black mb-6">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-6 font-akira">
                 OUR STORY
               </h2>
               <div className="w-20 h-1 bg-[#b90e0a] mb-6 animate-expand-width"></div>
               <p className="text-lg text-[#808088] mb-6 leading-relaxed animate-fade-in-up">
-                Streetwear has always made noise — but it never spoke our voice. 
-                Born from the pulse of urban life, KALLKEYY creates pieces for those 
-                who don’t fit in — and never want to. For the ones who wear their truth, 
-                not just their clothes.
-                <br /><br />
-                KALLKEYY was built to bridge a gap — to give you streetwear that’s more than style, 
-                more than hype. It’s identity. It’s defiance. It’s a statement.
-                <br /><br />
-                Rooted in the rhythm of the streets, every KALLKEYY piece is a blend of precision and passion 
-                — designed with care, crafted with the finest materials, and built to merge heritage with modern edge.
+                Streetwear has always made noise — but it never spoke our voice.
+                Born from the pulse of urban life, KALLKEYY creates pieces for
+                those who don’t fit in — and never want to. For the ones who
+                wear their truth, not just their clothes.
+                <br />
+                <br />
+                KALLKEYY was built to bridge a gap — to give you streetwear
+                that’s more than style, more than hype. It’s identity. It’s
+                defiance. It’s a statement.
+                <br />
+                <br />
+                Rooted in the rhythm of the streets, every KALLKEYY piece is a
+                blend of precision and passion — designed with care, crafted
+                with the finest materials, and built to merge heritage with
+                modern edge.
               </p>
               <Button
                 onClick={onViewProductMenu}
@@ -648,7 +662,7 @@ export default function MainBrandPage({
 
         <div className="max-w-6xl mx-auto relative z-10">
           <h2
-            className={`text-4xl md:text-5xl font-black text-center mb-16 transition-all duration-1000 ${
+            className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-center mb-16 font-akira transition-all duration-1000 ${
               isVisible["animate-values"]
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-20"
@@ -725,7 +739,7 @@ export default function MainBrandPage({
               <div className="absolute -top-4 -left-4 w-16 h-16 border-2 border-[#b90e0a] rotate-45 animate-spin-slow"></div>
             </div>
             <div className="order-1 lg:order-2 animate-slide-in-right">
-              <h2 className="text-4xl md:text-5xl font-black mb-6">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-6 font-akira">
                 DESIGN PROCESS
               </h2>
               <div className="w-20 h-1 bg-[#b90e0a] mb-6 animate-expand-width"></div>
@@ -781,7 +795,7 @@ export default function MainBrandPage({
                 : "opacity-0 translate-y-20"
             }`}
           >
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black mb-4 md:mb-6">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-4 md:mb-6 font-akira">
               FOLLOW <span className="text-[#b90e0a]">OUR JOURNEY</span>
             </h2>
             <div className="w-20 h-1 bg-[#b90e0a] mx-auto mb-4 md:mb-6 animate-expand-width" />
@@ -871,7 +885,7 @@ export default function MainBrandPage({
               : "opacity-0 translate-y-20"
           }`}
         >
-          <h2 className="text-4xl md:text-6xl font-black mb-6 animate-bounce-in">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-6 animate-bounce-in font-akira">
             READY TO JOIN THE MOVEMENT?
           </h2>
           <p
@@ -895,7 +909,7 @@ export default function MainBrandPage({
               className="border-black text-black hover:bg-black hover:text-white font-bold px-12 py-4 text-xl transition-all duration-300 hover:scale-105 animate-bounce-in bg-transparent"
               style={{ animationDelay: "0.6s" }}
             >
-              PRE-ORDER EXCLUSIVE
+              SHOP EXCLUSIVE
             </Button>
           </div>
         </div>
@@ -906,7 +920,9 @@ export default function MainBrandPage({
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="md:col-span-2 animate-fade-in-up">
-              <h3 className="text-3xl font-black mb-4">KALLKEYY</h3>
+              <h3 className="text-2xl sm:text-3xl font-black mb-4 font-akira">
+                KALLKEYY
+              </h3>
               <p className="text-[#808088] mb-4 max-w-md">
                 Authentic streetwear for the next generation. Born from the
                 underground, crafted for tomorrow.

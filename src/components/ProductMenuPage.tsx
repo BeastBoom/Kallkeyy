@@ -13,7 +13,7 @@ import {
   TrendingUp,
   Instagram,
   ChevronLeft,
-  ChevronRight, 
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
@@ -59,61 +59,61 @@ interface FeatureCard {
 }
 
 const heroSlides: HeroSlide[] = [
-  // Slide 1: Product (Hoodie)
+  // Slide 1: Astitva Act I Collection
+  {
+    id: "collection",
+    image: "/KaalDrishta-1.png", // Main collection image
+    title: "ASTITVA ACT-I",
+    subtitle: "The First Chapter of Existence",
+    description:
+      "A curated collection of 4 divine drops. Where streetwear meets mythology. Limited edition pieces that define your identity.",
+    tag: "COLLECTION",
+    price: "STARTING ₹999",
+    isUpcoming: false,
+    buttonText: "EXPLORE COLLECTION",
+    buttonAction: "scroll", // Scrolls to products section
+  },
+  // Slide 2: KaalDrishta Flagship Hoodie
   {
     id: "hoodie",
-    image: "/product-hoodie.jpg",
-    title: "ESSENTIAL HOODIE",
-    subtitle: "Classic comfort re-imagined",
+    image: "/KaalDrishta-1.png",
+    title: "KAAL-DRISHTA",
+    subtitle: "The Blazing Eye That Never Blinks",
     description:
-      "Premium heavyweight French-terry, oversized fit tuned for the street.",
+      "Born from the ashes of forgotten gods. Our flagship oversized premium hoodie with divine graphics. The crown jewel of Astitva Act-I.",
     tag: "FLAGSHIP",
-    price: "₹2,999",
+    price: "₹2,199",
     isUpcoming: false,
     buttonText: "SHOP NOW",
-    buttonAction: "product", // Will redirect to hoodie product page
+    buttonAction: "product", // Redirects to hoodie product page
   },
-  // Slide 2: Sales Banner
+  // Slide 3: 50% OFF SALE (Catchy)
   {
     id: "sale",
-    image: "/sale-banner.jpg", // Add your sale banner image
-    title: "SEASON SALE",
-    subtitle: "Up to 30% OFF",
+    image: "/Antahayugasya-1.png", // Use a product image as background
+    title: "LAUNCH SALE",
+    subtitle: "50% OFF on All Products",
     description:
-      "Limited time offer on selected streetwear essentials. Don't miss out!",
+      "🔥 Biggest sale of the season! Grab your favorite streetwear at HALF THE PRICE. Limited time only. First 100 orders get FREE SHIPPING! 🔥",
     tag: "SALE",
-    price: "",
+    price: "SAVE BIG",
     isUpcoming: false,
-    buttonText: "SHOP SALE",
-    buttonAction: "scroll", // Will scroll to products section
+    buttonText: "SHOP SALE NOW",
+    buttonAction: "scroll", // Scrolls to products section
   },
-  // Slide 3: Product (T-Shirt)
+  // Slide 4: Smara Jivitam Signature T-Shirt
   {
     id: "tshirt",
-    image: "/hoodie-front.png",
-    title: "SIGNATURE TEE",
-    subtitle: "Bold statement piece",
+    image: "/Smarajivitam-1.png",
+    title: "SMARA-JIVITAM",
+    subtitle: "The Signature Tee of KALLKEYY",
     description:
-      "The perfect everyday tee. Soft, bold, and unmistakably KALLKEYY.",
-    tag: "NEW DROP",
-    price: "₹1,499",
+      "Wings erupt from chaos, forged in will and fire. Our signature oversized tee that started it all. Premium 240gsm French Terry Cotton.",
+    tag: "SIGNATURE",
+    price: "₹999",
     isUpcoming: false,
-    buttonText: "SHOP NOW",
-    buttonAction: "product", // Will redirect to tshirt product page
-  },
-  // Slide 4: Brand Story
-  {
-    id: "brand",
-    image: "/brand-story.jpg", // Add your brand story image
-    title: "BORN FROM THE STREETS",
-    subtitle: "Our Story",
-    description:
-      "Inspired by urban culture. Every piece tells a story of rebellion and authenticity.",
-    tag: "ABOUT",
-    price: "",
-    isUpcoming: false,
-    buttonText: "LEARN MORE",
-    buttonAction: "scroll", // Will scroll to brand story section
+    buttonText: "GET YOURS NOW",
+    buttonAction: "product", // Redirects to tshirt product page
   },
 ];
 
@@ -139,65 +139,65 @@ const instagramReels: InstagramReel[] = [
 const products: Product[] = [
   {
     id: "hoodie",
-    name: "ESSENTIAL HOODIE",
-    image: "/product-hoodie.jpg",
-    price: "₹2,999",
+    name: "KAAL-DRISHTA",
+    image: "/KaalDrishta-1.png",
+    price: "₹2,199",
     tag: "FLAGSHIP",
     description:
-      "Our signature piece. Heavyweight cotton blend with oversized fit.",
+      "The blazing eye that never blinks. Born from the ashes of forgotten gods.",
     features: [
-      "Premium 400 GSM fabric",
-      "Oversized fit",
-      "Embroidered logo",
-      "Reinforced stitching",
+      "Oversized unisex fit",
+      "350gsm comfortable fabric",
+      "Boxy fit with drop shoulders",
+      "Premium screen-printed graphics",
     ],
     category: "Hoodies",
   },
   {
     id: "hoodie2",
-    name: "OVERSIZED HOODIE",
-    image: "/hoodie2-main.jpg",
-    price: "₹3,299",
+    name: "ANTAHA-YUGAYSA",
+    image: "/Antahayugasya-1.png",
+    price: "₹2,199",
     tag: "NEW LAUNCH",
     description:
-      "Premium oversized hoodie with dropped shoulders and bold graphics.",
+      "Hands of God. Where endings wear eternity, and creation remembers its own destruction.",
     features: [
-      "Heavy 450 GSM fabric",
-      "Oversized drop-shoulder fit",
-      "Screen-printed graphics",
-      "Kangaroo pocket",
+      "Oversized unisex fit",
+      "350gsm comfortable fabric",
+      "Boxy fit with drop shoulders",
+      "Divine graphics",
     ],
     category: "Hoodies",
   },
   {
     id: "tshirt",
-    name: "SIGNATURE TEE",
-    image: "/hoodie-front.png",
-    price: "₹1,499",
+    name: "SMARA-JIVITAM",
+    image: "/Smarajivitam-1.png",
+    price: "₹999",
     tag: "NEW DROP",
     description:
-      "The perfect everyday tee. Soft, bold, and unmistakably KALLKEYY.",
+      "The Ascension. Wings erupt from chaos, forged in will and fire.",
     features: [
-      "260 GSM cotton",
-      "Screen-printed graphics",
-      "Pre-shrunk",
-      "Relaxed fit",
+      "Oversized unisex fit",
+      "240gsm French Terry Cotton",
+      "Boxy fit with drop shoulders",
+      "Premium artwork",
     ],
     category: "T-Shirts",
   },
   {
     id: "tshirt2",
-    name: "GRAPHIC TEE PRO",
-    image: "/tshirt2-front.jpg",
-    price: "₹1,699",
+    name: "MRITYO-BADDHA",
+    image: "/Mrityobaddha-1.png",
+    price: "₹999",
     tag: "TRENDING",
     description:
-      "Premium graphic tee with exclusive artwork for bold statements.",
+      "Bound by Death. A graphic tee that embodies the struggle against mortality.",
     features: [
-      "280 GSM premium cotton",
-      "Oversized boxy fit",
-      "High-quality screen print",
-      "Pre-shrunk fabric",
+      "Oversized unisex fit",
+      "240gsm French Terry Cotton",
+      "Boxy fit with drop shoulders",
+      "Exclusive graphics",
     ],
     category: "T-Shirts",
   },
@@ -207,25 +207,29 @@ const featureCards: FeatureCard[] = [
   {
     icon: <Shield className="w-8 h-8" />,
     title: "PREMIUM QUALITY",
-    description: "We don’t chase trends — we craft longevity. Every Kallkeyy piece is built to feel heavy, last longer, and age better with time. From reinforced stitching to custom fabrics, quality isn’t a feature — it’s our foundation.",
+    description:
+      "We don’t chase trends — we craft longevity. Every Kallkeyy piece is built to feel heavy, last longer, and age better with time. From reinforced stitching to custom fabrics, quality isn’t a feature — it’s our foundation.",
     highlight: "Heavyweight fabrics & reinforced stitching",
   },
   {
     icon: <Zap className="w-8 h-8" />,
     title: "LIMITED DROPS",
-    description: "We believe exclusivity builds identity. Each drop is limited, deliberate, and designed to sell out, ensuring that what you wear stays rare and personal — not mass-produced noise.",
+    description:
+      "We believe exclusivity builds identity. Each drop is limited, deliberate, and designed to sell out, ensuring that what you wear stays rare and personal — not mass-produced noise.",
     highlight: "Small batches, high demand",
   },
   {
     icon: <Star className="w-8 h-8" />,
     title: "AUTHENTIC DESIGN",
-    description: "No fake hype. No borrowed ideas. Kallkeyy represents real street culture, blending raw energy with clean design. Every silhouette, print, and stitch carries intent, attitude, and originality.",
+    description:
+      "No fake hype. No borrowed ideas. Kallkeyy represents real street culture, blending raw energy with clean design. Every silhouette, print, and stitch carries intent, attitude, and originality.",
     highlight: "Born from the streets",
   },
   {
     icon: <Heart className="w-8 h-8" />,
     title: "COMMUNITY FIRST",
-    description: "Kallkeyy isn’t a brand — it’s a movement. We grow with the culture, not above it. From feedback to collabs, your voice defines the direction — because the streets decide what’s real.",
+    description:
+      "Kallkeyy isn’t a brand — it’s a movement. We grow with the culture, not above it. From feedback to collabs, your voice defines the direction — because the streets decide what’s real.",
     highlight: "Your voice shapes our brand",
   },
 ];
@@ -274,15 +278,16 @@ export default function ProductMenuPage({
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-    }, 6000);
+    }, 8000); // Increased to 8 seconds for better readability
     return () => clearInterval(interval);
   }, []);
 
   const handleSlideClick = (slide: HeroSlide) => {
     if (slide.isUpcoming) {
       toast({
-        title: "Coming Soon! 🔥",
-        description: "Stay tuned and hit us on IG for the drop alerts.",
+        title: "Drop Alert! 🔥",
+        description:
+          "This exclusive drop is launching soon. Follow us on Instagram for updates!",
         duration: 3000,
       });
     } else {
@@ -292,8 +297,8 @@ export default function ProductMenuPage({
 
   const handleUnavailablePage = (pageName: string) => {
     toast({
-      title: "Coming Soon",
-      description: `Sorry, the ${pageName} page is not available yet. Stay tuned!`,
+      title: "Under Development",
+      description: `The ${pageName} page is currently being developed. Check back soon!`,
       duration: 3000,
     });
   };
@@ -329,10 +334,12 @@ export default function ProductMenuPage({
       } else {
         sonnerToast.error(response.message || "Subscription failed");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Subscription error:", error);
       sonnerToast.error(
-        error.message || "Something went wrong. Please try again."
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again."
       );
     } finally {
       setIsSubmitting(false);
@@ -340,7 +347,7 @@ export default function ProductMenuPage({
   };
 
   const formatDisplayName = (fullName: string): string => {
-    if (!fullName) return '';
+    if (!fullName) return "";
     const nameParts = fullName.trim().split(/\s+/);
     const firstName = nameParts[0];
     if (firstName.length <= 10) {
@@ -348,10 +355,10 @@ export default function ProductMenuPage({
     }
     const initials = nameParts
       .slice(0, 3)
-      .map(part => part[0])
-      .join('')
+      .map((part) => part[0])
+      .join("")
       .toUpperCase();
-    
+
     return initials;
   };
 
@@ -409,7 +416,7 @@ export default function ProductMenuPage({
             {/* LEFT: Text Logo (Responsive sizing) */}
             <div className="flex-shrink-0 z-10">
               <h1
-                className="text-xl sm:text-2xl lg:text-3xl font-black tracking-wider hover:text-[#b90e0a] transition-colors duration-300 cursor-pointer"
+                className="text-xl sm:text-2xl lg:text-3xl font-black tracking-wider hover:text-[#b90e0a] transition-colors duration-300 cursor-pointer font-akira"
                 onClick={onBackToMain}
               >
                 KALLKEYY
@@ -466,12 +473,15 @@ export default function ProductMenuPage({
                 >
                   CONTACT
                 </button>
-                
+
                 {/* AUTH BUTTONS - Desktop */}
                 {user ? (
                   <>
                     <span className="text-white px-2 lg:px-3 py-2 flex items-center text-xs lg:text-sm whitespace-nowrap">
-                      HEY, <span className="text-[#b90e0a] ml-1">{formatDisplayName(user.name)}</span>
+                      HEY,{" "}
+                      <span className="text-[#b90e0a] ml-1">
+                        {formatDisplayName(user.name)}
+                      </span>
                     </span>
                     <button
                       onClick={logout}
@@ -528,9 +538,11 @@ export default function ProductMenuPage({
               </button>
               <button
                 onClick={() => {
-                  onNavigateToShop
-                    ? onNavigateToShop()
-                    : handleUnavailablePage("Shop");
+                  if (onNavigateToShop) {
+                    onNavigateToShop();
+                  } else {
+                    handleUnavailablePage("Shop");
+                  }
                   setMobileMenuOpen(false);
                 }}
                 className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
@@ -539,9 +551,11 @@ export default function ProductMenuPage({
               </button>
               <button
                 onClick={() => {
-                  onNavigateToAbout
-                    ? onNavigateToAbout()
-                    : handleUnavailablePage("About");
+                  if (onNavigateToAbout) {
+                    onNavigateToAbout();
+                  } else {
+                    handleUnavailablePage("About");
+                  }
                   setMobileMenuOpen(false);
                 }}
                 className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
@@ -550,22 +564,27 @@ export default function ProductMenuPage({
               </button>
               <button
                 onClick={() => {
-                  onNavigateToContact
-                    ? onNavigateToContact()
-                    : handleUnavailablePage("Contact");
+                  if (onNavigateToContact) {
+                    onNavigateToContact();
+                  } else {
+                    handleUnavailablePage("Contact");
+                  }
                   setMobileMenuOpen(false);
                 }}
                 className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
               >
                 CONTACT
               </button>
-              
+
               {/* AUTH SECTION - Mobile */}
               <div className="border-t border-white/10 pt-3 mt-3">
                 {user ? (
                   <>
                     <div className="text-white px-4 py-2 mb-2 text-sm">
-                      HEY, <span className="text-[#b90e0a]">{formatDisplayName(user.name)}</span>
+                      HEY,{" "}
+                      <span className="text-[#b90e0a]">
+                        {formatDisplayName(user.name)}
+                      </span>
                     </div>
                     <button
                       onClick={() => {
@@ -607,7 +626,7 @@ export default function ProductMenuPage({
       </nav>
 
       {/* FULL-WIDTH HERO SLIDESHOW */}
-      <div className="relative h-[600px] md:h-[700px] overflow-hidden">
+      <div className="relative h-[500px] sm:h-[600px] md:h-[700px] lg:h-[750px] overflow-hidden">
         {heroSlides.map((slide, index) => (
           <div
             key={slide.id}
@@ -622,61 +641,83 @@ export default function ProductMenuPage({
               <img
                 src={slide.image}
                 alt={slide.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover sm:object-cover"
+                style={{
+                  objectPosition:
+                    window.innerWidth < 640 ? "center center" : "center center",
+                }}
                 onError={(e) =>
                   ((e.currentTarget as HTMLImageElement).style.opacity = "0")
                 }
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/80 to-black/40 sm:from-black via-black/70 sm:to-transparent" />
             </div>
 
             {/* Content - WITH PROPER Z-INDEX AND POINTER EVENTS */}
             <div className="relative h-full flex items-center z-10 pointer-events-none">
-              <div className="container mx-auto px-4 md:px-8 max-w-7xl">
-                <div className="max-w-2xl space-y-4 md:space-y-6">
+              <div className="container mx-auto px-4 sm:px-6 md:px-8 max-w-7xl">
+                <div className="max-w-3xl lg:max-w-4xl space-y-3 sm:space-y-4 md:space-y-6">
                   {/* Tag */}
-                  <span className="inline-block bg-[#b90e0a] text-white px-4 py-2 text-sm font-bold rounded-full animate-pulse">
+                  <span className="inline-block bg-[#b90e0a] text-white px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold rounded-full animate-pulse">
                     {slide.tag}
                   </span>
 
-                  {/* Title */}
-                  <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white leading-tight animate-slide-up">
+                  {/* Title - Responsive with better sizing */}
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-white leading-tight animate-slide-up font-akira">
                     {slide.title}
                   </h1>
 
-                  {/* Subtitle */}
-                  <p className="text-xl md:text-2xl text-[#b90e0a] font-bold animate-slide-up animation-delay-200">
+                  {/* Subtitle - Responsive with better sizing */}
+                  <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-[#b90e0a] font-bold animate-slide-up animation-delay-200">
                     {slide.subtitle}
                   </p>
 
                   {/* Description */}
-                  <p className="text-base md:text-lg text-[#808088] max-w-xl animate-slide-up animation-delay-400">
+                  <p className="text-xs sm:text-sm md:text-base lg:text-lg text-[#CCCCCC] max-w-xl lg:max-w-3xl animate-slide-up animation-delay-400 leading-relaxed">
                     {slide.description}
                   </p>
 
                   {/* Price (if available) */}
                   {slide.price && (
-                    <div className="text-3xl md:text-4xl font-black text-white animate-slide-up animation-delay-600">
+                    <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-white animate-slide-up animation-delay-600">
                       {slide.price}
                     </div>
                   )}
 
-                  {/* Dynamic Button - ENABLE POINTER EVENTS */}
-                  <div className="flex gap-4 animate-slide-up animation-delay-800 pointer-events-auto">
+                  {/* Dynamic Button - ENABLE POINTER EVENTS with proper routing */}
+                  <div className="flex gap-3 sm:gap-4 animate-slide-up animation-delay-800 pointer-events-auto pt-2">
                     <Button
                       onClick={() => {
+                        console.log(
+                          "Slide button clicked:",
+                          slide.id,
+                          slide.buttonAction
+                        );
                         if (slide.buttonAction === "product") {
-                          onSelectProduct(slide.id);
+                          // Navigate to specific product based on slide id
+                          if (slide.id === "hoodie") {
+                            onSelectProduct("hoodie");
+                          } else if (slide.id === "tshirt") {
+                            onSelectProduct("tshirt");
+                          } else {
+                            onSelectProduct(slide.id);
+                          }
                         } else if (slide.buttonAction === "scroll") {
-                          document
-                            .querySelector("#products-section")
-                            ?.scrollIntoView({ behavior: "smooth" });
+                          // Scroll to products section
+                          const productsSection =
+                            document.querySelector("#products-section");
+                          if (productsSection) {
+                            productsSection.scrollIntoView({
+                              behavior: "smooth",
+                              block: "start",
+                            });
+                          }
                         }
                       }}
-                      className="bg-[#b90e0a] hover:bg-[#b90e0a]/80 text-white font-bold px-6 py-3 md:px-8 md:py-4 text-base md:text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl group cursor-pointer"
+                      className="bg-[#b90e0a] hover:bg-[#b90e0a]/80 text-white font-bold px-5 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 text-sm sm:text-base md:text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl group cursor-pointer"
                     >
                       {slide.buttonText}
-                      <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2 group-hover:translate-x-1 transition-transform inline" />
+                      <ArrowRight className="w-4 h-4 sm:w-4 sm:h-4 md:w-5 md:h-5 ml-1.5 sm:ml-2 group-hover:translate-x-1 transition-transform inline" />
                     </Button>
                   </div>
                 </div>
@@ -684,15 +725,18 @@ export default function ProductMenuPage({
             </div>
 
             {/* Slide Indicators - WITH Z-INDEX */}
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-20">
+            <div className="absolute bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 sm:gap-3 z-20">
               {heroSlides.map((_, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setCurrentSlide(idx)}
-                  className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                  onClick={() => {
+                    setCurrentSlide(idx);
+                  }}
+                  aria-label={`Go to slide ${idx + 1}`}
+                  className={`h-1.5 sm:h-2 rounded-full transition-all duration-500 cursor-pointer ${
                     idx === currentSlide
-                      ? "w-12 bg-[#b90e0a]"
-                      : "w-2 bg-white/30 hover:bg-white/50"
+                      ? "w-8 sm:w-12 bg-[#b90e0a] shadow-lg shadow-[#b90e0a]/50"
+                      : "w-1.5 sm:w-2 bg-white/30 hover:bg-white/50"
                   }`}
                 />
               ))}
@@ -700,24 +744,26 @@ export default function ProductMenuPage({
 
             {/* Navigation Arrows - WITH Z-INDEX */}
             <button
-              onClick={() =>
+              onClick={() => {
                 setCurrentSlide((prev) =>
                   prev === 0 ? heroSlides.length - 1 : prev - 1
-                )
-              }
-              className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-[#b90e0a] p-3 rounded-full transition-all duration-300 hover:scale-110 z-20 cursor-pointer"
+                );
+              }}
+              aria-label="Previous slide"
+              className="absolute left-2 sm:left-4 md:left-8 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-[#b90e0a] p-2 sm:p-3 rounded-full transition-all duration-300 hover:scale-110 z-20 cursor-pointer backdrop-blur-sm"
             >
-              <ChevronLeft className="w-6 h-6 text-white" />
+              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </button>
             <button
-              onClick={() =>
+              onClick={() => {
                 setCurrentSlide((prev) =>
                   prev === heroSlides.length - 1 ? 0 : prev + 1
-                )
-              }
-              className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-[#b90e0a] p-3 rounded-full transition-all duration-300 hover:scale-110 z-20 cursor-pointer"
+                );
+              }}
+              aria-label="Next slide"
+              className="absolute right-2 sm:right-4 md:right-8 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-[#b90e0a] p-2 sm:p-3 rounded-full transition-all duration-300 hover:scale-110 z-20 cursor-pointer backdrop-blur-sm"
             >
-              <ChevronRight className="w-6 h-6 text-white" />
+              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </button>
           </div>
         ))}
@@ -779,7 +825,7 @@ export default function ProductMenuPage({
         {/* COLLECTION HEADER */}
         <section id="products-section" className="py-16 px-4 bg-black">
           <div className="max-w-7xl mx-auto text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-black mb-4">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-4 font-akira">
               <span className="text-[#b90e0a]">ASTITVA</span> ACT-I
             </h2>
             <div className="w-32 h-1 bg-[#b90e0a] mx-auto mb-6" />
@@ -808,11 +854,11 @@ export default function ProductMenuPage({
         </div>
 
         {/* PRODUCT GRID - ENHANCED */}
-        <div className="flex flex-wrap justify-center gap-3 md:gap-6 max-w-7xl mx-auto mb-24 px-4">
+        <div className="flex flex-wrap justify-center gap-3 md:gap-4 lg:gap-6 max-w-7xl mx-auto mb-24 px-4">
           {filteredProducts.map((product, index) => (
             <div
               key={product.id}
-              className="w-[calc(50%-0.5rem)] md:w-[calc(50%-0.75rem)] lg:w-[calc(25%-1.125rem)] max-w-[280px] group relative bg-[#28282B] rounded-xl overflow-hidden border border-[#808088]/20 hover:border-[#b90e0a] transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#b90e0a]/20"
+              className="w-[calc(50%-0.375rem)] md:w-[calc(33.333%-0.67rem)] lg:w-[calc(25%-1.125rem)] max-w-[240px] md:max-w-[260px] lg:max-w-[280px] group relative bg-[#28282B] rounded-xl overflow-hidden border border-[#808088]/20 hover:border-[#b90e0a] transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#b90e0a]/20"
               onMouseEnter={() => setHoveredProduct(product.id)}
               onMouseLeave={() => setHoveredProduct(null)}
             >
@@ -821,13 +867,13 @@ export default function ProductMenuPage({
                 <img
                   src={product.image}
                   alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
                   onError={(e) =>
                     ((e.currentTarget as HTMLImageElement).style.opacity = "0")
                   }
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
-                
+
                 {/* Tag Badge */}
                 <div className="absolute top-3 left-3">
                   <span className="bg-[#b90e0a] text-white px-2 py-1 text-xs font-bold rounded-full">
@@ -851,15 +897,17 @@ export default function ProductMenuPage({
               </div>
 
               {/* Product Info */}
-              <div className="p-4 space-y-2">
-                <h3 className="text-lg font-black group-hover:text-[#b90e0a] transition-colors duration-300 line-clamp-1">
+              <div className="p-3 md:p-4 space-y-1 md:space-y-2">
+                <h3 className="text-sm md:text-base lg:text-lg font-black group-hover:text-[#b90e0a] transition-colors duration-300 line-clamp-1">
                   {product.name}
                 </h3>
-                <p className="text-[#808088] text-sm line-clamp-2">
+                <p className="text-[#808088] text-xs md:text-sm line-clamp-2">
                   {product.description}
                 </p>
-                <div className="flex items-center justify-between pt-2">
-                  <span className="text-xl font-bold text-white">{product.price}</span>
+                <div className="flex items-center justify-between pt-1 md:pt-2">
+                  <span className="text-base md:text-lg lg:text-xl font-bold text-white">
+                    {product.price}
+                  </span>
                   <button
                     onClick={() => onSelectProduct(product.id)}
                     className="text-[#b90e0a] hover:text-[#b90e0a]/80 transition-colors duration-300"
@@ -875,7 +923,7 @@ export default function ProductMenuPage({
         {/* FEATURES SECTION - ENHANCED WITH 4 CARDS */}
         <div className="max-w-7xl mx-auto mb-24">
           <div className="text-center mb-12">
-            <h3 className="text-3xl md:text-5xl font-black mb-4">
+            <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-4 font-akira">
               WHY <span className="text-[#b90e0a]">KALLKEYY</span> ?
             </h3>
             <div className="w-24 h-1 bg-[#b90e0a] mx-auto" />
@@ -926,7 +974,7 @@ export default function ProductMenuPage({
 
             <div className="relative z-10">
               <div className="text-center mb-12">
-                <h3 className="text-3xl md:text-5xl font-black mb-4">
+                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-4 font-akira">
                   OUR <span className="text-[#b90e0a]">STORY</span>
                 </h3>
                 <div className="w-24 h-1 bg-[#b90e0a] mx-auto mb-6" />
@@ -935,11 +983,12 @@ export default function ProductMenuPage({
               <div className="grid md:grid-cols-2 gap-12 items-center">
                 <div className="space-y-6">
                   <p className="text-[#CCCCCC] text-lg leading-relaxed">
-                    Streetwear has always been loud, but it never spoke our language. Inspired by the raw
-                    energy of urban culture, we create pieces that speak to
-                    those who refuse to blend in, who wear their identity with
-                    pride.
-                    <br /><br/>
+                    Streetwear has always been loud, but it never spoke our
+                    language. Inspired by the raw energy of urban culture, we
+                    create pieces that speak to those who refuse to blend in,
+                    who wear their identity with pride.
+                    <br />
+                    <br />
                     We created KALLKEYY to fill a void – to bring you streetwear
                     that’s not just about fashion, but about making a statement.
                   </p>
@@ -960,9 +1009,7 @@ export default function ProductMenuPage({
                       </span>
                     </div>
                     <div className="bg-black/50 px-6 py-3 rounded-full border border-[#b90e0a]/30">
-                      <span className="text-white font-bold">
-                        STREETWEAR
-                      </span>
+                      <span className="text-white font-bold">STREETWEAR</span>
                     </div>
                   </div>
                 </div>
@@ -984,7 +1031,7 @@ export default function ProductMenuPage({
         {/* INSTAGRAM REELS - 320px DESKTOP, SCALED ON MOBILE */}
         <div className="w-full mx-auto mb-24 px-4">
           <div className="text-center mb-12">
-            <h3 className="text-3xl md:text-5xl font-black mb-4">
+            <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-4 font-akira">
               FOLLOW <span className="text-[#b90e0a]">OUR JOURNEY</span>
             </h3>
             <div className="w-24 h-1 bg-[#b90e0a] mx-auto mb-4" />
@@ -1086,7 +1133,7 @@ export default function ProductMenuPage({
             </div>
 
             <div className="relative z-10 text-center">
-              <h3 className="text-3xl md:text-4xl font-black mb-4">
+              <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-4 font-akira">
                 STAY IN THE <span className="text-[#b90e0a]">LOOP</span>
               </h3>
               <p className="text-[#808088] mb-8 text-lg">
@@ -1127,9 +1174,13 @@ export default function ProductMenuPage({
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="md:col-span-2 animate-fade-in-up">
-              <h3 className="text-3xl font-black mb-4">KALLKEYY</h3>
+              <h3 className="text-2xl sm:text-3xl font-black mb-4 font-akira">
+                KALLKEYY
+              </h3>
               <p className="text-[#808088] mb-4 max-w-md">
-                Based on a prophecy untold, KALLKEYY is more than just streetwear; it's a movement. Every Design has a story, every stitch a purpose.
+                Based on a prophecy untold, KALLKEYY is more than just
+                streetwear; it's a movement. Every Design has a story, every
+                stitch a purpose.
               </p>
               <div className="flex space-x-4">
                 {["IG", "TW", "FB"].map((social, i) => (

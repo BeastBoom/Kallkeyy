@@ -26,10 +26,13 @@ import { useCart } from "../../contexts/CartContext";
 interface ProductData {
   name: string;
   price: string;
+  originalPrice?: string;
+  salePrice?: string;
   tag: string;
   description: string;
   images: string[];
   material: string[];
+  productType: "hoodie" | "tshirt";
 }
 
 interface Props {
@@ -67,42 +70,49 @@ interface Review {
   createdAt: string;
 }
 
-const SIZE_CHART = {
-  S: { chest: "36-38", length: "26", shoulder: "17" },
-  M: { chest: "38-40", length: "27", shoulder: "18" },
-  L: { chest: "40-42", length: "28", shoulder: "19" },
-  XL: { chest: "42-44", length: "29", shoulder: "20" },
-  XXL: { chest: "44-46", length: "30", shoulder: "21" },
+// Size charts for different product types
+const HOODIE_SIZE_CHART = {
+  M: { chest: "38-40", garmentChest: "46", length: "27", shoulder: "18" },
+  L: { chest: "40-42", garmentChest: "48", length: "28", shoulder: "19" },
+  XL: { chest: "42-44", garmentChest: "50", length: "29", shoulder: "20" },
+  XXL: { chest: "44-46", garmentChest: "52", length: "30", shoulder: "21" },
+};
+
+const TSHIRT_SIZE_CHART = {
+  M: { chest: "38-40", garmentChest: "44", length: "26", shoulder: "17" },
+  L: { chest: "40-42", garmentChest: "46", length: "27", shoulder: "18" },
+  XL: { chest: "42-44", garmentChest: "48", length: "28", shoulder: "19" },
+  XXL: { chest: "44-46", garmentChest: "50", length: "29", shoulder: "20" },
 };
 
 // List of all available products (to exclude current product)
 const ALL_PRODUCTS = [
   {
     id: "hoodie",
-    name: "KALLKEYY ESSENTIAL HOODIE",
-    price: "₹2,999",
-    image: "/product-hoodie.jpg",
+    name: "KAAL-DRISHTA",
+    price: "₹2,199",
+    image: "/KaalDrishta-1.png",
     tag: "FLAGSHIP",
   },
   {
     id: "hoodie2",
-    name: "KALLKEYY OVERSIZED HOODIE",
-    price: "₹3,299",
-    image: "/hoodie2-main.jpg",
+    name: "ANTAHA-YUGAYSA",
+    price: "₹2,199",
+    image: "/Antahayugasya-1.png",
     tag: "NEW LAUNCH",
   },
   {
     id: "tshirt",
-    name: "KALLKEYY SIGNATURE TEE",
-    price: "₹1,499",
-    image: "/hoodie-front.png",
+    name: "SMARA-JIVITAM",
+    price: "₹999",
+    image: "/Smarajivitam-1.png",
     tag: "NEW DROP",
   },
   {
     id: "tshirt2",
-    name: "KALLKEYY GRAPHIC TEE PRO",
-    price: "₹1,699",
-    image: "/tshirt2-front.jpg",
+    name: "MRITYO-BADDHA",
+    price: "₹999",
+    image: "/Mrityobaddha-1.png",
     tag: "TRENDING",
   },
 ];
@@ -155,7 +165,7 @@ export default function ProductPageBase({
   const [activeIdx, setActiveIdx] = useState(0);
   const [productStock, setProductStock] = useState({
     inStock: true,
-    stock: { S: 10, M: 10, L: 10, XL: 10, XXL: 10 },
+    stock: { M: 10, L: 10, XL: 10, XXL: 10 },
   });
   const [isLoadingStock, setIsLoadingStock] = useState(true);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -214,7 +224,7 @@ export default function ProductPageBase({
         // Default to in stock if API fails
         setProductStock({
           inStock: true,
-          stock: { S: 10, M: 10, L: 10, XL: 10, XXL: 10 },
+          stock: { M: 10, L: 10, XL: 10, XXL: 10 },
         });
       } finally {
         setIsLoadingStock(false);
@@ -474,12 +484,15 @@ export default function ProductPageBase({
     }
 
     try {
+      const priceToUse = product.salePrice || product.price;
       await addToCart({
         productId: productId,
         productName: product.name,
         size: selectedSize,
-        price: parseFloat(product.price.replace("₹", "").replace(",", "")),
-        image: product.images[0],
+        price: parseFloat(priceToUse.replace("₹", "").replace(",", "")),
+        image:
+          product.images.find((img) => !img.endsWith(".mp4")) ||
+          product.images[0],
         quantity: 1,
       });
 
@@ -500,8 +513,8 @@ export default function ProductPageBase({
   const handleUnavailablePage = (page: string) => {
     toast({
       variant: "destructive",
-      title: "Page Under Construction 🚧",
-      description: `${page} page is coming soon!`,
+      title: "Under Development 🚧",
+      description: `${page} page is currently being developed!`,
     });
   };
 
@@ -533,6 +546,10 @@ export default function ProductPageBase({
   // Get other products (exclude current product)
   const otherProducts = ALL_PRODUCTS.filter((p) => p.id !== productId);
 
+  // Get the appropriate size chart based on product type
+  const SIZE_CHART =
+    product.productType === "hoodie" ? HOODIE_SIZE_CHART : TSHIRT_SIZE_CHART;
+
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       {/* Background Effects */}
@@ -546,7 +563,7 @@ export default function ProductPageBase({
             {/* LEFT: Text Logo (Responsive sizing) */}
             <div className="flex-shrink-0 z-10">
               <h1
-                className="text-xl sm:text-2xl lg:text-3xl font-black tracking-wider hover:text-[#b90e0a] transition-colors duration-300 cursor-pointer"
+                className="text-xl sm:text-2xl lg:text-3xl font-black tracking-wider hover:text-[#b90e0a] transition-colors duration-300 cursor-pointer font-akira"
                 onClick={onBackToMain}
               >
                 KALLKEYY
@@ -668,9 +685,11 @@ export default function ProductPageBase({
               </button>
               <button
                 onClick={() => {
-                  onNavigateToShop
-                    ? onNavigateToShop()
-                    : handleUnavailablePage("Shop");
+                  if (onNavigateToShop) {
+                    onNavigateToShop();
+                  } else {
+                    handleUnavailablePage("Shop");
+                  }
                   setMobileMenuOpen(false);
                 }}
                 className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
@@ -679,9 +698,11 @@ export default function ProductPageBase({
               </button>
               <button
                 onClick={() => {
-                  onNavigateToAbout
-                    ? onNavigateToAbout()
-                    : handleUnavailablePage("About");
+                  if (onNavigateToAbout) {
+                    onNavigateToAbout();
+                  } else {
+                    handleUnavailablePage("About");
+                  }
                   setMobileMenuOpen(false);
                 }}
                 className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
@@ -690,9 +711,11 @@ export default function ProductPageBase({
               </button>
               <button
                 onClick={() => {
-                  onNavigateToContact
-                    ? onNavigateToContact()
-                    : handleUnavailablePage("Contact");
+                  if (onNavigateToContact) {
+                    onNavigateToContact();
+                  } else {
+                    handleUnavailablePage("Contact");
+                  }
                   setMobileMenuOpen(false);
                 }}
                 className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
@@ -760,18 +783,29 @@ export default function ProductPageBase({
 
         {/* TWO-COLUMN LAYOUT: Images & Product Info Only */}
         <div className="grid lg:grid-cols-2 gap-12 items-start mb-16">
-          {/* Left: Product Images */}
+          {/* Left: Product Images/Videos */}
           <div className="space-y-6 sticky top-24">
             <div className="relative aspect-square rounded-2xl overflow-hidden border border-white/10 bg-[#28282B] group">
-              <img
-                src={product.images[activeIdx]}
-                alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).style.opacity = "0";
-                }}
-                draggable={false}
-              />
+              {product.images[activeIdx]?.endsWith(".mp4") ? (
+                <video
+                  src={product.images[activeIdx]}
+                  className="w-full h-full object-contain"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                />
+              ) : (
+                <img
+                  src={product.images[activeIdx]}
+                  alt={product.name}
+                  className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-110"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.opacity = "0";
+                  }}
+                  draggable={false}
+                />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
               <div className="absolute bottom-6 left-6 right-6">
                 <div className="flex items-center justify-between">
@@ -792,22 +826,34 @@ export default function ProductPageBase({
                 <button
                   key={i}
                   onClick={() => setActiveIdx(i)}
-                  aria-label={`View image ${i + 1}`}
+                  aria-label={`View ${
+                    src.endsWith(".mp4") ? "video" : "image"
+                  } ${i + 1}`}
                   className={`aspect-square rounded-lg overflow-hidden border transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#b90e0a] ${
                     activeIdx === i
                       ? "border-[#b90e0a] ring-1 ring-[#b90e0a]"
                       : "border-[#808088]/30 hover:border-white"
                   }`}
                 >
-                  <img
-                    src={src}
-                    alt={`${product.name} view ${i + 1}`}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).style.opacity = "0";
-                    }}
-                    draggable={false}
-                  />
+                  {src.endsWith(".mp4") ? (
+                    <video
+                      src={src}
+                      className="w-full h-full object-contain"
+                      muted
+                      playsInline
+                    />
+                  ) : (
+                    <img
+                      src={src}
+                      alt={`${product.name} view ${i + 1}`}
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.opacity =
+                          "0";
+                      }}
+                      draggable={false}
+                    />
+                  )}
                 </button>
               ))}
             </div>
@@ -831,7 +877,7 @@ export default function ProductPageBase({
                   </Badge>
                 )}
                 <Badge className="bg-white/10 text-white border border-white/20 px-3 py-1 text-xs font-bold">
-                  LIMITED EDITION
+                  ASTITVA ACT-I
                 </Badge>
               </div>
 
@@ -844,7 +890,11 @@ export default function ProductPageBase({
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className="w-5 h-5 fill-[#b90e0a] text-[#b90e0a]"
+                      className={`w-5 h-5 ${
+                        i < Math.round(reviewStats.averageRating)
+                          ? "fill-[#b90e0a] text-[#b90e0a]"
+                          : "text-[#808088]"
+                      }`}
                     />
                   ))}
                 </div>
@@ -854,9 +904,35 @@ export default function ProductPageBase({
                 </span>
               </div>
 
-              <p className="text-2xl font-bold text-[#b90e0a]">
-                {product.price}
-              </p>
+              {product.originalPrice && product.salePrice ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-4">
+                    <p className="text-2xl font-bold text-[#b90e0a]">
+                      {product.salePrice}
+                    </p>
+                    <p className="text-xl text-[#808088] line-through">
+                      {product.originalPrice}
+                    </p>
+                    <Badge className="bg-green-500 text-white px-3 py-1 text-sm font-bold">
+                      {Math.round(
+                        ((parseFloat(
+                          product.originalPrice.replace(/[₹,]/g, "")
+                        ) -
+                          parseFloat(product.salePrice.replace(/[₹,]/g, ""))) /
+                          parseFloat(
+                            product.originalPrice.replace(/[₹,]/g, "")
+                          )) *
+                          100
+                      )}
+                      % OFF
+                    </Badge>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-2xl font-bold text-[#b90e0a]">
+                  {product.price}
+                </p>
+              )}
 
               <p className="text-[#CCCCCC] leading-relaxed">
                 {product.description}
@@ -918,14 +994,16 @@ export default function ProductPageBase({
               >
                 <div className="bg-white/5 rounded-lg p-4 border border-white/10">
                   <h4 className="font-bold text-sm mb-3">
-                    Indian Size Chart (inches)
+                    {product.productType === "hoodie" ? "Hoodie" : "T-Shirt"}{" "}
+                    Size Chart (inches)
                   </h4>
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs">
                       <thead>
                         <tr className="border-b border-white/20">
                           <th className="text-left p-2">Size</th>
-                          <th className="text-left p-2">Chest</th>
+                          <th className="text-left p-2">Body Chest</th>
+                          <th className="text-left p-2">Garment Chest</th>
                           <th className="text-left p-2">Length</th>
                           <th className="text-left p-2">Shoulder</th>
                         </tr>
@@ -936,6 +1014,9 @@ export default function ProductPageBase({
                             <tr key={size} className="border-b border-white/10">
                               <td className="p-2 font-semibold">{size}</td>
                               <td className="p-2">{measurements.chest}"</td>
+                              <td className="p-2">
+                                {measurements.garmentChest}"
+                              </td>
                               <td className="p-2">{measurements.length}"</td>
                               <td className="p-2">{measurements.shoulder}"</td>
                             </tr>
@@ -948,7 +1029,7 @@ export default function ProductPageBase({
               </div>
 
               {/* Size buttons */}
-              <div className="grid grid-cols-5 gap-3">
+              <div className="grid grid-cols-4 gap-3">
                 {Object.keys(SIZE_CHART).map((size) => (
                   <button
                     key={size}
@@ -1026,7 +1107,7 @@ export default function ProductPageBase({
           <div className="border-t border-white/10 pt-8 space-y-6">
             {/* Header with Review Stats */}
             <div className="space-y-4">
-              <h3 className="text-2xl font-bold text-white">
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white font-akira">
                 Customer Reviews
               </h3>
 
@@ -1335,35 +1416,35 @@ export default function ProductPageBase({
 
           {/* Browse Other Products - Full Width */}
           <div className="border-t border-white/10 pt-8 space-y-6">
-            <h3 className="text-sm font-bold text-white tracking-wider">
+            <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white font-akira">
               BROWSE OTHER PRODUCTS
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {otherProducts.map((otherProduct) => (
                 <div
                   key={otherProduct.id}
                   onClick={() => onNavigateToProduct?.(otherProduct.id)}
                   className="group bg-[#28282B] rounded-lg border border-white/10 overflow-hidden hover:border-[#b90e0a] transition-all duration-300 cursor-pointer hover:scale-105"
                 >
-                  <div className="aspect-square overflow-hidden">
+                  <div className="aspect-square overflow-hidden bg-[#1a1a1a]">
                     <img
                       src={otherProduct.image}
                       alt={otherProduct.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
                       onError={(e) => {
                         (e.currentTarget as HTMLImageElement).src =
                           "/placeholder-product.jpg";
                       }}
                     />
                   </div>
-                  <div className="p-4 space-y-2">
-                    <Badge className="bg-white/10 text-white border-none px-3 py-1 text-xs">
+                  <div className="p-3 md:p-4 space-y-1 md:space-y-2">
+                    <Badge className="bg-white/10 text-white border-none px-2 py-0.5 text-xs">
                       {otherProduct.tag}
                     </Badge>
-                    <h4 className="font-bold text-white text-sm">
+                    <h4 className="font-bold text-white text-xs md:text-sm line-clamp-2">
                       {otherProduct.name}
                     </h4>
-                    <p className="text-[#b90e0a] font-bold">
+                    <p className="text-[#b90e0a] font-bold text-sm md:text-base">
                       {otherProduct.price}
                     </p>
                     <Button
@@ -1373,7 +1454,7 @@ export default function ProductPageBase({
                       }}
                       variant="outline"
                       size="sm"
-                      className="w-full border-[#b90e0a] text-[#b90e0a] hover:bg-[#b90e0a] hover:text-white transition-all duration-300"
+                      className="w-full border-[#b90e0a] text-[#b90e0a] hover:bg-[#b90e0a] hover:text-white transition-all duration-300 text-xs py-1.5"
                     >
                       View Product
                     </Button>

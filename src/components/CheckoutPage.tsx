@@ -1,10 +1,20 @@
-import { useState, useEffect } from 'react';
-import { useCart } from '../contexts/CartContext';
-import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, Package, CreditCard, Lock, MapPin, Plus, CheckCircle, Edit, Trash2 } from 'lucide-react';
-import PhoneVerificationModal from './PhoneVerificationModal';
+import { useState, useEffect } from "react";
+import { useCart } from "../contexts/CartContext";
+import { useAuth } from "../contexts/AuthContext";
+import {
+  ArrowLeft,
+  Package,
+  CreditCard,
+  Lock,
+  MapPin,
+  Plus,
+  CheckCircle,
+  Edit,
+  Trash2,
+} from "lucide-react";
+import PhoneVerificationModal from "./PhoneVerificationModal";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 interface Address {
   _id?: string;
@@ -51,12 +61,42 @@ declare global {
 }
 
 const INDIAN_STATES = [
-  'Andaman and Nicobar Islands', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar',
-  'Chandigarh', 'Chhattisgarh', 'Dadra and Nagar Haveli and Daman and Diu', 'Delhi', 'Goa',
-  'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jammu and Kashmir', 'Jharkhand', 'Karnataka',
-  'Kerala', 'Ladakh', 'Lakshadweep', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya',
-  'Mizoram', 'Nagaland', 'Odisha', 'Puducherry', 'Punjab', 'Rajasthan', 'Sikkim',
-  'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
+  "Andaman and Nicobar Islands",
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chandigarh",
+  "Chhattisgarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jammu and Kashmir",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Ladakh",
+  "Lakshadweep",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Puducherry",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
 ];
 
 export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
@@ -64,77 +104,100 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [fetchingPincode, setFetchingPincode] = useState(false);
-  const [pincodeDebounce, setPincodeDebounce] = useState<NodeJS.Timeout | null>(null);
-  
+  const [pincodeDebounce, setPincodeDebounce] = useState<NodeJS.Timeout | null>(
+    null
+  );
+
   // Phone verification states
   const [showPhoneVerification, setShowPhoneVerification] = useState(false);
-  const [userPhone, setUserPhone] = useState('');
+  const [userPhone, setUserPhone] = useState("");
   const [phoneVerified, setPhoneVerified] = useState(false);
-  
+
   // Address states
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [isEditingAddress, setIsEditingAddress] = useState(false);
-  
+
   const [newAddress, setNewAddress] = useState<Address>({
-    fullName: '',
-    phone: '',
-    pincode: '',
-    city: '',
-    state: '',
-    address: ''
+    fullName: "",
+    phone: "",
+    pincode: "",
+    city: "",
+    state: "",
+    address: "",
   });
 
   // Check phone verification on mount
   useEffect(() => {
     const checkPhoneVerification = async () => {
-      const savedPhone = localStorage.getItem('userPhone');
-      const verified = localStorage.getItem('phoneVerified');
-      
-      if (savedPhone && verified === 'true') {
-        setUserPhone(savedPhone);
-        setPhoneVerified(true);
-        await fetchAddresses();
-      } else {
-        // Check if user has phone in database
-        try {
-          const token = localStorage.getItem('token');
-          const response = await fetch(`${API_URL}/api/auth/profile`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          const data = await response.json();
-          
-          if (data.success && data.user.phone && data.user.phoneVerified) {
-            setUserPhone(data.user.phone);
-            setPhoneVerified(true);
-            localStorage.setItem('userPhone', data.user.phone);
-            localStorage.setItem('phoneVerified', 'true');
-            await fetchAddresses();
-          } else {
-            setShowPhoneVerification(true);
-          }
-        } catch (error) {
-          console.error('Error checking phone verification:', error);
+      // Wait for user to be loaded from AuthContext
+      if (!user) {
+        console.log("Waiting for user to load...");
+        return;
+      }
+
+      // Check if cart is empty - redirect to shop
+      if (items.length === 0) {
+        console.log("Cart is empty, no need to check phone verification");
+        return;
+      }
+
+      const savedPhone = localStorage.getItem("userPhone");
+      const verified = localStorage.getItem("phoneVerified");
+
+      // Always verify with backend, don't just trust localStorage
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.error("No token found, redirecting to shop");
+          window.location.href = "/shop";
+          return;
+        }
+
+        const response = await fetch(`${API_URL}/api/auth/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+
+        console.log("Phone verification check:", data);
+
+        if (data.success && data.user.phone && data.user.phoneVerified) {
+          // Phone is verified in database
+          setUserPhone(data.user.phone);
+          setPhoneVerified(true);
+          localStorage.setItem("userPhone", data.user.phone);
+          localStorage.setItem("phoneVerified", "true");
+          await fetchAddresses();
+        } else {
+          // Phone not verified - show modal
+          console.log("Phone not verified, showing modal");
+          localStorage.removeItem("userPhone");
+          localStorage.removeItem("phoneVerified");
           setShowPhoneVerification(true);
         }
+      } catch (error) {
+        console.error("Error checking phone verification:", error);
+        setShowPhoneVerification(true);
       }
     };
 
     checkPhoneVerification();
-  }, []);
+  }, [user, items]);
 
   const fetchAddresses = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/api/addresses`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
-      
+
       if (data.success) {
         setSavedAddresses(data.addresses);
-        const defaultAddr = data.addresses.find((addr: Address) => addr.isDefault);
+        const defaultAddr = data.addresses.find(
+          (addr: Address) => addr.isDefault
+        );
         if (defaultAddr) {
           setSelectedAddress(defaultAddr);
         } else if (data.addresses.length > 0) {
@@ -142,15 +205,21 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
         }
       }
     } catch (error) {
-      console.error('Error fetching addresses:', error);
+      console.error("Error fetching addresses:", error);
     }
   };
 
-  const handlePhoneVerificationComplete = (phone: string) => {
+  const handlePhoneVerificationComplete = async (phone: string) => {
+    console.log("Phone verification completed for:", phone);
     setUserPhone(phone);
     setPhoneVerified(true);
     setShowPhoneVerification(false);
-    fetchAddresses();
+
+    // Clear any cached phone data to force refresh from server
+    localStorage.setItem("userPhone", phone);
+    localStorage.setItem("phoneVerified", "true");
+
+    await fetchAddresses();
   };
 
   // Pincode auto-fetch with 2-second delay
@@ -166,7 +235,7 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
       const timeout = setTimeout(() => {
         fetchLocationFromPincode(newAddress.pincode);
       }, 2000);
-      
+
       setPincodeDebounce(timeout);
     }
 
@@ -182,22 +251,28 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
   const fetchLocationFromPincode = async (pincode: string) => {
     setFetchingPincode(true);
     try {
-      const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+      const response = await fetch(
+        `https://api.postalpincode.in/pincode/${pincode}`
+      );
       const data = await response.json();
-      
-      if (data[0].Status === 'Success' && data[0].PostOffice && data[0].PostOffice.length > 0) {
+
+      if (
+        data[0].Status === "Success" &&
+        data[0].PostOffice &&
+        data[0].PostOffice.length > 0
+      ) {
         const postOffice = data[0].PostOffice[0];
-        setNewAddress(prev => ({
+        setNewAddress((prev) => ({
           ...prev,
-          city: postOffice.District || '',
-          state: postOffice.State || ''
+          city: postOffice.District || "",
+          state: postOffice.State || "",
         }));
       } else {
-        alert('Invalid pincode. Please check and try again.');
+        alert("Invalid pincode. Please check and try again.");
       }
     } catch (error) {
-      console.error('Error fetching pincode details:', error);
-      alert('Failed to fetch location details. Please enter manually.');
+      console.error("Error fetching pincode details:", error);
+      alert("Failed to fetch location details. Please enter manually.");
     } finally {
       setFetchingPincode(false);
     }
@@ -205,32 +280,38 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
 
   const handleSaveAddress = async () => {
     // Validation
-    if (!newAddress.fullName || !newAddress.phone || !newAddress.pincode ||
-        !newAddress.city || !newAddress.state || !newAddress.address) {
-      alert('Please fill in all address fields');
+    if (
+      !newAddress.fullName ||
+      !newAddress.phone ||
+      !newAddress.pincode ||
+      !newAddress.city ||
+      !newAddress.state ||
+      !newAddress.address
+    ) {
+      alert("Please fill in all address fields");
       return;
     }
 
     if (newAddress.phone.length !== 10) {
-      alert('Please enter a valid 10-digit phone number');
+      alert("Please enter a valid 10-digit phone number");
       return;
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const url = isEditingAddress 
+      const token = localStorage.getItem("token");
+      const url = isEditingAddress
         ? `${API_URL}/api/addresses/${selectedAddress?._id}`
         : `${API_URL}/api/addresses`;
-      
-      const method = isEditingAddress ? 'PUT' : 'POST';
+
+      const method = isEditingAddress ? "PUT" : "POST";
 
       const response = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(newAddress)
+        body: JSON.stringify(newAddress),
       });
 
       const data = await response.json();
@@ -242,19 +323,19 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
         setShowAddressForm(false);
         setIsEditingAddress(false);
         setNewAddress({
-          fullName: '',
+          fullName: "",
           phone: userPhone,
-          pincode: '',
-          city: '',
-          state: '',
-          address: ''
+          pincode: "",
+          city: "",
+          state: "",
+          address: "",
         });
       } else {
-        alert(data.message || 'Failed to save address');
+        alert(data.message || "Failed to save address");
       }
     } catch (error) {
-      console.error('Error saving address:', error);
-      alert('Failed to save address. Please try again.');
+      console.error("Error saving address:", error);
+      alert("Failed to save address. Please try again.");
     }
   };
 
@@ -266,13 +347,13 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
   };
 
   const handleDeleteAddress = async (addressId: string) => {
-    if (!confirm('Are you sure you want to delete this address?')) return;
+    if (!confirm("Are you sure you want to delete this address?")) return;
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/api/addresses/${addressId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await response.json();
@@ -283,18 +364,18 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
           setSelectedAddress(data.addresses[0] || null);
         }
       } else {
-        alert(data.message || 'Failed to delete address');
+        alert(data.message || "Failed to delete address");
       }
     } catch (error) {
-      console.error('Error deleting address:', error);
-      alert('Failed to delete address. Please try again.');
+      console.error("Error deleting address:", error);
+      alert("Failed to delete address. Please try again.");
     }
   };
 
   const loadRazorpayScript = (): Promise<boolean> => {
     return new Promise((resolve) => {
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
       script.onload = () => resolve(true);
       script.onerror = () => resolve(false);
       document.body.appendChild(script);
@@ -303,7 +384,7 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
 
   const handlePayment = async () => {
     if (!selectedAddress) {
-      alert('Please select a delivery address');
+      alert("Please select a delivery address");
       return;
     }
 
@@ -311,35 +392,37 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
     try {
       const res = await loadRazorpayScript();
       if (!res) {
-        alert('Razorpay SDK failed to load. Please check your internet connection.');
+        alert(
+          "Razorpay SDK failed to load. Please check your internet connection."
+        );
         setLoading(false);
         return;
       }
 
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        alert('Please login to continue');
-        window.location.href = '/login';
+        alert("Please login to continue");
+        window.location.href = "/login";
         return;
       }
 
       const response = await fetch(`${API_URL}/api/payment/create-order`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           shippingAddress: {
             ...selectedAddress,
-            email: user?.email
-          }
-        })
+            email: user?.email,
+          },
+        }),
       });
 
       const data = await response.json();
       if (!data.success) {
-        alert(data.message || 'Failed to create order');
+        alert(data.message || "Failed to create order");
         setLoading(false);
         return;
       }
@@ -348,115 +431,166 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
         key: data.key,
         amount: data.order.amount,
         currency: data.order.currency,
-        name: 'KALLKEYY',
-        description: 'Streetwear Fashion',
+        name: "KALLKEYY",
+        description: "Streetwear Fashion",
         order_id: data.order.id,
         handler: async function (response: RazorpayResponse) {
           try {
-            const verifyResponse = await fetch(`${API_URL}/api/payment/verify-payment`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-              },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                orderId: data.order.orderId
-              })
-            });
+            const verifyResponse = await fetch(
+              `${API_URL}/api/payment/verify-payment`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                  orderId: data.order.orderId,
+                }),
+              }
+            );
 
             const verifyData = await verifyResponse.json();
             if (verifyData.success) {
-              alert('Payment successful! Your order has been placed.');
+              alert("Payment successful! Your order has been placed.");
               await clearCart();
-              window.location.href = '/shop';
+              window.location.href = "/shop";
             } else {
-              alert('Payment verification failed. Please contact support.');
+              alert("Payment verification failed. Please contact support.");
             }
           } catch (error) {
-            console.error('Payment verification error:', error);
-            alert('Payment verification failed. Please contact support.');
+            console.error("Payment verification error:", error);
+            alert("Payment verification failed. Please contact support.");
           }
         },
         modal: {
-          ondismiss: function() {
+          ondismiss: function () {
             setLoading(false);
-            alert('Payment cancelled');
-          }
+            alert("Payment cancelled");
+          },
         },
         prefill: {
           name: selectedAddress.fullName,
-          email: user?.email || '',
-          contact: selectedAddress.phone
+          email: user?.email || "",
+          contact: selectedAddress.phone,
         },
         theme: {
-          color: '#C0152F'
-        }
+          color: "#C0152F",
+        },
       };
 
       const paymentObject = new window.Razorpay(options);
       paymentObject.open();
     } catch (error) {
-      console.error('Payment error:', error);
-      alert('Failed to initiate payment. Please try again.');
+      console.error("Payment error:", error);
+      alert("Failed to initiate payment. Please try again.");
       setLoading(false);
     }
   };
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4" 
-           style={{ background: 'var(--color-background)', color: 'var(--color-text)' }}>
-        <Package size={64} style={{ color: 'var(--color-text-secondary)', marginBottom: '24px' }} />
+      <div
+        className="min-h-screen flex flex-col items-center justify-center p-4"
+        style={{
+          background: "var(--color-background)",
+          color: "var(--color-text)",
+        }}
+      >
+        <Package
+          size={64}
+          style={{ color: "var(--color-text-secondary)", marginBottom: "24px" }}
+        />
         <h2 className="text-hero mb-4">Your Cart is Empty</h2>
-        <p className="text-body mb-8" style={{ color: 'var(--color-text-secondary)' }}>
+        <p
+          className="text-body mb-8"
+          style={{ color: "var(--color-text-secondary)" }}
+        >
           Add some streetwear to your collection
         </p>
-        <button onClick={() => window.location.href = '/shop'} className="street-button">
+        <button
+          onClick={() => (window.location.href = "/shop")}
+          className="street-button"
+        >
           Continue Shopping
         </button>
       </div>
     );
   }
 
-  if (showPhoneVerification) {
+  if (showPhoneVerification && user) {
     return (
       <PhoneVerificationModal
         onVerificationComplete={handlePhoneVerificationComplete}
-        userId={user?._id || user?.id || ''}
       />
     );
   }
 
+  // Show loading state while checking authentication
+  if (!user) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{
+          background: "var(--color-background)",
+          color: "var(--color-text)",
+        }}
+      >
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#b90e0a] mx-auto mb-4"></div>
+          <p style={{ color: "var(--color-text-secondary)" }}>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen py-8 px-4 md:px-8" 
-         style={{ background: 'var(--color-background)', color: 'var(--color-text)' }}>
+    <div
+      className="min-h-screen py-8 px-4 md:px-8"
+      style={{
+        background: "var(--color-background)",
+        color: "var(--color-text)",
+      }}
+    >
       <div className="max-w-6xl mx-auto">
         <button
-          onClick={() => window.location.href = '/shop'}
+          onClick={() => (window.location.href = "/shop")}
           className="flex items-center gap-2 mb-8 transition-all duration-300 hover:gap-3"
-          style={{ 
-            color: 'var(--color-text-secondary)',
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            fontSize: 'var(--font-size-base)'
+          style={{
+            color: "var(--color-text-secondary)",
+            border: "none",
+            background: "transparent",
+            cursor: "pointer",
+            fontSize: "var(--font-size-base)",
           }}
         >
           <ArrowLeft size={20} />
           <span>Back to Shop</span>
         </button>
 
-        <h1 className="text-display mb-2" style={{ color: 'var(--color-text)' }}>
+        <h1
+          className="text-display mb-2"
+          style={{ color: "var(--color-text)" }}
+        >
           Checkout
         </h1>
-        <p className="text-body mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+        <p
+          className="text-body mb-2"
+          style={{ color: "var(--color-text-secondary)" }}
+        >
           Complete your order securely
         </p>
-        <p className="text-sm mb-12" style={{ color: 'var(--color-text-secondary)' }}>
-          Ordering as: <strong style={{ color: 'var(--color-primary)' }}>{user?.email}</strong>
+        <p
+          className="text-sm mb-12"
+          style={{ color: "var(--color-text-secondary)" }}
+        >
+          Ordering as:{" "}
+          <strong style={{ color: "var(--color-primary)" }}>
+            {user?.email}
+          </strong>
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -464,8 +598,11 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
           <div className="card-street space-y-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <Package size={24} style={{ color: 'var(--color-primary)' }} />
-                <h2 className="text-heading" style={{ color: 'var(--color-text)' }}>
+                <Package size={24} style={{ color: "var(--color-primary)" }} />
+                <h2
+                  className="text-heading"
+                  style={{ color: "var(--color-text)" }}
+                >
                   Delivery Address
                 </h2>
               </div>
@@ -473,23 +610,23 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
                 <button
                   onClick={() => {
                     setNewAddress({
-                      fullName: '',
+                      fullName: "",
                       phone: userPhone,
-                      pincode: '',
-                      city: '',
-                      state: '',
-                      address: ''
+                      pincode: "",
+                      city: "",
+                      state: "",
+                      address: "",
                     });
                     setIsEditingAddress(false);
                     setShowAddressForm(true);
                   }}
                   className="flex items-center gap-2 px-4 py-2 rounded transition-all"
                   style={{
-                    background: 'var(--color-primary)',
-                    color: 'white',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontSize: 'var(--font-size-sm)'
+                    background: "var(--color-primary)",
+                    color: "white",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "var(--font-size-sm)",
                   }}
                 >
                   <Plus size={16} />
@@ -502,7 +639,7 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
               <div className="space-y-4">
                 {savedAddresses.length === 0 ? (
                   <div className="text-center py-8">
-                    <p style={{ color: 'var(--color-text-secondary)' }}>
+                    <p style={{ color: "var(--color-text-secondary)" }}>
                       No saved addresses. Add one to continue.
                     </p>
                   </div>
@@ -513,25 +650,28 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
                       onClick={() => setSelectedAddress(address)}
                       className="p-4 rounded cursor-pointer transition-all"
                       style={{
-                        background: selectedAddress?._id === address._id 
-                          ? 'var(--color-primary-light)' 
-                          : 'var(--color-secondary)',
-                        border: `2px solid ${selectedAddress?._id === address._id 
-                          ? 'var(--color-primary)' 
-                          : 'var(--color-border)'}`,
+                        background:
+                          selectedAddress?._id === address._id
+                            ? "var(--color-primary-light)"
+                            : "var(--color-secondary)",
+                        border: `2px solid ${
+                          selectedAddress?._id === address._id
+                            ? "var(--color-primary)"
+                            : "var(--color-border)"
+                        }`,
                       }}
                     >
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex items-center gap-2">
-                          <strong style={{ color: 'var(--color-text)' }}>
+                          <strong style={{ color: "var(--color-text)" }}>
                             {address.fullName}
                           </strong>
                           {address.isDefault && (
-                            <span 
+                            <span
                               className="text-xs px-2 py-1 rounded"
-                              style={{ 
-                                background: 'var(--color-success)',
-                                color: 'white'
+                              style={{
+                                background: "var(--color-success)",
+                                color: "white",
                               }}
                             >
                               Default
@@ -539,16 +679,34 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
                           )}
                         </div>
                         {selectedAddress?._id === address._id && (
-                          <CheckCircle size={20} style={{ color: 'var(--color-primary)' }} />
+                          <CheckCircle
+                            size={20}
+                            style={{ color: "var(--color-primary)" }}
+                          />
                         )}
                       </div>
-                      <p style={{ color: 'var(--color-text)', fontSize: 'var(--font-size-sm)' }}>
+                      <p
+                        style={{
+                          color: "var(--color-text)",
+                          fontSize: "var(--font-size-sm)",
+                        }}
+                      >
                         {address.address}
                       </p>
-                      <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>
+                      <p
+                        style={{
+                          color: "var(--color-text-secondary)",
+                          fontSize: "var(--font-size-sm)",
+                        }}
+                      >
                         {address.city}, {address.state} - {address.pincode}
                       </p>
-                      <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>
+                      <p
+                        style={{
+                          color: "var(--color-text-secondary)",
+                          fontSize: "var(--font-size-sm)",
+                        }}
+                      >
                         Phone: {address.phone}
                       </p>
                       <div className="flex gap-2 mt-3">
@@ -559,10 +717,10 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
                           }}
                           className="flex items-center gap-1 px-3 py-1 rounded text-sm transition-all"
                           style={{
-                            background: 'var(--color-secondary)',
-                            color: 'var(--color-text)',
-                            border: '1px solid var(--color-border)',
-                            cursor: 'pointer'
+                            background: "var(--color-secondary)",
+                            color: "var(--color-text)",
+                            border: "1px solid var(--color-border)",
+                            cursor: "pointer",
                           }}
                         >
                           <Edit size={14} />
@@ -575,10 +733,10 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
                           }}
                           className="flex items-center gap-1 px-3 py-1 rounded text-sm transition-all"
                           style={{
-                            background: 'rgba(var(--color-error-rgb), 0.1)',
-                            color: 'var(--color-error)',
-                            border: '1px solid var(--color-error)',
-                            cursor: 'pointer'
+                            background: "rgba(var(--color-error-rgb), 0.1)",
+                            color: "var(--color-error)",
+                            border: "1px solid var(--color-error)",
+                            cursor: "pointer",
                           }}
                         >
                           <Trash2 size={14} />
@@ -592,7 +750,10 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
             ) : (
               <div className="space-y-4">
                 <div>
-                  <label className="form-label" style={{ color: 'var(--color-text)' }}>
+                  <label
+                    className="form-label"
+                    style={{ color: "var(--color-text)" }}
+                  >
                     Full Name *
                   </label>
                   <input
@@ -601,7 +762,7 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
                     value={newAddress.fullName}
                     onChange={(e) => {
                       const value = e.target.value;
-                      const sanitized = value.replace(/[^A-Za-z\s.]/g, '');
+                      const sanitized = value.replace(/[^A-Za-z\s.]/g, "");
                       setNewAddress({ ...newAddress, fullName: sanitized });
                     }}
                     onKeyPress={(e) => {
@@ -612,44 +773,58 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
                     required
                     className="form-control"
                     style={{
-                      background: 'var(--color-surface)',
-                      color: 'var(--color-text)',
-                      border: '1px solid var(--color-border)',
-                      width: '100%',
-                      padding: 'var(--space-12)',
-                      borderRadius: 'var(--radius-base)'
+                      background: "var(--color-surface)",
+                      color: "var(--color-text)",
+                      border: "1px solid var(--color-border)",
+                      width: "100%",
+                      padding: "var(--space-12)",
+                      borderRadius: "var(--radius-base)",
                     }}
                   />
                 </div>
 
                 <div>
-                  <label className="form-label" style={{ color: 'var(--color-text)' }}>
+                  <label
+                    className="form-label"
+                    style={{ color: "var(--color-text)" }}
+                  >
                     Phone Number *
                   </label>
                   <input
                     type="tel"
                     placeholder="10-digit number"
                     value={newAddress.phone}
-                    onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                    onChange={(e) =>
+                      setNewAddress({
+                        ...newAddress,
+                        phone: e.target.value.replace(/\D/g, "").slice(0, 10),
+                      })
+                    }
                     className="form-control"
                     style={{
-                      background: 'var(--color-surface)',
-                      color: 'var(--color-text)',
-                      border: '1px solid var(--color-border)',
-                      width: '100%',
-                      padding: 'var(--space-12)',
-                      borderRadius: 'var(--radius-base)'
+                      background: "var(--color-surface)",
+                      color: "var(--color-text)",
+                      border: "1px solid var(--color-border)",
+                      width: "100%",
+                      padding: "var(--space-12)",
+                      borderRadius: "var(--radius-base)",
                     }}
                     maxLength={10}
                   />
                 </div>
 
                 <div>
-                  <label className="form-label flex items-center gap-2" style={{ color: 'var(--color-text)' }}>
+                  <label
+                    className="form-label flex items-center gap-2"
+                    style={{ color: "var(--color-text)" }}
+                  >
                     <MapPin size={16} />
                     Pincode *
                     {fetchingPincode && (
-                      <span className="text-xs" style={{ color: 'var(--color-primary)' }}>
+                      <span
+                        className="text-xs"
+                        style={{ color: "var(--color-primary)" }}
+                      >
                         Fetching location...
                       </span>
                     )}
@@ -658,15 +833,24 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
                     type="text"
                     placeholder="6-digit pincode"
                     value={newAddress.pincode}
-                    onChange={(e) => setNewAddress({ ...newAddress, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) })}
+                    onChange={(e) =>
+                      setNewAddress({
+                        ...newAddress,
+                        pincode: e.target.value.replace(/\D/g, "").slice(0, 6),
+                      })
+                    }
                     className="form-control"
                     style={{
-                      background: 'var(--color-surface)',
-                      color: 'var(--color-text)',
-                      border: `2px solid ${fetchingPincode ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                      width: '100%',
-                      padding: 'var(--space-12)',
-                      borderRadius: 'var(--radius-base)'
+                      background: "var(--color-surface)",
+                      color: "var(--color-text)",
+                      border: `2px solid ${
+                        fetchingPincode
+                          ? "var(--color-primary)"
+                          : "var(--color-border)"
+                      }`,
+                      width: "100%",
+                      padding: "var(--space-12)",
+                      borderRadius: "var(--radius-base)",
                     }}
                     maxLength={6}
                   />
@@ -674,56 +858,71 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="form-label" style={{ color: 'var(--color-text)' }}>
+                    <label
+                      className="form-label"
+                      style={{ color: "var(--color-text)" }}
+                    >
                       City *
                     </label>
                     <input
                       type="text"
                       placeholder="City"
                       value={newAddress.city}
-                      onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
+                      onChange={(e) =>
+                        setNewAddress({ ...newAddress, city: e.target.value })
+                      }
                       className="form-control"
                       style={{
-                        background: 'var(--color-surface)',
-                        color: 'var(--color-text)',
-                        border: '1px solid var(--color-border)',
-                        width: '100%',
-                        padding: 'var(--space-12)',
-                        borderRadius: 'var(--radius-base)'
+                        background: "var(--color-surface)",
+                        color: "var(--color-text)",
+                        border: "1px solid var(--color-border)",
+                        width: "100%",
+                        padding: "var(--space-12)",
+                        borderRadius: "var(--radius-base)",
                       }}
                       disabled={fetchingPincode}
                     />
                   </div>
 
                   <div>
-                    <label className="form-label" style={{ color: 'var(--color-text)' }}>
+                    <label
+                      className="form-label"
+                      style={{ color: "var(--color-text)" }}
+                    >
                       State *
                     </label>
                     <select
                       value={newAddress.state}
-                      onChange={(e) => setNewAddress({ ...newAddress, state: e.target.value })}
+                      onChange={(e) =>
+                        setNewAddress({ ...newAddress, state: e.target.value })
+                      }
                       className="form-control"
                       style={{
-                        background: 'var(--color-surface)',
-                        color: 'var(--color-text)',
-                        border: '1px solid var(--color-border)',
-                        width: '100%',
-                        padding: 'var(--space-12)',
-                        borderRadius: 'var(--radius-base)',
-                        cursor: 'pointer'
+                        background: "var(--color-surface)",
+                        color: "var(--color-text)",
+                        border: "1px solid var(--color-border)",
+                        width: "100%",
+                        padding: "var(--space-12)",
+                        borderRadius: "var(--radius-base)",
+                        cursor: "pointer",
                       }}
                       disabled={fetchingPincode}
                     >
                       <option value="">Select State</option>
                       {INDIAN_STATES.map((state) => (
-                        <option key={state} value={state}>{state}</option>
+                        <option key={state} value={state}>
+                          {state}
+                        </option>
                       ))}
                     </select>
                   </div>
                 </div>
 
                 <div>
-                  <label className="form-label" style={{ color: 'var(--color-text)' }}>
+                  <label
+                    className="form-label"
+                    style={{ color: "var(--color-text)" }}
+                  >
                     Complete Address *
                   </label>
                   <textarea
@@ -731,25 +930,25 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
                     value={newAddress.address}
                     onChange={(e) => {
                       const value = e.target.value;
-                      const sanitized = value.replace(/[^A-Za-z0-9\s.,-]/g, '');
+                      const sanitized = value.replace(/[^A-Za-z0-9\s.,-]/g, "");
                       setNewAddress({ ...newAddress, address: sanitized });
                     }}
                     onKeyPress={(e) => {
-                      if (!/[A-Za-z0-9\s.,-]/.test(e.key)){
+                      if (!/[A-Za-z0-9\s.,-]/.test(e.key)) {
                         e.preventDefault();
                       }
                     }}
                     required
                     className="form-control"
                     style={{
-                      background: 'var(--color-surface)',
-                      color: 'var(--color-text)',
-                      border: '1px solid var(--color-border)',
-                      minHeight: '100px',
-                      width: '100%',
-                      padding: 'var(--space-12)',
-                      borderRadius: 'var(--radius-base)',
-                      resize: 'vertical'
+                      background: "var(--color-surface)",
+                      color: "var(--color-text)",
+                      border: "1px solid var(--color-border)",
+                      minHeight: "100px",
+                      width: "100%",
+                      padding: "var(--space-12)",
+                      borderRadius: "var(--radius-base)",
+                      resize: "vertical",
                     }}
                   />
                 </div>
@@ -759,33 +958,33 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
                     onClick={handleSaveAddress}
                     className="flex-1 py-3 rounded-lg font-medium transition-all"
                     style={{
-                      background: 'var(--color-primary)',
-                      color: 'white',
-                      border: 'none',
-                      cursor: 'pointer'
+                      background: "var(--color-primary)",
+                      color: "white",
+                      border: "none",
+                      cursor: "pointer",
                     }}
                   >
-                    {isEditingAddress ? 'Update Address' : 'Save Address'}
+                    {isEditingAddress ? "Update Address" : "Save Address"}
                   </button>
                   <button
                     onClick={() => {
                       setShowAddressForm(false);
                       setIsEditingAddress(false);
                       setNewAddress({
-                        fullName: '',
+                        fullName: "",
                         phone: userPhone,
-                        pincode: '',
-                        city: '',
-                        state: '',
-                        address: ''
+                        pincode: "",
+                        city: "",
+                        state: "",
+                        address: "",
                       });
                     }}
                     className="px-6 py-3 rounded-lg font-medium transition-all"
                     style={{
-                      background: 'var(--color-secondary)',
-                      color: 'var(--color-text)',
-                      border: '1px solid var(--color-border)',
-                      cursor: 'pointer'
+                      background: "var(--color-secondary)",
+                      color: "var(--color-text)",
+                      border: "1px solid var(--color-border)",
+                      cursor: "pointer",
                     }}
                   >
                     Cancel
@@ -798,49 +997,62 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
           {/* Order Summary */}
           <div className="card-street h-fit sticky top-8">
             <div className="flex items-center gap-3 mb-6">
-              <CreditCard size={24} style={{ color: 'var(--color-primary)' }} />
-              <h2 className="text-heading" style={{ color: 'var(--color-text)' }}>
+              <CreditCard size={24} style={{ color: "var(--color-primary)" }} />
+              <h2
+                className="text-heading"
+                style={{ color: "var(--color-text)" }}
+              >
                 Order Summary
               </h2>
             </div>
 
-            <div className="space-y-4 mb-6 max-h-96 overflow-y-auto" 
-                 style={{ 
-                   borderBottom: '1px solid var(--color-border)',
-                   paddingBottom: 'var(--space-16)'
-                 }}>
+            <div
+              className="space-y-4 mb-6 max-h-96 overflow-y-auto"
+              style={{
+                borderBottom: "1px solid var(--color-border)",
+                paddingBottom: "var(--space-16)",
+              }}
+            >
               {items.map((item, index) => (
-                <div key={`${item.productId}-${item.size}-${index}`} 
-                     className="flex gap-4 p-3 rounded"
-                     style={{ 
-                       background: 'var(--color-secondary)',
-                       border: '1px solid var(--color-card-border)'
-                     }}>
+                <div
+                  key={`${item.productId}-${item.size}-${index}`}
+                  className="flex gap-4 p-3 rounded"
+                  style={{
+                    background: "var(--color-secondary)",
+                    border: "1px solid var(--color-card-border)",
+                  }}
+                >
                   {item.image && (
-                    <img 
-                      src={item.image} 
+                    <img
+                      src={item.image}
                       alt={item.productName}
                       className="w-20 h-20 object-cover rounded"
-                      style={{ border: '1px solid var(--color-border)' }}
+                      style={{ border: "1px solid var(--color-border)" }}
                     />
                   )}
                   <div className="flex-1">
-                    <h3 className="font-medium mb-1" 
-                        style={{ 
-                          color: 'var(--color-text)',
-                          fontSize: 'var(--font-size-base)'
-                        }}>
+                    <h3
+                      className="font-medium mb-1"
+                      style={{
+                        color: "var(--color-text)",
+                        fontSize: "var(--font-size-base)",
+                      }}
+                    >
                       {item.productName}
                     </h3>
-                    <p className="text-sm" 
-                       style={{ color: 'var(--color-text-secondary)' }}>
+                    <p
+                      className="text-sm"
+                      style={{ color: "var(--color-text-secondary)" }}
+                    >
                       Size: {item.size} • Qty: {item.quantity}
                     </p>
-                    <p className="font-semibold mt-2" 
-                       style={{ 
-                         color: 'var(--color-primary)',
-                         fontSize: 'var(--font-size-base)'
-                       }}>
+                    <p
+                      className="font-semibold mt-2"
+                      style={{
+                        color: "var(--color-primary)",
+                        fontSize: "var(--font-size-base)",
+                      }}
+                    >
                       ₹{(item.price * item.quantity).toFixed(2)}
                     </p>
                   </div>
@@ -848,16 +1060,23 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
               ))}
             </div>
 
-            <div className="flex justify-between items-center mb-6 py-4"
-                 style={{ borderBottom: '1px solid var(--color-border)' }}>
-              <span className="text-heading" style={{ color: 'var(--color-text)' }}>
+            <div
+              className="flex justify-between items-center mb-6 py-4"
+              style={{ borderBottom: "1px solid var(--color-border)" }}
+            >
+              <span
+                className="text-heading"
+                style={{ color: "var(--color-text)" }}
+              >
                 Total
               </span>
-              <span className="text-heading" 
-                    style={{ 
-                      color: 'var(--color-primary)',
-                      fontWeight: 'var(--font-weight-bold)'
-                    }}>
+              <span
+                className="text-heading"
+                style={{
+                  color: "var(--color-primary)",
+                  fontWeight: "var(--font-weight-bold)",
+                }}
+              >
                 ₹{totalPrice.toFixed(2)}
               </span>
             </div>
@@ -867,40 +1086,48 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
               disabled={loading || !selectedAddress}
               className="w-full py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300"
               style={{
-                background: 'var(--color-error)',
-                color: 'white',
-                opacity: (loading || !selectedAddress) ? 0.6 : 1,
-                cursor: (loading || !selectedAddress) ? 'not-allowed' : 'pointer',
-                border: 'none',
-                boxShadow: 'var(--shadow-md)'
+                background: "var(--color-error)",
+                color: "white",
+                opacity: loading || !selectedAddress ? 0.6 : 1,
+                cursor: loading || !selectedAddress ? "not-allowed" : "pointer",
+                border: "none",
+                boxShadow: "var(--shadow-md)",
               }}
               onMouseEnter={(e) => {
                 if (!loading && selectedAddress) {
-                  e.currentTarget.style.background = 'var(--color-red-500)';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = 'var(--shadow-lg)';
+                  e.currentTarget.style.background = "var(--color-red-500)";
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = "var(--shadow-lg)";
                 }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'var(--color-error)';
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+                e.currentTarget.style.background = "var(--color-error)";
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "var(--shadow-md)";
               }}
             >
               <CreditCard size={20} />
-              {loading ? 'Processing...' : !selectedAddress ? 'Select Address' : `Pay ₹${totalPrice.toFixed(2)}`}
+              {loading
+                ? "Processing..."
+                : !selectedAddress
+                ? "Select Address"
+                : `Pay ₹${totalPrice.toFixed(2)}`}
             </button>
 
-            <div className="flex items-center justify-center gap-2 mt-4 p-3 rounded"
-                 style={{ 
-                   background: 'var(--color-secondary)',
-                   border: '1px solid var(--color-border)'
-                 }}>
-              <Lock size={16} style={{ color: 'var(--color-success)' }} />
-              <span style={{ 
-                color: 'var(--color-text-secondary)',
-                fontSize: 'var(--font-size-sm)'
-              }}>
+            <div
+              className="flex items-center justify-center gap-2 mt-4 p-3 rounded"
+              style={{
+                background: "var(--color-secondary)",
+                border: "1px solid var(--color-border)",
+              }}
+            >
+              <Lock size={16} style={{ color: "var(--color-success)" }} />
+              <span
+                style={{
+                  color: "var(--color-text-secondary)",
+                  fontSize: "var(--font-size-sm)",
+                }}
+              >
                 Secure payment powered by Razorpay
               </span>
             </div>

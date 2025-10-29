@@ -1,33 +1,49 @@
-"use client"
+"use client";
 
-import ProductPageBase from "./ProductPageBase"
+import ProductPageBase from "./ProductPageBase";
 
 interface Props {
-  onBackToMain?: () => void
-  onNavigateToShop?: () => void
-  onNavigateToAbout?: () => void
-  onNavigateToContact?: () => void
-  onNavigateToLogin: () => void
-  onNavigateToSignup: () => void
-  onNavigateToProduct?: (productId: string) => void
+  onBackToMain?: () => void;
+  onNavigateToShop?: () => void;
+  onNavigateToAbout?: () => void;
+  onNavigateToContact?: () => void;
+  onNavigateToLogin: () => void;
+  onNavigateToSignup: () => void;
+  onNavigateToProduct?: (productId: string) => void;
 }
 
 const TSHIRT_DATA = {
   name: "SMARA-JIVITAM",
   price: "₹999",
+  originalPrice: "₹1,999",
+  salePrice: "₹999",
   tag: "NEW DROP",
   description:
-    "“SMARA JIVITAM — THE ASCENSION” Wings erupt from chaos, forged in will and fire. The sword of self-doubt strikes, but every wound becomes light. Smara Jivitam — proof that no sky limits you but your own mind. Rise. Break. Evolve.",
-  images: ["/hoodie-front.png", "/hoodie-side.png", "/product-hoodie.jpg", "/hoodie.png"],
+    '"SMARA JIVITAM — THE ASCENSION" Wings erupt from chaos, forged in will and fire. The sword of self-doubt strikes, but every wound becomes light. Smara Jivitam — proof that no sky limits you but your own mind. Rise. Break. Evolve.',
+  images: [
+    "/Smarajivitam-1.png",
+    "/Smarajivitam.mp4",
+    "/Smarajivitam-2.png",
+    "/Smarajivitam-3.png",
+  ],
   material: [
     "Oversized unisex fit",
     "240gsm French Terry Cotton",
     "Boxy fit with drop shoulders",
     "Do not bleach or iron directly on print",
   ],
-}
+  productType: "tshirt" as const,
+};
 
-export default function TshirtPage({ onBackToMain, onNavigateToShop, onNavigateToAbout, onNavigateToContact, onNavigateToLogin, onNavigateToSignup, onNavigateToProduct }: Props) {
+export default function TshirtPage({
+  onBackToMain,
+  onNavigateToShop,
+  onNavigateToAbout,
+  onNavigateToContact,
+  onNavigateToLogin,
+  onNavigateToSignup,
+  onNavigateToProduct,
+}: Props) {
   return (
     <ProductPageBase
       product={TSHIRT_DATA}
@@ -40,5 +56,5 @@ export default function TshirtPage({ onBackToMain, onNavigateToShop, onNavigateT
       onNavigateToSignup={onNavigateToSignup}
       onNavigateToProduct={onNavigateToProduct}
     />
-  )
+  );
 }
