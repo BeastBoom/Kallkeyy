@@ -11,6 +11,7 @@ const otpRoutes = require('./routes/otp');
 const addressRoutes = require('./routes/address');
 const productRoutes = require('./routes/products');
 const reviewRoutes = require('./routes/reviews');
+const adminRoutes = require('./routes/admin');
 
 // Load environment variables
 dotenv.config();
@@ -26,7 +27,8 @@ const allowedOrigins = [
   'http://localhost:5173',  // Vite default port
   'http://localhost:8080',  // Your current port
   'http://localhost:3000',  // Common React port
-  'http://localhost:4173',  // Vite preview port
+  'http://localhost:4173',
+  'http://localhost:3001',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:8080',
 ];
@@ -70,6 +72,7 @@ app.use('/api/otp', otpRoutes);
 app.use('/api/addresses', addressRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/admin', adminRoutes); // Admin portal routes
 
 // Health check route
 app.get('/api/health', (req, res) => {
