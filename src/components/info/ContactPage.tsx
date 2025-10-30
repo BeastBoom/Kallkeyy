@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, LogOut, Mail, Instagram, MapPin, Clock, Phone } from "lucide-react";
+import { Menu, X, LogOut, Mail, Instagram, MapPin, Clock } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 
@@ -70,14 +70,6 @@ export default function ContactPage({
       description: "DM us for quick responses and updates",
       action: "https://instagram.com/kall.keyy",
       actionText: "Follow Us"
-    },
-    {
-      icon: Phone,
-      title: "Customer Support",
-      detail: "Coming Soon",
-      description: "Phone support will be available soon",
-      action: null,
-      actionText: "Coming Soon"
     }
   ];
 
@@ -346,7 +338,7 @@ export default function ContactPage({
           </div>
 
           {/* Contact Methods */}
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
+          <div className="grid md:grid-cols-2 gap-6 mb-12">
             {contactMethods.map((method, index) => (
               <div
                 key={index}

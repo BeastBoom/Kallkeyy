@@ -1,18 +1,92 @@
-const twilio = require("twilio");
+const axios = require("axios");
 const User = require("../models/User");
 
-// Initialize Twilio client
-const client = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
-
-// Store OTPs temporarily
+// Store OTPs temporarily (in production, consider using Redis)
 const otpStore = new Map();
+
+// Rate limiting: Store last OTP send time per phone number
+const rateLimitStore = new Map();
 
 // Generate 6-digit OTP
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+// Send OTP via MSG91 WhatsApp
+const sendWhatsAppOTP = async (phone, otp) => {
+  try {
+    const authKey = process.env.MSG91_AUTH_KEY;
+    const sender = process.env.MSG91_WHATSAPP_SENDER;
+    const templateId = process.env.MSG91_WHATSAPP_TEMPLATE_ID;
+
+    if (!authKey || !sender || !templateId) {
+      throw new Error(
+        "MSG91 configuration missing. Please check environment variables."
+      );
+    }
+
+    // Format phone number (ensure it's 10 digits)
+    const formattedPhone = `91${phone}`;
+
+    // MSG91 WhatsApp API endpoint
+    const url = "https://api.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/";
+
+    // Request payload
+    const payload = {
+      integrated_number: sender,
+      content_type: "template",
+      payload: {
+        to: formattedPhone,
+        type: "template",
+        template: {
+          name: templateId,
+          language: {
+            code: "en",
+            policy: "deterministic",
+          },
+          components: [
+            {
+              type: "body",
+              parameters: [
+                {
+                  type: "text",
+                  text: otp,
+                },
+              ],
+            },
+          ],
+        },
+      },
+    };
+
+    // Send request to MSG91
+    const response = await axios.post(url, payload, {
+      headers: {
+        "authkey": authKey,
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("MSG91 WhatsApp Response:", response.data);
+
+    if (response.data && response.data.type === "error") {
+      throw new Error(
+        response.data.message || "Failed to send WhatsApp OTP"
+      );
+    }
+
+    return {
+      success: true,
+      messageId: response.data.messageId || response.data.id,
+    };
+  } catch (error) {
+    console.error("MSG91 WhatsApp Error:", error.response?.data || error.message);
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Failed to send WhatsApp OTP"
+    );
+  }
 };
 
 // Send OTP
@@ -20,10 +94,23 @@ exports.sendOTP = async (req, res) => {
   try {
     const { phone } = req.body;
 
-    if (!phone || phone.length !== 10) {
+    // Validate phone number
+    if (!phone || phone.length !== 10 || !/^\d{10}$/.test(phone)) {
       return res.status(400).json({
         success: false,
         message: "Valid 10-digit phone number is required",
+      });
+    }
+
+    // Rate limiting: Check if OTP was sent recently (within last 60 seconds)
+    const lastSendTime = rateLimitStore.get(phone);
+    const currentTime = Date.now();
+
+    if (lastSendTime && currentTime - lastSendTime < 60000) {
+      const remainingTime = Math.ceil((60000 - (currentTime - lastSendTime)) / 1000);
+      return res.status(429).json({
+        success: false,
+        message: `Please wait ${remainingTime} seconds before requesting a new OTP`,
       });
     }
 
@@ -38,20 +125,19 @@ exports.sendOTP = async (req, res) => {
       attempts: 0,
     });
 
-    // Format phone number for Twilio
-    const formattedPhone = `+91${phone}`;
+    // Update rate limit timestamp
+    rateLimitStore.set(phone, currentTime);
 
-    // Send SMS via Twilio
-    await client.messages.create({
-      body: `Your KALLKEYY verification code is: ${otp}. Valid for 10 minutes. Do not share this code.`,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: formattedPhone,
-    });
+    // Send WhatsApp OTP via MSG91
+    const result = await sendWhatsAppOTP(phone, otp);
+
+    console.log(`WhatsApp OTP sent successfully to: 91${phone}`);
 
     res.status(200).json({
       success: true,
-      message: "OTP sent successfully",
+      message: "OTP sent successfully to your WhatsApp",
       expiresIn: 600,
+      messageId: result.messageId,
     });
   } catch (error) {
     console.error("OTP send error:", error);
@@ -161,7 +247,11 @@ exports.verifyOTP = async (req, res) => {
 exports.resendOTP = async (req, res) => {
   try {
     const { phone } = req.body;
+    
+    // Clear existing OTP and rate limit for resend
     otpStore.delete(phone);
+    rateLimitStore.delete(phone);
+    
     return exports.sendOTP(req, res);
   } catch (error) {
     console.error("OTP resend error:", error);

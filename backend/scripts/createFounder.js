@@ -11,13 +11,17 @@ require('dotenv').config();
 
 const createFounder = async () => {
   try {
-    // Connect to database
-    await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
+    // Connect to MongoDB Atlas
+    if (!process.env.MONGODB_URI) {
+      console.error('❌ Error: MONGODB_URI not found in environment variables');
+      console.error('💡 Please ensure your .env file is configured properly');
+      process.exit(1);
+    }
 
-    console.log('✅ Connected to MongoDB');
+    // Connect without deprecated options (Mongoose 6+ doesn't need them)
+    await mongoose.connect(process.env.MONGODB_URI);
+
+    console.log('✅ Connected to MongoDB Atlas');
 
     // Check if founder already exists
     const existingFounder = await Admin.findOne({ role: 'founder' });

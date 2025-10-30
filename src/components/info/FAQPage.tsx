@@ -47,7 +47,7 @@ export default function FAQPage({ onBackToMain, skipAnimations = false }: Props)
     {
       category: "Shipping",
       question: "How can I track my order?",
-      answer: "Once shipped, you'll receive tracking details via email and SMS. You can also track your order in the Orders section of your account."
+      answer: "Once shipped, you'll receive tracking details via email and WhatsApp. You can also track your order in the Orders section of your account."
     },
     {
       category: "Shipping",

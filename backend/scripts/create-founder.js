@@ -4,10 +4,15 @@ require('dotenv').config();
 
 async function createFounder() {
   try {
-    // Connect to MongoDB
-    const dbUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/kallkeyy';
-    await mongoose.connect(dbUri);
-    console.log('✅ Connected to MongoDB');
+    // Connect to MongoDB Atlas
+    if (!process.env.MONGODB_URI) {
+      console.error('❌ Error: MONGODB_URI not found in environment variables');
+      console.error('💡 Please ensure your .env file is configured properly');
+      process.exit(1);
+    }
+
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log('✅ Connected to MongoDB Atlas');
     console.log('Database:', mongoose.connection.name);
     console.log('');
 
@@ -31,8 +36,8 @@ async function createFounder() {
     const founder = new Admin({
       username: 'founder',
       email: 'founder@kallkeyy.com',
-      password: 'Kallkeyy@2025', // Will be hashed automatically by pre-save hook
-      fullName: 'Founder Name',
+      password: 'Kallkeyykeliye1!', // Will be hashed automatically by pre-save hook
+      fullName: 'Dhruv Gupta',
       role: 'founder',
       isActive: true
     });
@@ -43,7 +48,7 @@ async function createFounder() {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('Username:', founder.username);
     console.log('Email:', founder.email);
-    console.log('Password:', 'Kallkeyy@2025');
+    console.log('Password:', 'Kallkeyykeliye1!');
     console.log('Role:', founder.role);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('');
@@ -51,7 +56,7 @@ async function createFounder() {
     console.log('');
     console.log('Login Credentials:');
     console.log('  Username: founder');
-    console.log('  Password: Kallkeyy@2025');
+    console.log('  Password: Kallkeyykeliye1!');
     console.log('');
     console.log('⚠️  IMPORTANT: Change this password after first login!');
     

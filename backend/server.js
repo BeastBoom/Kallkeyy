@@ -25,18 +25,29 @@ const app = express();
 
 // CORS Configuration - UPDATED TO ALLOW MULTIPLE ORIGINS
 const allowedOrigins = [
-  'http://localhost:5173',  // Vite default port
-  'http://localhost:8080',  // Your current port
+  // Production Frontend Domains
+  'https://kallkeyy.com',
+  'https://www.kallkeyy.com',
+  'https://kallkeyy.vercel.app',
+  
+  // Development Ports
+  'http://localhost:5173',  // Vite default port (frontend)
+  'http://localhost:8080',  // Alternative frontend port
   'http://localhost:3000',  // Common React port
-  'http://localhost:4173',
-  'http://localhost:3001',
+  'http://localhost:4173',  // Vite preview
+  'http://localhost:3001',  // Admin panel dev port
   'http://127.0.0.1:5173',
   'http://127.0.0.1:8080',
+  'http://127.0.0.1:3001',
 ];
 
-// Add production domain when deployed
+// Add production domains from environment variables
 if (process.env.FRONTEND_URL) {
   allowedOrigins.push(process.env.FRONTEND_URL);
+}
+
+if (process.env.ADMIN_PANEL_URL) {
+  allowedOrigins.push(process.env.ADMIN_PANEL_URL);
 }
 
 const corsOptions = {

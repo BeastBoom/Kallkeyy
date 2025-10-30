@@ -80,7 +80,7 @@ export default function ShippingPage({ onBackToMain, skipAnimations = false }: P
             <div>
               <h3 className="font-bold text-lg mb-2 text-white">Tracking Your Order</h3>
               <p className="text-gray-400">
-                Once shipped, you'll receive a tracking number via email and SMS. You can track your
+                Once shipped, you'll receive a tracking number via email and WhatsApp. You can track your
                 order status in the <span className="text-[#b90e0a] font-bold">Orders</span> section
                 of your account or directly on the courier partner's website.
               </p>

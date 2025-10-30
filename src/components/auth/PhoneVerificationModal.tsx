@@ -124,7 +124,7 @@ export default function PhoneVerificationModal({
           }}
         >
           We need to verify your phone number for order confirmations and
-          delivery updates.
+          delivery updates. You'll receive the OTP via WhatsApp.
         </p>
 
         {!showOtpInput ? (
@@ -177,7 +177,7 @@ export default function PhoneVerificationModal({
                 border: "none",
               }}
             >
-              {otpSending ? "Sending OTP..." : "Send OTP"}
+              {otpSending ? "Sending OTP..." : "Send OTP via WhatsApp"}
             </button>
           </div>
         ) : (
@@ -193,7 +193,7 @@ export default function PhoneVerificationModal({
                 className="text-sm mb-2"
                 style={{ color: "var(--color-text-secondary)" }}
               >
-                OTP sent to:{" "}
+                OTP sent to your WhatsApp:{" "}
                 <strong style={{ color: "var(--color-text)" }}>
                   +91 {phone}
                 </strong>

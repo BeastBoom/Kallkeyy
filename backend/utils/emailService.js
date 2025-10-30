@@ -2,9 +2,9 @@ const nodemailer = require('nodemailer');
 
 // Configure email service - PROPER CONFIGURATION FOR GMAIL
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",  // Use hostname, not IP
-  port: 587,
-  secure: false, // false for port 587, true for 465
+  host: "smtp.hostinger.com",  // Use hostname, not IP
+  port: 465,
+  secure: true, // false for port 587, true for 465
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS

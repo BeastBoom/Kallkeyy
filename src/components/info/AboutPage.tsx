@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut, Users, Target, Heart, Award } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
@@ -423,12 +422,12 @@ export default function AboutPage({
             <p className="text-xl mb-8 max-w-2xl mx-auto">
               Be part of something bigger. Wear your truth. Express yourself fearlessly.
             </p>
-            <Button
+            <button
               onClick={() => onNavigateToShop ? onNavigateToShop() : handleUnavailablePage("Shop")}
-              className="bg-black hover:bg-white hover:text-black text-white font-bold px-12 py-4 text-lg transition-all duration-300 hover:scale-105"
+              className="bg-black hover:bg-white hover:text-black text-white font-bold px-12 py-4 text-lg transition-all duration-300 hover:scale-105 rounded-md"
             >
               EXPLORE COLLECTION
-            </Button>
+            </button>
           </div>
         </div>
       </div>

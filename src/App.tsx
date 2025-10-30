@@ -151,11 +151,6 @@ const App = () => {
       setTimeout(() => {
         const scrollPos = event.state?.scrollPos || 0;
         window.scrollTo({ top: scrollPos, behavior: 'instant' });
-        
-        // Reset skipAnimations after scroll restoration
-        setTimeout(() => {
-          setSkipAnimations(false);
-        }, 100);
       }, 0);
     };
 
@@ -183,6 +178,7 @@ const App = () => {
 
   const navigateToAbout = () => {
     window.history.replaceState({ scrollPos: window.scrollY }, "");
+    setSkipAnimations(false); // Enable animations for forward navigation
     window.scrollTo({ top: 0, behavior: 'instant' });
     setStage("about");
     window.history.pushState({ scrollPos: 0 }, "", ROUTES.ABOUT);
@@ -190,6 +186,7 @@ const App = () => {
 
   const navigateToContact = () => {
     window.history.replaceState({ scrollPos: window.scrollY }, "");
+    setSkipAnimations(false); // Enable animations for forward navigation
     window.scrollTo({ top: 0, behavior: 'instant' });
     setStage("contact");
     window.history.pushState({ scrollPos: 0 }, "", ROUTES.CONTACT);
@@ -197,6 +194,7 @@ const App = () => {
 
   const navigateToSizeGuide = () => {
     window.history.replaceState({ scrollPos: window.scrollY }, "");
+    setSkipAnimations(false); // Enable animations for forward navigation
     window.scrollTo({ top: 0, behavior: 'instant' });
     setStage("size-guide");
     window.history.pushState({ scrollPos: 0 }, "", ROUTES.SIZE_GUIDE);
@@ -204,6 +202,7 @@ const App = () => {
 
   const navigateToShipping = () => {
     window.history.replaceState({ scrollPos: window.scrollY }, "");
+    setSkipAnimations(false); // Enable animations for forward navigation
     window.scrollTo({ top: 0, behavior: 'instant' });
     setStage("shipping");
     window.history.pushState({ scrollPos: 0 }, "", ROUTES.SHIPPING);
@@ -211,6 +210,7 @@ const App = () => {
 
   const navigateToReturns = () => {
     window.history.replaceState({ scrollPos: window.scrollY }, "");
+    setSkipAnimations(false); // Enable animations for forward navigation
     window.scrollTo({ top: 0, behavior: 'instant' });
     setStage("returns");
     window.history.pushState({ scrollPos: 0 }, "", ROUTES.RETURNS);
@@ -218,6 +218,7 @@ const App = () => {
 
   const navigateToFAQ = () => {
     window.history.replaceState({ scrollPos: window.scrollY }, "");
+    setSkipAnimations(false); // Enable animations for forward navigation
     window.scrollTo({ top: 0, behavior: 'instant' });
     setStage("faq");
     window.history.pushState({ scrollPos: 0 }, "", ROUTES.FAQ);
@@ -225,6 +226,7 @@ const App = () => {
 
   const navigateToLogin = () => {
     window.history.replaceState({ scrollPos: window.scrollY }, "");
+    setSkipAnimations(false); // Enable animations for forward navigation
     window.scrollTo({ top: 0, behavior: 'instant' });
     setStage("login");
     window.history.pushState({ scrollPos: 0 }, "", ROUTES.LOGIN);
@@ -232,6 +234,7 @@ const App = () => {
 
   const navigateToSignup = () => {
     window.history.replaceState({ scrollPos: window.scrollY }, "");
+    setSkipAnimations(false); // Enable animations for forward navigation
     window.scrollTo({ top: 0, behavior: 'instant' });
     setStage("signup");
     window.history.pushState({ scrollPos: 0 }, "", ROUTES.SIGNUP);
@@ -239,6 +242,7 @@ const App = () => {
 
   const navigateToForgotPassword = () => {
     window.history.replaceState({ scrollPos: window.scrollY }, "");
+    setSkipAnimations(false); // Enable animations for forward navigation
     window.scrollTo({ top: 0, behavior: 'instant' });
     setStage("forgot-password");
     window.history.pushState({ scrollPos: 0 }, "", ROUTES.FORGOT_PASSWORD);
@@ -246,6 +250,7 @@ const App = () => {
 
   const navigateToCheckout = () => {
     window.history.replaceState({ scrollPos: window.scrollY }, "");
+    setSkipAnimations(false); // Enable animations for forward navigation
     window.scrollTo({ top: 0, behavior: 'instant' });
     setStage("checkout");
     window.history.pushState({ scrollPos: 0 }, "", ROUTES.CHECKOUT);
@@ -253,6 +258,7 @@ const App = () => {
 
   const navigateToOrders = () => {
     window.history.replaceState({ scrollPos: window.scrollY }, "");
+    setSkipAnimations(false); // Enable animations for forward navigation
     window.scrollTo({ top: 0, behavior: 'instant' });
     setStage("orders");
     window.history.pushState({ scrollPos: 0 }, "", ROUTES.ORDERS);
@@ -260,6 +266,7 @@ const App = () => {
 
   const navigateToOrderDetail = (orderId: string) => {
     window.history.replaceState({ scrollPos: window.scrollY }, "");
+    setSkipAnimations(false); // Enable animations for forward navigation
     window.scrollTo({ top: 0, behavior: 'instant' });
     setSelectedOrderId(orderId);
     setStage("order-detail");
@@ -269,6 +276,7 @@ const App = () => {
   const navigateToProduct = (productId: string) => {
     // Save current scroll position before navigating
     window.history.replaceState({ scrollPos: window.scrollY }, "");
+    setSkipAnimations(false); // Enable animations for forward navigation
     // Scroll to top immediately when navigating to product
     window.scrollTo({ top: 0, behavior: 'instant' });
     
