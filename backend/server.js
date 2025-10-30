@@ -23,13 +23,13 @@ connectDB();
 // Initialize express app
 const app = express();
 
-// CORS Configuration - UPDATED TO ALLOW MULTIPLE ORIGINS
+// CORS Configuration - UPDATED TO ALLOW MULTIPLE ORIGINS AND PREVIEWS
 const allowedOrigins = [
   // Production Frontend Domains
   'https://kallkeyy.com',
   'https://www.kallkeyy.com',
   'https://kallkeyy.vercel.app',
-  
+
   // Development Ports
   'http://localhost:5173',  // Vite default port (frontend)
   'http://localhost:8080',  // Alternative frontend port
@@ -50,25 +50,33 @@ if (process.env.ADMIN_PANEL_URL) {
   allowedOrigins.push(process.env.ADMIN_PANEL_URL);
 }
 
+// Allow Vercel preview subdomains as well (e.g., https://kallkeyy-abc123.vercel.app)
+const allowedOriginPatterns = [
+  /^https:\/\/kallkeyy-[a-z0-9-]+\.vercel\.app$/,
+  /^https:\/\/kallkeyy-admin-[a-z0-9-]+\.vercel\.app$/
+];
+
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) {
+      // Allow requests with no origin (like mobile apps or curl requests)
       return callback(null, true);
     }
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.log('Blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
+
+    if (allowedOrigins.includes(origin) || allowedOriginPatterns.some((re) => re.test(origin))) {
+      return callback(null, true);
     }
+
+    console.log('Blocked origin by CORS:', origin);
+    return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   optionsSuccessStatus: 200
 };
 
+// Handle CORS including preflight
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // Middleware
 app.use(cookieParser()); // Parse cookies
