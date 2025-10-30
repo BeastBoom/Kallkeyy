@@ -22,8 +22,9 @@ connectDB();
 
 // Initialize express app
 const app = express();
+app.set('trust proxy', 1);
 
-// CORS Configuration - UPDATED TO ALLOW MULTIPLE ORIGINS AND PREVIEWS
+// CORS Configuration - simplified: explicit origins + regex patterns
 const allowedOrigins = [
   // Production Frontend Domains
   'https://kallkeyy.com',
@@ -46,61 +47,34 @@ const allowedOrigins = [
 if (process.env.FRONTEND_URL) {
   allowedOrigins.push(process.env.FRONTEND_URL);
 }
-
 if (process.env.ADMIN_PANEL_URL) {
   allowedOrigins.push(process.env.ADMIN_PANEL_URL);
 }
 
-// Allow Vercel preview subdomains as well (e.g., https://kallkeyy-abc123.vercel.app)
+// Regex patterns for previews and any vercel.app subdomain + any kallkeyy.com
 const allowedOriginPatterns = [
-  /^https:\/\/kallkeyy-[a-z0-9-]+\.vercel\.app$/,
-  /^https:\/\/kallkeyy-admin-[a-z0-9-]+\.vercel\.app$/
+  /^https:\/\/[a-z0-9-]+\.vercel\.app$/,
+  /^https:\/\/.*kallkeyy\.com$/
 ];
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      return callback(null, true);
-    }
+const corsOrigins = [...allowedOrigins, ...allowedOriginPatterns];
 
-    if (allowedOrigins.includes(origin) || allowedOriginPatterns.some((re) => re.test(origin))) {
-      return callback(null, true);
-    }
-
-    console.log('Blocked origin by CORS:', origin);
-    // Do not throw to avoid 500s; disable CORS for disallowed origins
-    return callback(null, false);
-  },
+app.use(cors({
+  origin: corsOrigins,
   credentials: true,
-  optionsSuccessStatus: 200,
   methods: ['GET','HEAD','PUT','PATCH','POST','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization']
-};
-
-// Handle CORS including preflight
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
-
-// Ensure CORS headers are present for allowed origins (defensive)
-function isAllowedOrigin(origin) {
-  return !!origin && (allowedOrigins.includes(origin) || allowedOriginPatterns.some((re) => re.test(origin)));
-}
-
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (isAllowedOrigin(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Vary', 'Origin');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-  }
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
-  }
-  next();
-});
+  allowedHeaders: ['Content-Type','Authorization','X-Requested-With','Accept','Origin'],
+  exposedHeaders: ['Set-Cookie'],
+  optionsSuccessStatus: 204,
+}));
+app.options('*', cors({
+  origin: corsOrigins,
+  credentials: true,
+  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization','X-Requested-With','Accept','Origin'],
+  exposedHeaders: ['Set-Cookie'],
+  optionsSuccessStatus: 204,
+}));
 
 // Middleware
 app.use(cookieParser()); // Parse cookies
@@ -160,4 +134,4 @@ if (!process.env.VERCEL) {
   });
 }
 
-module.exports = app;
+module.exports = (req, res) => app(req, res);
