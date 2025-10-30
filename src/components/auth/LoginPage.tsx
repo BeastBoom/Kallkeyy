@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { ArrowLeft, Mail, Lock } from 'lucide-react';
 import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { useAuth } from '../contexts/AuthContext';
-import { useToast } from './ui/use-toast';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../ui/use-toast';
 
 interface LoginPageProps {
   onNavigateToHome: () => void;
@@ -97,11 +97,11 @@ export default function LoginPage({
       <div className="w-full max-w-md">
         {/* Back Button */}
         <button
-          onClick={onNavigateToHome}
+          onClick={() => window.history.back()}
           className="flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-8"
         >
           <ArrowLeft size={20} />
-          <span>Back to Home</span>
+          <span>Back</span>
         </button>
 
         {/* Login Card */}

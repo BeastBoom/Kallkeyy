@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { ArrowLeft, Mail, Lock, Key } from 'lucide-react';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { useToast } from './ui/use-toast';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { useToast } from '../ui/use-toast';
 
 interface ForgotPasswordPageProps {
   onNavigateToLogin: () => void;
@@ -155,11 +155,11 @@ export default function ForgotPasswordPage({ onNavigateToLogin }: ForgotPassword
       <div className="w-full max-w-md">
         {/* Back Button */}
         <button
-          onClick={onNavigateToLogin}
+          onClick={() => window.history.back()}
           className="flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-8"
         >
           <ArrowLeft size={20} />
-          <span>Back to Login</span>
+          <span>Back</span>
         </button>
 
         {/* Card */}

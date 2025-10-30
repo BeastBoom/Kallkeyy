@@ -43,8 +43,10 @@ interface Props {
   onNavigateToLogin: () => void;
   onNavigateToSignup: () => void;
   onNavigateToProduct?: (productId: string) => void;
+  onNavigateToOrders?: () => void;
   product: ProductData;
   productId: string;
+  skipAnimations?: boolean;
 }
 
 interface ReviewStats {
@@ -88,28 +90,28 @@ const TSHIRT_SIZE_CHART = {
 // List of all available products (to exclude current product)
 const ALL_PRODUCTS = [
   {
-    id: "hoodie",
+    id: "kaaldrishta",
     name: "KAAL-DRISHTA",
     price: "₹2,199",
     image: "/KaalDrishta-1.png",
     tag: "FLAGSHIP",
   },
   {
-    id: "hoodie2",
+    id: "antahayugaysa",
     name: "ANTAHA-YUGAYSA",
     price: "₹2,199",
     image: "/Antahayugasya-1.png",
     tag: "NEW LAUNCH",
   },
   {
-    id: "tshirt",
+    id: "smarajivitam",
     name: "SMARA-JIVITAM",
     price: "₹999",
     image: "/Smarajivitam-1.png",
     tag: "NEW DROP",
   },
   {
-    id: "tshirt2",
+    id: "mrityobaddha",
     name: "MRITYO-BADDHA",
     price: "₹999",
     image: "/Mrityobaddha-1.png",
@@ -150,8 +152,10 @@ export default function ProductPageBase({
   onNavigateToLogin,
   onNavigateToSignup,
   onNavigateToProduct,
+  onNavigateToOrders,
   product,
   productId,
+  skipAnimations = false,
 }: Props) {
   const { user, logout } = useAuth();
   const { addToCart } = useCart();
@@ -573,7 +577,7 @@ export default function ProductPageBase({
     product.productType === "hoodie" ? HOODIE_SIZE_CHART : TSHIRT_SIZE_CHART;
 
   return (
-    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+    <div className={`min-h-screen bg-black text-white relative overflow-hidden ${skipAnimations ? '[&_*]:!animate-none' : ''}`}>
       {/* Background Effects */}
       <div className="fixed inset-0 bg-gradient-to-br from-[#b90e0a]/5 via-transparent to-transparent pointer-events-none" />
       <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-[#b90e0a]/10 rounded-full blur-3xl pointer-events-none opacity-20" />
@@ -592,8 +596,8 @@ export default function ProductPageBase({
               </h1>
             </div>
 
-            {/* CENTER: Brand Logo Image (Hidden on small mobile, visible tablet+) */}
-            <div className="hidden sm:block absolute left-1/2 transform -translate-x-1/2 z-10">
+            {/* CENTER: Brand Logo Image (Hidden on mobile/tablet, visible on large desktop only to prevent overlap) */}
+            <div className="hidden xl:block absolute left-1/2 transform -translate-x-1/2 z-10">
               <img
                 src="/navbar-logo.png"
                 alt="KALLKEYY Logo"
@@ -622,6 +626,18 @@ export default function ProductPageBase({
                 >
                   SHOP
                 </button>
+                {user && (
+                  <button
+                    onClick={() =>
+                      onNavigateToOrders
+                        ? onNavigateToOrders()
+                        : handleUnavailablePage("Orders")
+                    }
+                    className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                  >
+                    ORDERS
+                  </button>
+                )}
                 <button
                   onClick={() =>
                     onNavigateToAbout
@@ -718,6 +734,21 @@ export default function ProductPageBase({
               >
                 SHOP
               </button>
+              {user && (
+                <button
+                  onClick={() => {
+                    if (onNavigateToOrders) {
+                      onNavigateToOrders();
+                    } else {
+                      handleUnavailablePage("Orders");
+                    }
+                    setMobileMenuOpen(false);
+                  }}
+                  className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                >
+                  ORDERS
+                </button>
+              )}
               <button
                 onClick={() => {
                   if (onNavigateToAbout) {
@@ -796,11 +827,11 @@ export default function ProductPageBase({
 
       <div className="container mx-auto px-4 py-12 relative z-10">
         <button
-          onClick={onBackToMain}
+          onClick={() => window.history.back()}
           className="group flex items-center gap-2 text-[#808088] hover:text-white transition-all duration-300 mb-8 hover:translate-x-1"
         >
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-300" />
-          Back to Home
+          Back
         </button>
 
         {/* TWO-COLUMN LAYOUT: Images & Product Info Only */}
@@ -1473,7 +1504,10 @@ export default function ProductPageBase({
               {otherProducts.map((otherProduct) => (
                 <div
                   key={otherProduct.id}
-                  onClick={() => onNavigateToProduct?.(otherProduct.id)}
+                  onClick={() => {
+                    window.scrollTo({ top: 0, behavior: 'instant' });
+                    onNavigateToProduct?.(otherProduct.id);
+                  }}
                   className="group bg-[#28282B] rounded-lg border border-white/10 overflow-hidden hover:border-[#b90e0a] transition-all duration-300 cursor-pointer hover:scale-105"
                 >
                   <div className="aspect-square overflow-hidden bg-[#1a1a1a]">
@@ -1500,6 +1534,7 @@ export default function ProductPageBase({
                     <Button
                       onClick={(e) => {
                         e.stopPropagation();
+                        window.scrollTo({ top: 0, behavior: 'instant' });
                         onNavigateToProduct?.(otherProduct.id);
                       }}
                       variant="outline"

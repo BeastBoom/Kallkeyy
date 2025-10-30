@@ -10,6 +10,8 @@ interface Props {
   onNavigateToLogin: () => void;
   onNavigateToSignup: () => void;
   onNavigateToProduct?: (productId: string) => void;
+  onNavigateToOrders?: () => void;
+  skipAnimations?: boolean;
 }
 
 const KAAL_DRISHTA_DATA = {
@@ -43,6 +45,8 @@ export default function KaalDrishta({
   onNavigateToLogin,
   onNavigateToSignup,
   onNavigateToProduct,
+  onNavigateToOrders,
+  skipAnimations,
 }: Props) {
   return (
     <ProductPageBase
@@ -55,6 +59,8 @@ export default function KaalDrishta({
       onNavigateToLogin={onNavigateToLogin}
       onNavigateToSignup={onNavigateToSignup}
       onNavigateToProduct={onNavigateToProduct}
+      onNavigateToOrders={onNavigateToOrders}
+      skipAnimations={skipAnimations}
     />
   );
 }

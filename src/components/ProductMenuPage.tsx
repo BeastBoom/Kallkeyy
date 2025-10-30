@@ -154,22 +154,6 @@ const products: Product[] = [
     category: "Hoodies",
   },
   {
-    id: "antahayugaysa",
-    name: "ANTAHA-YUGAYSA",
-    image: "/Antahayugasya-1.png",
-    price: "₹2,199",
-    tag: "NEW LAUNCH",
-    description:
-      "Hands of God. Where endings wear eternity, and creation remembers its own destruction.",
-    features: [
-      "Oversized unisex fit",
-      "350gsm comfortable fabric",
-      "Boxy fit with drop shoulders",
-      "Divine graphics",
-    ],
-    category: "Hoodies",
-  },
-  {
     id: "smarajivitam",
     name: "SMARA-JIVITAM",
     image: "/Smarajivitam-1.png",
@@ -184,6 +168,22 @@ const products: Product[] = [
       "Premium artwork",
     ],
     category: "T-Shirts",
+  },
+  {
+    id: "antahayugaysa",
+    name: "ANTAHA-YUGAYSA",
+    image: "/Antahayugasya-1.png",
+    price: "₹2,199",
+    tag: "NEW LAUNCH",
+    description:
+      "Hands of God. Where endings wear eternity, and creation remembers its own destruction.",
+    features: [
+      "Oversized unisex fit",
+      "350gsm comfortable fabric",
+      "Boxy fit with drop shoulders",
+      "Divine graphics",
+    ],
+    category: "Hoodies",
   },
   {
     id: "mrityobaddha",
@@ -242,6 +242,12 @@ interface Props {
   onNavigateToContact?: () => void;
   onNavigateToLogin: () => void;
   onNavigateToSignup: () => void;
+  onNavigateToOrders?: () => void;
+  onNavigateToSizeGuide?: () => void;
+  onNavigateToShipping?: () => void;
+  onNavigateToReturns?: () => void;
+  onNavigateToFAQ?: () => void;
+  skipAnimations?: boolean;
 }
 
 export default function ProductMenuPage({
@@ -252,6 +258,12 @@ export default function ProductMenuPage({
   onNavigateToContact,
   onNavigateToLogin,
   onNavigateToSignup,
+  onNavigateToOrders,
+  onNavigateToSizeGuide,
+  onNavigateToShipping,
+  onNavigateToReturns,
+  onNavigateToFAQ,
+  skipAnimations = false,
 }: Props) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -291,6 +303,7 @@ export default function ProductMenuPage({
         duration: 3000,
       });
     } else {
+      window.scrollTo({ top: 0, behavior: 'instant' });
       onSelectProduct(slide.id);
     }
   };
@@ -363,7 +376,7 @@ export default function ProductMenuPage({
   };
 
   return (
-    <div className="min-h-screen bg-black text-white relative overflow-x-hidden">
+    <div className={`min-h-screen bg-black text-white relative overflow-x-hidden ${skipAnimations ? '[&_*]:!animate-none' : ''}`}>
       {/* BACKGROUND DECORATIONS */}
       <div className="fixed inset-0 pointer-events-none opacity-10 z-0">
         {/* Chain links pattern */}
@@ -423,8 +436,8 @@ export default function ProductMenuPage({
               </h1>
             </div>
 
-            {/* CENTER: Brand Logo Image (Hidden on small mobile, visible tablet+) */}
-            <div className="hidden sm:block absolute left-1/2 transform -translate-x-1/2 z-10">
+            {/* CENTER: Brand Logo Image (Hidden on mobile/tablet, visible on large desktop only to prevent overlap) */}
+            <div className="hidden xl:block absolute left-1/2 transform -translate-x-1/2 z-10">
               <img
                 src="/navbar-logo.png"
                 alt="KALLKEYY Logo"
@@ -453,6 +466,18 @@ export default function ProductMenuPage({
                 >
                   SHOP
                 </button>
+                {user && (
+                  <button
+                    onClick={() =>
+                      onNavigateToOrders
+                        ? onNavigateToOrders()
+                        : handleUnavailablePage("Orders")
+                    }
+                    className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                  >
+                    ORDERS
+                  </button>
+                )}
                 <button
                   onClick={() =>
                     onNavigateToAbout
@@ -549,6 +574,21 @@ export default function ProductMenuPage({
               >
                 SHOP
               </button>
+              {user && (
+                <button
+                  onClick={() => {
+                    if (onNavigateToOrders) {
+                      onNavigateToOrders();
+                    } else {
+                      handleUnavailablePage("Orders");
+                    }
+                    setMobileMenuOpen(false);
+                  }}
+                  className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                >
+                  ORDERS
+                </button>
+              )}
               <button
                 onClick={() => {
                   if (onNavigateToAbout) {
@@ -637,20 +677,19 @@ export default function ProductMenuPage({
             }`}
           >
             {/* Background Image */}
-            <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute inset-0 pointer-events-none bg-black">
               <img
                 src={slide.image}
                 alt={slide.title}
-                className="w-full h-full object-cover sm:object-cover"
+                className="w-full h-full object-contain"
                 style={{
-                  objectPosition:
-                    window.innerWidth < 640 ? "center center" : "center center",
+                  objectPosition: "center center",
                 }}
                 onError={(e) =>
                   ((e.currentTarget as HTMLImageElement).style.opacity = "0")
                 }
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/80 to-black/40 sm:from-black via-black/70 sm:to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/80 to-black/40 md:from-black md:via-black/70 md:to-transparent" />
             </div>
 
             {/* Content - WITH PROPER Z-INDEX AND POINTER EVENTS */}
@@ -692,6 +731,7 @@ export default function ProductMenuPage({
                         e.stopPropagation();
                         
                         if (slide.buttonAction === "product") {
+                          window.scrollTo({ top: 0, behavior: 'instant' });
                           onSelectProduct(slide.id);
                         } else if (slide.buttonAction === "scroll") {
                           const productsSection = document.querySelector("#products-section");
@@ -776,7 +816,7 @@ export default function ProductMenuPage({
                   ★
                 </span>
                 <span className="text-2xl md:text-4xl font-black text-white/10 mx-6">
-                  PLACEHOLDER
+                  HEAVEN MISPLACED
                 </span>
                 <span className="text-2xl md:text-4xl font-black text-[#b90e0a]/30 mx-6">
                   ★
@@ -800,7 +840,7 @@ export default function ProductMenuPage({
                   ★
                 </span>
                 <span className="text-2xl md:text-4xl font-black text-white/10 mx-6">
-                  PLACEHOLDER
+                  HEAVEN MISPLACED
                 </span>
                 <span className="text-2xl md:text-4xl font-black text-[#b90e0a]/30 mx-6">
                   ★
@@ -879,7 +919,10 @@ export default function ProductMenuPage({
                   }`}
                 >
                   <Button
-                    onClick={() => onSelectProduct(product.id)}
+                    onClick={() => {
+                      window.scrollTo({ top: 0, behavior: 'instant' });
+                      onSelectProduct(product.id);
+                    }}
                     className="bg-[#b90e0a] hover:bg-[#b90e0a]/80 text-white font-bold px-4 py-2 text-sm transition-all duration-300 hover:scale-110"
                   >
                     VIEW DETAILS
@@ -900,7 +943,10 @@ export default function ProductMenuPage({
                     {product.price}
                   </span>
                   <button
-                    onClick={() => onSelectProduct(product.id)}
+                    onClick={() => {
+                      window.scrollTo({ top: 0, behavior: 'instant' });
+                      onSelectProduct(product.id);
+                    }}
                     className="text-[#b90e0a] hover:text-[#b90e0a]/80 transition-colors duration-300"
                   >
                     <ArrowRight className="w-5 h-5" />
@@ -1174,16 +1220,15 @@ export default function ProductMenuPage({
                 stitch a purpose.
               </p>
               <div className="flex space-x-4">
-                {["IG", "TW", "FB"].map((social, i) => (
-                  <div
-                    key={social}
-                    onClick={() => handleUnavailablePage(social)}
-                    className="w-10 h-10 bg-[#28282B] rounded-full flex items-center justify-center hover:bg-[#b90e0a] transition-all duration-300 cursor-pointer hover:scale-110 hover:rotate-12 animate-bounce-in"
-                    style={{ animationDelay: `${i * 0.1}s` }}
-                  >
-                    {social}
-                  </div>
-                ))}
+                <a
+                  href="https://www.instagram.com/kall.keyy/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-[#28282B] rounded-full flex items-center justify-center hover:bg-[#b90e0a] transition-all duration-300 cursor-pointer hover:scale-110 hover:rotate-12 animate-bounce-in text-white no-underline"
+                  aria-label="Follow us on Instagram"
+                >
+                  IG
+                </a>
               </div>
             </div>
             <div
@@ -1192,17 +1237,46 @@ export default function ProductMenuPage({
             >
               <h4 className="text-lg font-bold mb-4">QUICK LINKS</h4>
               <ul className="space-y-2 text-[#808088]">
-                {["About Us", "Size Guide", "Shipping", "Returns"].map(
-                  (link) => (
-                    <li
-                      key={link}
-                      onClick={() => handleUnavailablePage(link)}
-                      className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
-                    >
-                      {link}
-                    </li>
-                  )
-                )}
+                <li
+                  onClick={() =>
+                    onNavigateToAbout
+                      ? onNavigateToAbout()
+                      : handleUnavailablePage("About Us")
+                  }
+                  className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
+                >
+                  About Us
+                </li>
+                <li
+                  onClick={() =>
+                    onNavigateToSizeGuide
+                      ? onNavigateToSizeGuide()
+                      : handleUnavailablePage("Size Guide")
+                  }
+                  className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
+                >
+                  Size Guide
+                </li>
+                <li
+                  onClick={() =>
+                    onNavigateToShipping
+                      ? onNavigateToShipping()
+                      : handleUnavailablePage("Shipping")
+                  }
+                  className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
+                >
+                  Shipping
+                </li>
+                <li
+                  onClick={() =>
+                    onNavigateToReturns
+                      ? onNavigateToReturns()
+                      : handleUnavailablePage("Returns")
+                  }
+                  className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
+                >
+                  Returns
+                </li>
               </ul>
             </div>
             <div
@@ -1211,15 +1285,38 @@ export default function ProductMenuPage({
             >
               <h4 className="text-lg font-bold mb-4">SUPPORT</h4>
               <ul className="space-y-2 text-[#808088]">
-                {["Contact", "FAQ", "Track Order", "Help"].map((link) => (
+                <li
+                  onClick={() =>
+                    onNavigateToContact
+                      ? onNavigateToContact()
+                      : handleUnavailablePage("Contact")
+                  }
+                  className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
+                >
+                  Contact
+                </li>
+                <li
+                  onClick={() =>
+                    onNavigateToFAQ
+                      ? onNavigateToFAQ()
+                      : handleUnavailablePage("FAQ")
+                  }
+                  className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
+                >
+                  FAQ
+                </li>
+                {user && (
                   <li
-                    key={link}
-                    onClick={() => handleUnavailablePage(link)}
+                    onClick={() =>
+                      onNavigateToOrders
+                        ? onNavigateToOrders()
+                        : handleUnavailablePage("Orders")
+                    }
                     className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
                   >
-                    {link}
+                    Orders
                   </li>
-                ))}
+                )}
               </ul>
             </div>
           </div>

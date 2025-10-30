@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useCart } from "../contexts/CartContext";
-import { useAuth } from "../contexts/AuthContext";
+import { useCart } from "../../contexts/CartContext";
+import { useAuth } from "../../contexts/AuthContext";
 import {
   ArrowLeft,
   Package,
@@ -12,7 +12,7 @@ import {
   Edit,
   Trash2,
 } from "lucide-react";
-import PhoneVerificationModal from "./PhoneVerificationModal";
+import PhoneVerificationModal from "../auth/PhoneVerificationModal";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -29,6 +29,7 @@ interface Address {
 
 interface CheckoutPageProps {
   onBackToShop?: () => void;
+  skipAnimations?: boolean;
 }
 
 interface RazorpayResponse {
@@ -99,7 +100,7 @@ const INDIAN_STATES = [
   "West Bengal",
 ];
 
-export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
+export default function CheckoutPage({ onBackToShop, skipAnimations = false }: CheckoutPageProps) {
   const { items, totalPrice, clearCart, saveForLater, fetchCart } = useCart();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -580,7 +581,7 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
 
   return (
     <div
-      className="min-h-screen py-8 px-4 md:px-8"
+      className={`min-h-screen py-8 px-4 md:px-8 ${skipAnimations ? '[&_*]:!animate-none' : ''}`}
       style={{
         background: "var(--color-background)",
         color: "var(--color-text)",
@@ -588,7 +589,7 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
     >
       <div className="max-w-6xl mx-auto">
         <button
-          onClick={() => (window.location.href = "/shop")}
+          onClick={() => window.history.back()}
           className="flex items-center gap-2 mb-8 transition-all duration-300 hover:gap-3"
           style={{
             color: "var(--color-text-secondary)",
@@ -599,7 +600,7 @@ export default function CheckoutPage({ onBackToShop }: CheckoutPageProps) {
           }}
         >
           <ArrowLeft size={20} />
-          <span>Back to Shop</span>
+          <span>Back</span>
         </button>
 
         <h1

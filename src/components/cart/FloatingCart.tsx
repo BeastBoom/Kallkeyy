@@ -1,11 +1,15 @@
 "use client"
 import React, { useEffect, useState } from 'react';
 import { ShoppingBag, X, Minus, Plus, Trash2, Bookmark, AlertTriangle } from 'lucide-react';
-import { useCart } from '../contexts/CartContext';
-import { useAuth } from '../contexts/AuthContext';
-import { Button } from './ui/button';
+import { useCart } from '../../contexts/CartContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { Button } from '../ui/button';
 
-export const FloatingCart: React.FC = () => {
+interface FloatingCartProps {
+  onNavigateToProduct?: (productId: string) => void;
+}
+
+export const FloatingCart: React.FC<FloatingCartProps> = ({ onNavigateToProduct }) => {
   const { items, savedForLater, totalItems, totalPrice, updateQuantity, removeFromCart, saveForLater, moveToCart, removeFromSaved, loading } = useCart();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -107,12 +111,26 @@ export const FloatingCart: React.FC = () => {
                         <img
                           src={item.image}
                           alt={item.productName}
-                          className="w-20 h-20 object-cover rounded-lg"
+                          className="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => {
+                            if (onNavigateToProduct) {
+                              onNavigateToProduct(item.productId);
+                              setIsOpen(false);
+                            }
+                          }}
                         />
 
                         {/* Product Details */}
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-white font-semibold text-sm truncate">
+                          <h3 
+                            className="text-white font-semibold text-sm truncate cursor-pointer hover:text-[#b90e0a] transition-colors"
+                            onClick={() => {
+                              if (onNavigateToProduct) {
+                                onNavigateToProduct(item.productId);
+                                setIsOpen(false);
+                              }
+                            }}
+                          >
                             {item.productName}
                           </h3>
                           <p className="text-white/60 text-xs">Size: {item.size}</p>
@@ -182,12 +200,26 @@ export const FloatingCart: React.FC = () => {
                           <img
                             src={item.image}
                             alt={item.productName}
-                            className="w-16 h-16 object-cover rounded-lg opacity-60"
+                            className="w-16 h-16 object-cover rounded-lg opacity-60 cursor-pointer hover:opacity-100 transition-opacity"
+                            onClick={() => {
+                              if (onNavigateToProduct) {
+                                onNavigateToProduct(item.productId);
+                                setIsOpen(false);
+                              }
+                            }}
                           />
 
                           {/* Product Details */}
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-white/80 font-semibold text-sm truncate">
+                            <h3 
+                              className="text-white/80 font-semibold text-sm truncate cursor-pointer hover:text-[#b90e0a] transition-colors"
+                              onClick={() => {
+                                if (onNavigateToProduct) {
+                                  onNavigateToProduct(item.productId);
+                                  setIsOpen(false);
+                                }
+                              }}
+                            >
                               {item.productName}
                             </h3>
                             <p className="text-white/50 text-xs">Size: {item.size}</p>

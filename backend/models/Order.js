@@ -43,7 +43,7 @@ const orderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['created', 'paid', 'failed', 'processing', 'shipped', 'delivered', 'cancelled'],
+    enum: ['created', 'paid', 'failed', 'pending', 'processing', 'shipped', 'delivered', 'cancelled', 'returned', 'return_requested'],
     default: 'created'
   },
   paymentStatus: {
@@ -56,6 +56,28 @@ const orderSchema = new mongoose.Schema({
   awbCode: String,
   courierName: String,
   trackingUrl: String,
+  estimatedDelivery: {
+    type: Date
+  },
+  deliveredAt: {
+    type: Date
+  },
+  returnRequested: {
+    type: Boolean,
+    default: false
+  },
+  returnReason: {
+    type: String
+  },
+  returnComments: {
+    type: String
+  },
+  returnRequestedAt: {
+    type: Date
+  },
+  cancelledAt: {
+    type: Date
+  },
   notes: [{
     type: String
   }]

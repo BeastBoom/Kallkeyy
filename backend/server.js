@@ -12,6 +12,7 @@ const addressRoutes = require('./routes/address');
 const productRoutes = require('./routes/products');
 const reviewRoutes = require('./routes/reviews');
 const adminRoutes = require('./routes/admin');
+const orderRoutes = require('./routes/orders');
 
 // Load environment variables
 dotenv.config();
@@ -73,6 +74,7 @@ app.use('/api/addresses', addressRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes); // Admin portal routes
+app.use('/api/orders', orderRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

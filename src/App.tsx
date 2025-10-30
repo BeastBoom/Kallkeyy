@@ -12,13 +12,21 @@ import SmaraJivitam from "@/components/products/SmaraJivitam";
 import AntahaYugaysa from "@/components/products/AntahaYugaysa";
 import MrityoBaddha from "@/components/products/MrityoBaddha";
 import ProductMenuPage from "@/components/ProductMenuPage";
-import LoginPage from "@/components/LoginPage";
-import SignupPage from "@/components/SignupPage";
+import LoginPage from "@/components/auth/LoginPage";
+import SignupPage from "@/components/auth/SignupPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
-import { FloatingCart } from "@/components/FloatingCart";
-import ForgotPasswordPage from '@/components/ForgotPasswordPage';
-import CheckoutPage from './components/CheckoutPage';
+import { FloatingCart } from "@/components/cart/FloatingCart";
+import ForgotPasswordPage from '@/components/auth/ForgotPasswordPage';
+import CheckoutPage from './components/cart/CheckoutPage';
+import OrdersPage from './components/orders/OrdersPage';
+import OrderDetailPage from './components/orders/OrderDetailPage';
+import AboutPage from './components/info/AboutPage';
+import ContactPage from './components/info/ContactPage';
+import SizeGuidePage from './components/info/SizeGuidePage';
+import ShippingPage from './components/info/ShippingPage';
+import ReturnsPage from './components/info/ReturnsPage';
+import FAQPage from './components/info/FAQPage';
 
 const queryClient = new QueryClient();
 
@@ -32,7 +40,13 @@ type AppStage =
   | "login"
   | "signup"
   | "forgot-password"
-  | "checkout";
+  | "checkout"
+  | "orders"
+  | "order-detail"
+  | "size-guide"
+  | "shipping"
+  | "returns"
+  | "faq";
 
 // Route configuration
 const ROUTES = {
@@ -40,13 +54,20 @@ const ROUTES = {
   SHOP: "/shop",
   ABOUT: "/about",
   CONTACT: "/contact",
+  SIZE_GUIDE: "/size-guide",
+  SHIPPING: "/shipping",
+  RETURNS: "/returns",
+  FAQ: "/faq",
   KAALDRISHTA: "/product/kaaldrishta",
   SMARAJIVITAM: "/product/smarajivitam",
   ANTAHAYUGAYSA: "/product/antahayugaysa",
   MRITYOBADDHA: "/product/mrityobaddha",
   LOGIN: "/login",
   SIGNUP: "/signup",
+  FORGOT_PASSWORD: "/forgot-password",
   CHECKOUT: "/checkout",
+  ORDERS: "/orders",
+  ORDER_DETAIL: "/order",
 } as const;
 
 
@@ -54,7 +75,8 @@ const ROUTES = {
 const App = () => {
   const [stage, setStage] = useState<AppStage>("loading");
   const [selectedProduct, setSelectedProduct] = useState<string>("kaaldrishta");
-  const navigateToForgotPassword = () => setStage("forgot-password");
+  const [selectedOrderId, setSelectedOrderId] = useState<string>("");
+  const [skipAnimations, setSkipAnimations] = useState(false);
 
   // Function to get current route from URL
   const getCurrentRoute = (): AppStage => {
@@ -64,9 +86,16 @@ const App = () => {
     if (path === ROUTES.SHOP) return "product-menu";
     if (path === ROUTES.ABOUT) return "about";
     if (path === ROUTES.CONTACT) return "contact";
+    if (path === ROUTES.SIZE_GUIDE) return "size-guide";
+    if (path === ROUTES.SHIPPING) return "shipping";
+    if (path === ROUTES.RETURNS) return "returns";
+    if (path === ROUTES.FAQ) return "faq";
     if (path === ROUTES.LOGIN) return "login";  
     if (path === ROUTES.SIGNUP) return "signup";
+    if (path === ROUTES.FORGOT_PASSWORD) return "forgot-password";
     if (path === ROUTES.CHECKOUT) return "checkout";
+    if (path === ROUTES.ORDERS) return "orders";
+    if (path.startsWith(ROUTES.ORDER_DETAIL)) return "order-detail";
     if (
       path === ROUTES.KAALDRISHTA ||
       path === ROUTES.SMARAJIVITAM ||
@@ -99,59 +128,150 @@ const App = () => {
     if (route === "main") {
       setTimeout(() => setStage("main"), 100);
     }
+
+    // Save initial scroll position in history state
+    if (!window.history.state?.scrollPos) {
+      window.history.replaceState({ scrollPos: window.scrollY }, "");
+    }
   }, []);
 
-  // Handle browser back/forward buttons
+  // Handle browser back/forward buttons with scroll restoration
   useEffect(() => {
-    const handlePopState = () => {
+    const handlePopState = (event: PopStateEvent) => {
       const route = getCurrentRoute();
       const product = getProductFromURL();
 
+      // Skip animations when navigating via browser back/forward
+      setSkipAnimations(true);
+      
       setStage(route);
       setSelectedProduct(product);
+
+      // Restore scroll position after route change
+      setTimeout(() => {
+        const scrollPos = event.state?.scrollPos || 0;
+        window.scrollTo({ top: scrollPos, behavior: 'instant' });
+        
+        // Reset skipAnimations after scroll restoration
+        setTimeout(() => {
+          setSkipAnimations(false);
+        }, 100);
+      }, 0);
     };
 
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
-  // Navigation functions with proper URL updates
+  // Navigation functions with proper URL updates and scroll position saving
   const navigateToHome = () => {
+    // Save current scroll position before navigating
+    window.history.replaceState({ scrollPos: window.scrollY }, "");
+    setSkipAnimations(false); // Enable animations for forward navigation
+    window.scrollTo({ top: 0, behavior: 'instant' });
     setStage("main");
-    window.history.pushState({}, "", ROUTES.HOME);
+    window.history.pushState({ scrollPos: 0 }, "", ROUTES.HOME);
   };
 
   const navigateToShop = () => {
+    window.history.replaceState({ scrollPos: window.scrollY }, "");
+    setSkipAnimations(false); // Enable animations for forward navigation
+    window.scrollTo({ top: 0, behavior: 'instant' });
     setStage("product-menu");
-    window.history.pushState({}, "", ROUTES.SHOP);
+    window.history.pushState({ scrollPos: 0 }, "", ROUTES.SHOP);
   };
 
   const navigateToAbout = () => {
+    window.history.replaceState({ scrollPos: window.scrollY }, "");
+    window.scrollTo({ top: 0, behavior: 'instant' });
     setStage("about");
-    window.history.pushState({}, "", ROUTES.ABOUT);
+    window.history.pushState({ scrollPos: 0 }, "", ROUTES.ABOUT);
   };
 
   const navigateToContact = () => {
+    window.history.replaceState({ scrollPos: window.scrollY }, "");
+    window.scrollTo({ top: 0, behavior: 'instant' });
     setStage("contact");
-    window.history.pushState({}, "", ROUTES.CONTACT);
+    window.history.pushState({ scrollPos: 0 }, "", ROUTES.CONTACT);
+  };
+
+  const navigateToSizeGuide = () => {
+    window.history.replaceState({ scrollPos: window.scrollY }, "");
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    setStage("size-guide");
+    window.history.pushState({ scrollPos: 0 }, "", ROUTES.SIZE_GUIDE);
+  };
+
+  const navigateToShipping = () => {
+    window.history.replaceState({ scrollPos: window.scrollY }, "");
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    setStage("shipping");
+    window.history.pushState({ scrollPos: 0 }, "", ROUTES.SHIPPING);
+  };
+
+  const navigateToReturns = () => {
+    window.history.replaceState({ scrollPos: window.scrollY }, "");
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    setStage("returns");
+    window.history.pushState({ scrollPos: 0 }, "", ROUTES.RETURNS);
+  };
+
+  const navigateToFAQ = () => {
+    window.history.replaceState({ scrollPos: window.scrollY }, "");
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    setStage("faq");
+    window.history.pushState({ scrollPos: 0 }, "", ROUTES.FAQ);
   };
 
   const navigateToLogin = () => {
+    window.history.replaceState({ scrollPos: window.scrollY }, "");
+    window.scrollTo({ top: 0, behavior: 'instant' });
     setStage("login");
-    window.history.pushState({}, "", ROUTES.LOGIN);
+    window.history.pushState({ scrollPos: 0 }, "", ROUTES.LOGIN);
   };
 
   const navigateToSignup = () => {
+    window.history.replaceState({ scrollPos: window.scrollY }, "");
+    window.scrollTo({ top: 0, behavior: 'instant' });
     setStage("signup");
-    window.history.pushState({}, "", ROUTES.SIGNUP);
+    window.history.pushState({ scrollPos: 0 }, "", ROUTES.SIGNUP);
+  };
+
+  const navigateToForgotPassword = () => {
+    window.history.replaceState({ scrollPos: window.scrollY }, "");
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    setStage("forgot-password");
+    window.history.pushState({ scrollPos: 0 }, "", ROUTES.FORGOT_PASSWORD);
   };
 
   const navigateToCheckout = () => {
+    window.history.replaceState({ scrollPos: window.scrollY }, "");
+    window.scrollTo({ top: 0, behavior: 'instant' });
     setStage("checkout");
-    window.history.pushState({}, "", ROUTES.CHECKOUT);
+    window.history.pushState({ scrollPos: 0 }, "", ROUTES.CHECKOUT);
+  };
+
+  const navigateToOrders = () => {
+    window.history.replaceState({ scrollPos: window.scrollY }, "");
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    setStage("orders");
+    window.history.pushState({ scrollPos: 0 }, "", ROUTES.ORDERS);
+  };
+
+  const navigateToOrderDetail = (orderId: string) => {
+    window.history.replaceState({ scrollPos: window.scrollY }, "");
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    setSelectedOrderId(orderId);
+    setStage("order-detail");
+    window.history.pushState({ scrollPos: 0 }, "", `${ROUTES.ORDER_DETAIL}/${orderId}`);
   };
 
   const navigateToProduct = (productId: string) => {
+    // Save current scroll position before navigating
+    window.history.replaceState({ scrollPos: window.scrollY }, "");
+    // Scroll to top immediately when navigating to product
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    
     setSelectedProduct(productId);
     setStage("product");
     let route;
@@ -171,7 +291,7 @@ const App = () => {
       default:
         route = ROUTES.KAALDRISHTA;
     }
-    window.history.pushState({}, "", route);
+    window.history.pushState({ scrollPos: 0 }, "", route);
   };
 
   const handleSelectProduct = (productId: string) => {
@@ -189,10 +309,16 @@ const App = () => {
       } - KALLKEYY`,
       about: "About Us - KALLKEYY",
       contact: "Contact - KALLKEYY",
+      "size-guide": "Size Guide - KALLKEYY",
+      shipping: "Shipping - KALLKEYY",
+      returns: "Returns & Exchanges - KALLKEYY",
+      faq: "FAQ - KALLKEYY",
       checkout: "Checkout - KALLKEYY",
       login: "Login - KALLKEYY",
       signup: "Sign Up - KALLKEYY",
       "forgot-password": "Reset Password - KALLKEYY",
+      orders: "My Orders - KALLKEYY",
+      "order-detail": "Order Details - KALLKEYY",
     };
 
     document.title = titles[stage] || "KALLKEYY";
@@ -206,7 +332,7 @@ const App = () => {
             <Toaster />
             <Sonner />
 
-            <FloatingCart />
+            <FloatingCart onNavigateToProduct={navigateToProduct} />
 
             {stage === "loading" && (
               <Preloader onComplete={() => setStage("main")} />
@@ -225,7 +351,13 @@ const App = () => {
                 onNavigateToShop={navigateToShop}
                 onNavigateToAbout={navigateToAbout}
                 onNavigateToContact={navigateToContact}
+                onNavigateToOrders={navigateToOrders}
+                onNavigateToSizeGuide={navigateToSizeGuide}
+                onNavigateToShipping={navigateToShipping}
+                onNavigateToReturns={navigateToReturns}
+                onNavigateToFAQ={navigateToFAQ}
                 onBackToMain={navigateToHome}
+                skipAnimations={skipAnimations}
               />
             )}
 
@@ -238,6 +370,12 @@ const App = () => {
                 onNavigateToContact={navigateToContact}
                 onNavigateToLogin={navigateToLogin}
                 onNavigateToSignup={navigateToSignup}
+                onNavigateToOrders={navigateToOrders}
+                onNavigateToSizeGuide={navigateToSizeGuide}
+                onNavigateToShipping={navigateToShipping}
+                onNavigateToReturns={navigateToReturns}
+                onNavigateToFAQ={navigateToFAQ}
+                skipAnimations={skipAnimations}
               />
             )}
 
@@ -250,6 +388,8 @@ const App = () => {
                 onNavigateToLogin={navigateToLogin}
                 onNavigateToSignup={navigateToSignup}
                 onNavigateToProduct={navigateToProduct}
+                onNavigateToOrders={navigateToOrders}
+                skipAnimations={skipAnimations}
               />
             )}
 
@@ -262,6 +402,8 @@ const App = () => {
                 onNavigateToLogin={navigateToLogin}
                 onNavigateToSignup={navigateToSignup}
                 onNavigateToProduct={navigateToProduct}
+                onNavigateToOrders={navigateToOrders}
+                skipAnimations={skipAnimations}
               />
             )}
 
@@ -274,6 +416,8 @@ const App = () => {
                 onNavigateToLogin={navigateToLogin}
                 onNavigateToSignup={navigateToSignup}
                 onNavigateToProduct={navigateToProduct}
+                onNavigateToOrders={navigateToOrders}
+                skipAnimations={skipAnimations}
               />
             )}
 
@@ -286,6 +430,8 @@ const App = () => {
                 onNavigateToLogin={navigateToLogin}
                 onNavigateToSignup={navigateToSignup}
                 onNavigateToProduct={navigateToProduct}
+                onNavigateToOrders={navigateToOrders}
+                skipAnimations={skipAnimations}
               />
             )}
 
@@ -311,35 +457,75 @@ const App = () => {
             )}
             
             {stage === "about" && (
-              <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8">
-                <h1 className="text-4xl font-bold mb-4">
-                  About Page - Coming Soon
-                </h1>
-                <button
-                  onClick={navigateToHome}
-                  className="bg-[#b90e0a] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#BB0003]"
-                >
-                  Back to Home
-                </button>
-              </div>
+              <AboutPage
+                onBackToMain={navigateToHome}
+                onNavigateToShop={navigateToShop}
+                onNavigateToOrders={navigateToOrders}
+                onNavigateToContact={navigateToContact}
+                onNavigateToLogin={navigateToLogin}
+                onNavigateToSignup={navigateToSignup}
+                skipAnimations={skipAnimations}
+              />
             )}
 
             {stage === "contact" && (
-              <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8">
-                <h1 className="text-4xl font-bold mb-4">
-                  Contact Page - Coming Soon
-                </h1>
-                <button
-                  onClick={navigateToHome}
-                  className="bg-[#b90e0a] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#BB0003]"
-                >
-                  Back to Home
-                </button>
-              </div>
+              <ContactPage
+                onBackToMain={navigateToHome}
+                onNavigateToShop={navigateToShop}
+                onNavigateToOrders={navigateToOrders}
+                onNavigateToAbout={navigateToAbout}
+                onNavigateToFAQ={navigateToFAQ}
+                onNavigateToLogin={navigateToLogin}
+                onNavigateToSignup={navigateToSignup}
+                skipAnimations={skipAnimations}
+              />
+            )}
+
+            {stage === "size-guide" && (
+              <SizeGuidePage onBackToMain={navigateToHome} skipAnimations={skipAnimations} />
+            )}
+
+            {stage === "shipping" && (
+              <ShippingPage onBackToMain={navigateToHome} skipAnimations={skipAnimations} />
+            )}
+
+            {stage === "returns" && (
+              <ReturnsPage onBackToMain={navigateToHome} skipAnimations={skipAnimations} />
+            )}
+
+            {stage === "faq" && (
+              <FAQPage onBackToMain={navigateToHome} skipAnimations={skipAnimations} />
             )}
 
             {stage === "checkout" && (
-              <CheckoutPage onBackToShop={navigateToShop} />
+              <CheckoutPage onBackToShop={navigateToShop} skipAnimations={skipAnimations} />
+            )}
+
+            {stage === "orders" && (
+              <OrdersPage
+                onBackToMain={navigateToHome}
+                onNavigateToShop={navigateToShop}
+                onNavigateToAbout={navigateToAbout}
+                onNavigateToContact={navigateToContact}
+                onNavigateToLogin={navigateToLogin}
+                onNavigateToSignup={navigateToSignup}
+                onViewOrderDetail={navigateToOrderDetail}
+                skipAnimations={skipAnimations}
+              />
+            )}
+
+            {stage === "order-detail" && (
+              <OrderDetailPage
+                orderId={selectedOrderId}
+                onBackToOrders={navigateToOrders}
+                onBackToMain={navigateToHome}
+                onNavigateToShop={navigateToShop}
+                onNavigateToAbout={navigateToAbout}
+                onNavigateToContact={navigateToContact}
+                onNavigateToLogin={navigateToLogin}
+                onNavigateToSignup={navigateToSignup}
+                skipAnimations={skipAnimations}
+              />
             )}
           </TooltipProvider>
         </CartProvider> 
