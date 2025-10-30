@@ -22,7 +22,7 @@ export default function SizeGuidePage({ onBackToMain, skipAnimations = false }: 
     M: { chest: "38-40", garmentChest: "46", length: "27.5", shoulder: "24.5" },
     L: { chest: "40-42", garmentChest: "48", length: "28.5", shoulder: "25" },
     XL: { chest: "42-44", garmentChest: "50", length: "29.5", shoulder: "25.5" },
-    XXL: { chest: "44-46", garmentChest: "52", length: "30.5", shoulder: "26" },
+    XXL: { chest: "44-46", garmentChest: "52", length: "30", shoulder: "26" },
   };
 
   const SIZE_CHART = selectedType === "hoodie" ? HOODIE_SIZE_CHART : TSHIRT_SIZE_CHART;
