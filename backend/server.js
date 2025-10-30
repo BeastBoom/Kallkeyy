@@ -29,6 +29,7 @@ const allowedOrigins = [
   'https://kallkeyy.com',
   'https://www.kallkeyy.com',
   'https://kallkeyy.vercel.app',
+  'https://kallkeyy-admin.vercel.app',
 
   // Development Ports
   'http://localhost:5173',  // Vite default port (frontend)
@@ -68,15 +69,38 @@ const corsOptions = {
     }
 
     console.log('Blocked origin by CORS:', origin);
-    return callback(new Error('Not allowed by CORS'));
+    // Do not throw to avoid 500s; disable CORS for disallowed origins
+    return callback(null, false);
   },
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
 };
 
 // Handle CORS including preflight
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
+
+// Ensure CORS headers are present for allowed origins (defensive)
+function isAllowedOrigin(origin) {
+  return !!origin && (allowedOrigins.includes(origin) || allowedOriginPatterns.some((re) => re.test(origin)));
+}
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (isAllowedOrigin(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+  }
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 // Middleware
 app.use(cookieParser()); // Parse cookies
