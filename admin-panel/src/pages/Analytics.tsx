@@ -3,7 +3,7 @@ import Layout from '../components/Layout'
 import { adminAPI } from '../services/api'
 import toast from 'react-hot-toast'
 import { BarChart3, ShoppingCart, Package, Users, TrendingUp } from 'lucide-react'
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+// Charts were previously imported but not used; removing to satisfy TS noUnusedLocals
 
 export default function Analytics() {
   const [activeTab, setActiveTab] = useState('cart')
@@ -37,7 +37,7 @@ export default function Analytics() {
     }
   }
 
-  const COLORS = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6']
+  // Color palette reserved for future charts (not used currently)
 
   const tabs = [
     { id: 'cart', label: 'Cart Analytics', icon: ShoppingCart },

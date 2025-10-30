@@ -152,20 +152,7 @@ export default function Orders() {
     }
   }
 
-  const handleUpdateShipping = async (orderId: string, trackingUrl: string, courierName: string, estimatedDelivery: string) => {
-    try {
-      await adminAPI.updateOrderStatus(orderId, { 
-        trackingUrl,
-        courierName,
-        estimatedDelivery,
-        status: 'shipped'
-      })
-      toast.success('Shipping details updated')
-      fetchOrders()
-    } catch (error: any) {
-      toast.error('Failed to update shipping details')
-    }
-  }
+  // Shipping update handler is not used currently; removed to satisfy TS noUnusedLocals
 
   return (
     <Layout>
