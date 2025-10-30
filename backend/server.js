@@ -31,6 +31,10 @@ const allowedOrigins = [
   'https://www.kallkeyy.com',
   'https://kallkeyy.vercel.app',
   'https://kallkeyy-admin.vercel.app',
+  'https://kallkeyy-admin.vercel.app/',
+  'https://kallkeyy.vercel.app/',
+  'https://kallkeyy.com/',
+
 
   // Development Ports
   'http://localhost:5173',  // Vite default port (frontend)
@@ -58,6 +62,29 @@ const allowedOriginPatterns = [
 ];
 
 const corsOrigins = [...allowedOrigins, ...allowedOriginPatterns];
+
+// Defensive CORS headers first (covers all responses, including errors)
+function matchAllowed(origin) {
+  if (!origin) return false;
+  if (allowedOrigins.includes(origin)) return true;
+  return allowedOriginPatterns.some((re) => re.test(origin));
+}
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (matchAllowed(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+    res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+    res.header('Access-Control-Expose-Headers', 'Set-Cookie');
+  }
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 app.use(cors({
   origin: corsOrigins,
