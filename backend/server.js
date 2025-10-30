@@ -76,6 +76,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
+app.get('/', (req, res) => {
+  res.status(200).json({ success: true, message: 'API root. Use /api/* routes.', health: '/api/health' });
+});
 app.use('/api/subscribers', subscriberRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/cart', cartRoutes);
@@ -114,11 +117,15 @@ app.use((req, res) => {
   });
 });
 
-// Start server
+// Start server locally; export app for Vercel
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Allowed origins:`, allowedOrigins);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`Allowed origins:`, allowedOrigins);
+  });
+}
+
+module.exports = app;
