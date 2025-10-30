@@ -31,17 +31,13 @@ const allowedOrigins = [
   'https://www.kallkeyy.com',
   'https://kallkeyy.vercel.app',
   'https://kallkeyy-admin.vercel.app',
-  'https://kallkeyy-admin.vercel.app/',
-  'https://kallkeyy.vercel.app/',
-  'https://kallkeyy.com/',
-
 
   // Development Ports
-  'http://localhost:5173',  // Vite default port (frontend)
-  'http://localhost:8080',  // Alternative frontend port
-  'http://localhost:3000',  // Common React port
-  'http://localhost:4173',  // Vite preview
-  'http://localhost:3001',  // Admin panel dev port
+  'http://localhost:5173',
+  'http://localhost:8080',
+  'http://localhost:3000',
+  'http://localhost:4173',
+  'http://localhost:3001',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:8080',
   'http://127.0.0.1:3001',
@@ -61,50 +57,37 @@ const allowedOriginPatterns = [
   /^https:\/\/.*kallkeyy\.com$/
 ];
 
-const corsOrigins = [...allowedOrigins, ...allowedOriginPatterns];
-
-// Defensive CORS headers first (covers all responses, including errors)
-function matchAllowed(origin) {
+// CORS Handler - FIXED for Vercel
+function isOriginAllowed(origin) {
   if (!origin) return false;
   if (allowedOrigins.includes(origin)) return true;
-  return allowedOriginPatterns.some((re) => re.test(origin));
+  return allowedOriginPatterns.some((pattern) => pattern.test(origin));
 }
 
+// Handle CORS headers + OPTIONS preflight FIRST
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (matchAllowed(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Vary', 'Origin');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-    res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-    res.header('Access-Control-Expose-Headers', 'Set-Cookie');
+  
+  if (isOriginAllowed(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+    res.setHeader('Access-Control-Expose-Headers', 'Set-Cookie');
+    res.setHeader('Vary', 'Origin');
   }
+
+  // Handle OPTIONS preflight immediately
   if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
+    return res.status(204).end();
   }
+
   next();
 });
 
-app.use(cors({
-  origin: corsOrigins,
-  credentials: true,
-  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization','X-Requested-With','Accept','Origin'],
-  exposedHeaders: ['Set-Cookie'],
-  optionsSuccessStatus: 204,
-}));
-app.options('*', cors({
-  origin: corsOrigins,
-  credentials: true,
-  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization','X-Requested-With','Accept','Origin'],
-  exposedHeaders: ['Set-Cookie'],
-  optionsSuccessStatus: 204,
-}));
-
-// Middleware
-app.use(cookieParser()); // Parse cookies
+// Middleware (after CORS)
+app.use(cookieParser());
+// Parse cookies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
