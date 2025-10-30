@@ -25,6 +25,7 @@ interface Props {
   onNavigateToShipping?: () => void;
   onNavigateToReturns?: () => void;
   onNavigateToFAQ?: () => void;
+  onNavigateToPrivacyPolicy?: () => void;
   skipAnimations?: boolean;
 }
 
@@ -45,6 +46,7 @@ export default function MainBrandPage({
   onNavigateToShipping,
   onNavigateToReturns,
   onNavigateToFAQ,
+  onNavigateToPrivacyPolicy,
   skipAnimations = false,
 }: Props) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -1049,6 +1051,16 @@ export default function MainBrandPage({
                   className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
                 >
                   FAQ
+                </li>
+                <li
+                  onClick={() =>
+                    onNavigateToPrivacyPolicy
+                      ? onNavigateToPrivacyPolicy()
+                      : handleUnavailablePage("Privacy Policy")
+                  }
+                  className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
+                >
+                  Privacy Policy
                 </li>
                 {user && (
                   <li
