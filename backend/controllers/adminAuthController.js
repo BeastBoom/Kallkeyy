@@ -1,5 +1,6 @@
 const Admin = require('../models/Admin');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const { setCorsHeaders } = require('../utils/responseHelper');
 const connectDB = require('../config/db');
 
@@ -35,7 +36,19 @@ const setAdminCookie = (res, token) => {
 // Admin login
 exports.adminLogin = async (req, res) => {
   try {
-    await connectDB();
+    // Connect to database with error handling
+    try {
+      await connectDB();
+      console.log('✅ Database connection established');
+    } catch (dbError) {
+      console.error('❌ Database connection failed:', dbError.message);
+      setCorsHeaders(req, res);
+      return res.status(500).json({
+        success: false,
+        message: 'Database connection failed',
+        error: (process.env.VERCEL || process.env.NODE_ENV === 'development') ? dbError.message : undefined
+      });
+    }
 
     const { username, password } = req.body;
 
@@ -49,16 +62,40 @@ exports.adminLogin = async (req, res) => {
       });
     }
 
+    // Normalize the input to lowercase for comparison
+    const searchTerm = username.toLowerCase().trim();
+    
+    console.log('🔍 Searching for admin with:', searchTerm);
+    console.log('🔍 Database connection state:', mongoose.connection.readyState, '(1=connected, 2=connecting, 0=disconnected)');
+    
     // Find admin by username or email
-    const admin = await Admin.findOne({
-      $or: [
-        { username: username.toLowerCase() },
-        { email: username.toLowerCase() }
-      ]
-    });
+    let admin;
+    try {
+      admin = await Admin.findOne({
+        $or: [
+          { username: searchTerm },
+          { email: searchTerm }
+        ]
+      }).exec();
+    } catch (queryError) {
+      console.error('❌ Query error:', queryError.message);
+      setCorsHeaders(req, res);
+      return res.status(500).json({
+        success: false,
+        message: 'Database query failed',
+        error: (process.env.VERCEL || process.env.NODE_ENV === 'development') ? queryError.message : undefined
+      });
+    }
 
     if (!admin) {
-      console.log('❌ Admin not found for username/email:', username.toLowerCase());
+      console.log('❌ Admin not found for username/email:', searchTerm);
+      // Debug: Check what admins exist in database
+      try {
+        const allAdmins = await Admin.find({}).select('username email').limit(5).exec();
+        console.log('📋 Available admins in database:', allAdmins.map(a => ({ username: a.username, email: a.email })));
+      } catch (debugError) {
+        console.error('⚠️ Could not fetch admin list for debugging:', debugError.message);
+      }
       setCorsHeaders(req, res);
       return res.status(401).json({
         success: false,
@@ -335,7 +372,28 @@ exports.deactivateAdmin = async (req, res) => {
 // Verify cookie token
 exports.verifyAdminCookie = async (req, res) => {
   try {
-    await connectDB();
+    // Connect to database with error handling
+    try {
+      await connectDB();
+    } catch (dbError) {
+      console.error('❌ Database connection failed in verifyAdminCookie:', dbError.message);
+      setCorsHeaders(req, res);
+      return res.status(500).json({
+        success: false,
+        message: 'Database connection failed',
+        error: (process.env.VERCEL || process.env.NODE_ENV === 'development') ? dbError.message : undefined
+      });
+    }
+
+    // Check if cookies object exists (cookie-parser might not be initialized)
+    if (!req.cookies) {
+      console.log('⚠️ Cookies object not available - cookie-parser may not be initialized');
+      setCorsHeaders(req, res);
+      return res.status(401).json({
+        success: false,
+        message: 'No authentication cookie found'
+      });
+    }
 
     const token = req.cookies.admin_token;
 
@@ -350,11 +408,28 @@ exports.verifyAdminCookie = async (req, res) => {
 
     console.log('🔍 Verifying admin cookie token');
 
+    // Check if JWT_SECRET is set
+    if (!process.env.JWT_SECRET) {
+      console.error('❌ JWT_SECRET is not set in environment variables');
+      setCorsHeaders(req, res);
+      return res.status(500).json({
+        success: false,
+        message: 'Server configuration error'
+      });
+    }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const admin = await Admin.findById(decoded.adminId).select('-password');
 
     if (!admin) {
-      res.clearCookie('admin_token');
+      console.log('❌ Admin not found for ID:', decoded.adminId);
+      const isProduction = process.env.VERCEL || process.env.NODE_ENV === 'production';
+      res.clearCookie('admin_token', {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax',
+        path: '/'
+      });
       setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
@@ -363,7 +438,14 @@ exports.verifyAdminCookie = async (req, res) => {
     }
 
     if (!admin.isActive) {
-      res.clearCookie('admin_token');
+      console.log('❌ Admin account is deactivated:', admin.username);
+      const isProduction = process.env.VERCEL || process.env.NODE_ENV === 'production';
+      res.clearCookie('admin_token', {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax',
+        path: '/'
+      });
       setCorsHeaders(req, res);
       return res.status(403).json({
         success: false,
@@ -371,6 +453,7 @@ exports.verifyAdminCookie = async (req, res) => {
       });
     }
 
+    console.log('✅ Cookie verified successfully for admin:', admin.username);
     setCorsHeaders(req, res);
     res.json({
       success: true,
@@ -378,7 +461,17 @@ exports.verifyAdminCookie = async (req, res) => {
       admin
     });
   } catch (error) {
-    res.clearCookie('admin_token');
+    console.error('❌ Verify cookie error:', error);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    
+    const isProduction = process.env.VERCEL || process.env.NODE_ENV === 'production';
+    res.clearCookie('admin_token', {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      path: '/'
+    });
     
     setCorsHeaders(req, res);
     
@@ -389,9 +482,17 @@ exports.verifyAdminCookie = async (req, res) => {
       });
     }
 
-    return res.status(401).json({
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token'
+      });
+    }
+
+    return res.status(500).json({
       success: false,
-      message: 'Invalid authentication'
+      message: 'Server error during verification',
+      error: (process.env.VERCEL || process.env.NODE_ENV === 'development') ? error.message : undefined
     });
   }
 };
