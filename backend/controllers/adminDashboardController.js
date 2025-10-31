@@ -5,10 +5,13 @@ const Cart = require('../models/Cart');
 const Subscriber = require('../models/Subscriber');
 const Review = require('../models/Review');
 const { setCorsHeaders } = require('../utils/responseHelper');
+const connectDB = require('../config/db');
 
 // Get dashboard overview
 exports.getDashboardOverview = async (req, res) => {
   try {
+    await connectDB();
+
     const [
       totalUsers,
       totalOrders,
@@ -106,6 +109,8 @@ exports.getDashboardOverview = async (req, res) => {
 // Get cart analytics
 exports.getCartAnalytics = async (req, res) => {
   try {
+    await connectDB();
+
     // Get all carts with items
     const carts = await Cart.find({
       $or: [
@@ -202,6 +207,8 @@ exports.getCartAnalytics = async (req, res) => {
 // Get product analytics
 exports.getProductAnalytics = async (req, res) => {
   try {
+    await connectDB();
+
     // Get purchase frequency from orders
     const purchaseData = await Order.aggregate([
       { $match: { paymentStatus: 'completed' } },
@@ -272,6 +279,8 @@ exports.getProductAnalytics = async (req, res) => {
 // Get user analytics
 exports.getUserAnalytics = async (req, res) => {
   try {
+    await connectDB();
+
     const [
       totalUsers,
       verifiedPhones,
@@ -352,6 +361,8 @@ exports.getUserAnalytics = async (req, res) => {
 // Get order analytics
 exports.getOrderAnalytics = async (req, res) => {
   try {
+    await connectDB();
+
     const [
       totalOrders,
       completedOrders,

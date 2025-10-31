@@ -1,6 +1,7 @@
 const Admin = require('../models/Admin');
 const jwt = require('jsonwebtoken');
 const { setCorsHeaders } = require('../utils/responseHelper');
+const connectDB = require('../config/db');
 
 // Generate admin JWT token
 const generateAdminToken = (adminId, role) => {
@@ -29,6 +30,8 @@ const setAdminCookie = (res, token) => {
 // Admin login
 exports.adminLogin = async (req, res) => {
   try {
+    await connectDB();
+
     const { username, password } = req.body;
 
     if (!username || !password) {
@@ -124,6 +127,8 @@ exports.adminLogin = async (req, res) => {
 // Admin logout
 exports.adminLogout = async (req, res) => {
   try {
+    await connectDB();
+
     res.clearCookie('admin_token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -149,6 +154,8 @@ exports.adminLogout = async (req, res) => {
 // Get current admin
 exports.getCurrentAdmin = async (req, res) => {
   try {
+    await connectDB();
+
     const admin = await Admin.findById(req.adminId).select('-password');
 
     if (!admin) {
@@ -177,6 +184,8 @@ exports.getCurrentAdmin = async (req, res) => {
 // Create new admin (founder/developer only)
 exports.createAdmin = async (req, res) => {
   try {
+    await connectDB();
+
     const { username, email, password, fullName, role } = req.body;
 
     // Validation
@@ -238,6 +247,8 @@ exports.createAdmin = async (req, res) => {
 // List all admins (founder/developer only)
 exports.listAdmins = async (req, res) => {
   try {
+    await connectDB();
+
     const admins = await Admin.find()
       .select('-password')
       .sort({ createdAt: -1 });
@@ -261,6 +272,8 @@ exports.listAdmins = async (req, res) => {
 // Deactivate admin (founder only)
 exports.deactivateAdmin = async (req, res) => {
   try {
+    await connectDB();
+
     const { adminId } = req.params;
 
     const admin = await Admin.findById(adminId);
@@ -303,6 +316,8 @@ exports.deactivateAdmin = async (req, res) => {
 // Verify cookie token
 exports.verifyAdminCookie = async (req, res) => {
   try {
+    await connectDB();
+
     const token = req.cookies.admin_token;
 
     if (!token) {

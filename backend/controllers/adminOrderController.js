@@ -1,10 +1,13 @@
 const Order = require('../models/Order');
 const User = require('../models/User');
 const { setCorsHeaders } = require('../utils/responseHelper');
+const connectDB = require('../config/db');
 
 // Get all orders with pagination and filtering
 exports.getAllOrders = async (req, res) => {
   try {
+    await connectDB();
+
     const {
       page = 1,
       limit = 20,
@@ -75,6 +78,8 @@ exports.getAllOrders = async (req, res) => {
 // Get single order details
 exports.getOrderDetails = async (req, res) => {
   try {
+    await connectDB();
+
     const { orderId } = req.params;
 
     const order = await Order.findById(orderId)
@@ -106,6 +111,8 @@ exports.getOrderDetails = async (req, res) => {
 // Update order status
 exports.updateOrderStatus = async (req, res) => {
   try {
+    await connectDB();
+
     const { orderId } = req.params;
     const { status, paymentStatus, notes } = req.body;
 
@@ -147,6 +154,8 @@ exports.updateOrderStatus = async (req, res) => {
 // Update shipping details
 exports.updateShippingDetails = async (req, res) => {
   try {
+    await connectDB();
+
     const { orderId } = req.params;
     const {
       shiprocketOrderId,
@@ -198,6 +207,8 @@ exports.updateShippingDetails = async (req, res) => {
 // Cancel order
 exports.cancelOrder = async (req, res) => {
   try {
+    await connectDB();
+
     const { orderId } = req.params;
     const { reason } = req.body;
 
@@ -246,6 +257,8 @@ exports.cancelOrder = async (req, res) => {
 // Get order statistics
 exports.getOrderStatistics = async (req, res) => {
   try {
+    await connectDB();
+
     const { startDate, endDate } = req.query;
 
     const query = {};
@@ -309,6 +322,8 @@ exports.getOrderStatistics = async (req, res) => {
 // Export orders to CSV data
 exports.exportOrders = async (req, res) => {
   try {
+    await connectDB();
+    
     const { startDate, endDate } = req.query;
 
     const query = {};

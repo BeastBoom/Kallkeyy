@@ -1,9 +1,12 @@
 const User = require('../models/User');
 const { setCorsHeaders } = require('../utils/responseHelper');
+const connectDB = require('../config/db');
 
 // Get all user addresses
 exports.getAddresses = async (req, res) => {
   try {
+    await connectDB();
+
     const userId = req.user._id;
     const user = await User.findById(userId).select('addresses');
 
@@ -26,6 +29,8 @@ exports.getAddresses = async (req, res) => {
 // Add new address
 exports.addAddress = async (req, res) => {
   try {
+    await connectDB();
+
     const userId = req.user._id;
     const { fullName, phone, pincode, city, state, address, isDefault } = req.body;
 
@@ -82,6 +87,8 @@ exports.addAddress = async (req, res) => {
 // Update address
 exports.updateAddress = async (req, res) => {
   try {
+    await connectDB();
+
     const userId = req.user._id;
     const { addressId } = req.params;
     const { fullName, phone, pincode, city, state, address, isDefault } = req.body;
@@ -139,6 +146,8 @@ exports.updateAddress = async (req, res) => {
 // Delete address
 exports.deleteAddress = async (req, res) => {
   try {
+    await connectDB();
+
     const userId = req.user._id;
     const { addressId } = req.params;
 
@@ -184,6 +193,8 @@ exports.deleteAddress = async (req, res) => {
 // Set default address
 exports.setDefaultAddress = async (req, res) => {
   try {
+    await connectDB();
+
     const userId = req.user._id;
     const { addressId } = req.params;
 

@@ -1,9 +1,11 @@
 const Product = require('../models/Product');
 const { setCorsHeaders } = require('../utils/responseHelper');
-
+const connectDB = require('../config/db');
 // Get all products with pagination and filtering
 exports.getAllProducts = async (req, res) => {
   try {
+    await connectDB();
+
     const { 
       page = 1, 
       limit = 20, 
@@ -64,6 +66,8 @@ exports.getAllProducts = async (req, res) => {
 // Get single product by ID
 exports.getProductById = async (req, res) => {
   try {
+    await connectDB();
+
     const { productId } = req.params;
 
     const product = await Product.findOne({ productId });
@@ -94,6 +98,8 @@ exports.getProductById = async (req, res) => {
 // Create new product
 exports.createProduct = async (req, res) => {
   try {
+    await connectDB(); 
+
     const {
       productId,
       name,
@@ -159,6 +165,8 @@ exports.createProduct = async (req, res) => {
 // Update product
 exports.updateProduct = async (req, res) => {
   try {
+    await connectDB();
+
     const { productId } = req.params;
     const updates = req.body;
 
@@ -201,6 +209,8 @@ exports.updateProduct = async (req, res) => {
 // Update product stock
 exports.updateStock = async (req, res) => {
   try {
+    await connectDB();
+
     const { productId } = req.params;
     const { stock } = req.body;
 
@@ -251,6 +261,8 @@ exports.updateStock = async (req, res) => {
 // Delete product
 exports.deleteProduct = async (req, res) => {
   try {
+    await connectDB();
+
     const { productId } = req.params;
 
     const product = await Product.findOneAndDelete({ productId });
@@ -281,6 +293,8 @@ exports.deleteProduct = async (req, res) => {
 // Bulk update stock
 exports.bulkUpdateStock = async (req, res) => {
   try {
+    await connectDB();
+    
     const { updates } = req.body; // Array of { productId, stock }
 
     if (!Array.isArray(updates)) {
