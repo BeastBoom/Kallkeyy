@@ -18,10 +18,15 @@ const generateAdminToken = (adminId, role) => {
 
 // Set admin auth cookie
 const setAdminCookie = (res, token) => {
+  // On Vercel, we're always in production (HTTPS)
+  const isProduction = process.env.VERCEL || process.env.NODE_ENV === 'production';
+  
+  // For cross-domain cookies (different vercel.app subdomains), need sameSite: 'none' with secure: true
+  // For same-domain, sameSite: 'lax' works fine
   res.cookie('admin_token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: isProduction, // true on Vercel (HTTPS), false on localhost (HTTP)
+    sameSite: isProduction ? 'none' : 'lax', // 'none' needed for cross-domain on HTTPS, 'lax' for same-domain or localhost
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/'
   });
@@ -33,6 +38,8 @@ exports.adminLogin = async (req, res) => {
     await connectDB();
 
     const { username, password } = req.body;
+
+    console.log('🔐 Admin login attempt:', { username: username?.toLowerCase(), hasPassword: !!password });
 
     if (!username || !password) {
       setCorsHeaders(req, res);
@@ -51,6 +58,7 @@ exports.adminLogin = async (req, res) => {
     });
 
     if (!admin) {
+      console.log('❌ Admin not found for username/email:', username.toLowerCase());
       setCorsHeaders(req, res);
       return res.status(401).json({
         success: false,
@@ -58,8 +66,11 @@ exports.adminLogin = async (req, res) => {
       });
     }
 
+    console.log('✅ Admin found:', { id: admin._id, username: admin.username, isActive: admin.isActive });
+
     // Check if admin is active
     if (!admin.isActive) {
+      console.log('❌ Admin account is deactivated:', admin.username);
       setCorsHeaders(req, res);
       return res.status(403).json({
         success: false,
@@ -71,12 +82,15 @@ exports.adminLogin = async (req, res) => {
     const isPasswordValid = await admin.comparePassword(password);
 
     if (!isPasswordValid) {
+      console.log('❌ Invalid password for admin:', admin.username);
       setCorsHeaders(req, res);
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
       });
     }
+
+    console.log('✅ Password verified for admin:', admin.username);
 
     // Generate token
     const token = generateAdminToken(admin._id, admin.role);
@@ -99,6 +113,8 @@ exports.adminLogin = async (req, res) => {
 
     await admin.save();
 
+    console.log('✅ Login successful, setting cookie for admin:', admin.username);
+
     setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
@@ -114,12 +130,13 @@ exports.adminLogin = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Admin login error:', error);
+    console.error('❌ Admin login error:', error);
+    console.error('Error stack:', error.stack);
     setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Server error during login',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: (process.env.VERCEL || process.env.NODE_ENV === 'development') ? error.message : undefined
     });
   }
 };
@@ -129,10 +146,12 @@ exports.adminLogout = async (req, res) => {
   try {
     await connectDB();
 
+    const isProduction = process.env.VERCEL || process.env.NODE_ENV === 'production';
+
     res.clearCookie('admin_token', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       path: '/'
     });
 
@@ -321,12 +340,15 @@ exports.verifyAdminCookie = async (req, res) => {
     const token = req.cookies.admin_token;
 
     if (!token) {
+      console.log('❌ No admin_token cookie found in request');
       setCorsHeaders(req, res);
       return res.status(401).json({
         success: false,
         message: 'No authentication cookie found'
       });
     }
+
+    console.log('🔍 Verifying admin cookie token');
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const admin = await Admin.findById(decoded.adminId).select('-password');
