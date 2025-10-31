@@ -19,11 +19,12 @@ const generateToken = (userId, rememberMe = false) => {
 // Set auth cookie
 const setAuthCookie = (res, token, rememberMe = false) => {
   const maxAge = rememberMe ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000; // 7 days or 24 hours
+  const isProduction = process.env.VERCEL || process.env.NODE_ENV === 'production';
   
   res.cookie('auth_token', token, {
     httpOnly: true, // Prevents JavaScript access (XSS protection)
-    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-    sameSite: 'lax', // CSRF protection
+    secure: isProduction, // HTTPS only in production
+    sameSite: isProduction ? 'none' : 'lax', // 'none' needed for cross-domain on HTTPS, 'lax' for same-domain or localhost
     maxAge: maxAge,
     path: '/'
   });
@@ -32,6 +33,9 @@ const setAuthCookie = (res, token, rememberMe = false) => {
 // Register user
 exports.register = async (req, res) => {
   try {
+    const connectDB = require('../config/db');
+    await connectDB();
+    
     const { name, email, password } = req.body;
 
     // Validate name format
@@ -126,6 +130,9 @@ exports.register = async (req, res) => {
 // Login user
 exports.login = async (req, res) => {
   try {
+    const connectDB = require('../config/db');
+    await connectDB();
+    
     const { email, password, rememberMe } = req.body;
 
     // Find user
@@ -175,6 +182,9 @@ exports.login = async (req, res) => {
 // Google OAuth login/signup
 exports.googleAuth = async (req, res) => {
   try {
+    const connectDB = require('../config/db');
+    await connectDB();
+    
     const { credential } = req.body;
 
     // Verify Google token
@@ -362,6 +372,9 @@ exports.getCurrentUser = async (req, res) => {
 // Get user profile
 exports.getUserProfile = async (req, res) => {
   try {
+    const connectDB = require('../config/db');
+    await connectDB();
+    
     // ✅ FIX: Use req.userId instead of req.user._id (set by auth middleware)
     const userId = req.userId;
     
@@ -408,11 +421,13 @@ exports.getUserProfile = async (req, res) => {
 // Logout - Clear cookie
 exports.logout = async (req, res) => {
   try {
+    const isProduction = process.env.VERCEL || process.env.NODE_ENV === 'production';
+    
     // Clear the auth cookie
     res.clearCookie('auth_token', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       path: '/'
     });
 
@@ -434,6 +449,31 @@ exports.logout = async (req, res) => {
 // Verify cookie token
 exports.verifyCookie = async (req, res) => {
   try {
+    const connectDB = require('../config/db');
+    
+    // Connect to database with error handling
+    try {
+      await connectDB();
+    } catch (dbError) {
+      console.error('❌ Database connection failed in verifyCookie:', dbError.message);
+      setCorsHeaders(req, res);
+      return res.status(500).json({
+        success: false,
+        message: 'Database connection failed',
+        error: (process.env.VERCEL || process.env.NODE_ENV === 'development') ? dbError.message : undefined
+      });
+    }
+
+    // Check if cookies object exists
+    if (!req.cookies) {
+      console.log('⚠️ Cookies object not available - cookie-parser may not be initialized');
+      setCorsHeaders(req, res);
+      return res.status(401).json({
+        success: false,
+        message: 'No authentication cookie found'
+      });
+    }
+
     const token = req.cookies.auth_token;
 
     if (!token) {
@@ -444,13 +484,29 @@ exports.verifyCookie = async (req, res) => {
       });
     }
 
+    // Check if JWT_SECRET is set
+    if (!process.env.JWT_SECRET) {
+      console.error('❌ JWT_SECRET is not set in environment variables');
+      setCorsHeaders(req, res);
+      return res.status(500).json({
+        success: false,
+        message: 'Server configuration error'
+      });
+    }
+
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.userId).select('-password');
 
     if (!user) {
+      const isProduction = process.env.VERCEL || process.env.NODE_ENV === 'production';
       // Clear invalid cookie
-      res.clearCookie('auth_token');
+      res.clearCookie('auth_token', {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? 'none' : 'lax',
+        path: '/'
+      });
       setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
@@ -469,8 +525,18 @@ exports.verifyCookie = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('❌ Verify cookie error:', error);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    
+    const isProduction = process.env.VERCEL || process.env.NODE_ENV === 'production';
     // Clear invalid cookie
-    res.clearCookie('auth_token');
+    res.clearCookie('auth_token', {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      path: '/'
+    });
     
     setCorsHeaders(req, res);
     
@@ -481,9 +547,17 @@ exports.verifyCookie = async (req, res) => {
       });
     }
 
-    return res.status(401).json({
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token'
+      });
+    }
+
+    return res.status(500).json({
       success: false,
-      message: 'Invalid authentication'
+      message: 'Server error during verification',
+      error: (process.env.VERCEL || process.env.NODE_ENV === 'development') ? error.message : undefined
     });
   }
 };

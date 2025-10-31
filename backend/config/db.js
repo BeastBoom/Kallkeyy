@@ -17,11 +17,21 @@ const connectDB = async () => {
       });
     }
 
-    const conn = await mongoose.connect(process.env.MONGODB_URI);
+    // Use MONGODB_URI as-is - don't force a database name
+    // MongoDB will use the database name from URI or default to 'test'
+    let mongoUri = process.env.MONGODB_URI;
+    
+    // Only add query parameters if they don't exist
+    if (mongoUri && !mongoUri.includes('retryWrites')) {
+      const separator = mongoUri.includes('?') ? '&' : '?';
+      mongoUri = `${mongoUri}${separator}retryWrites=true&w=majority`;
+    }
+
+    const conn = await mongoose.connect(mongoUri);
     isConnected = true;
-    const dbName = conn.connection.db?.databaseName || conn.connection.name || 'unknown';
+    const connectedDbName = conn.connection.db?.databaseName || conn.connection.name || 'unknown';
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-    console.log(`📦 Database name: ${dbName}`);
+    console.log(`📦 Connected to database: ${connectedDbName}`);
   } catch (error) {
     console.error(`❌ MongoDB Error: ${error.message}`);
     // Don't exit on error in serverless environments - just log and throw
