@@ -3,23 +3,51 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const User = require('../models/User');
 
+// Helper function to set CORS headers (must match server.js logic)
+function setCorsHeaders(req, res) {
+  const origin = req.headers.origin;
+  if (origin) {
+    const allowedPatterns = [
+      /^https:\/\/[a-z0-9-]+\.vercel\.app$/,
+      /^https:\/\/.*\.kallkeyy\.com$/,
+      /^http:\/\/localhost:\d+$/
+    ];
+    const allowedOrigins = [
+      'https://kallkeyy.com',
+      'https://www.kallkeyy.com',
+      'https://kallkeyy.vercel.app',
+      'https://kallkeyy-admin.vercel.app'
+    ];
+    
+    if (allowedOrigins.includes(origin) || allowedPatterns.some(p => p.test(origin))) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+    }
+  }
+}
+
 // GET all addresses for logged-in user
 router.get('/', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
     if (!user) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'User not found'
       });
     }
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       addresses: user.addresses || []
     });
   } catch (error) {
     console.error('Get addresses error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch addresses',
@@ -35,6 +63,7 @@ router.post('/', auth, async (req, res) => {
 
     // ✅ Validate all required fields
     if (!fullName || !phone || !pincode || !city || !state || !address) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'All fields are required',
@@ -44,6 +73,7 @@ router.post('/', auth, async (req, res) => {
 
     // ✅ Validate fullName - only alphabets, spaces, and full stops
     if (!/^[A-Za-z\s.]+$/.test(fullName)) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Name can only contain letters, spaces, and full stops (e.g., S.K. Das)',
@@ -53,6 +83,7 @@ router.post('/', auth, async (req, res) => {
 
     // ✅ Validate fullName length
     if (fullName.trim().length < 2 || fullName.trim().length > 100) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Name must be between 2 and 100 characters',
@@ -62,6 +93,7 @@ router.post('/', auth, async (req, res) => {
 
     // ✅ Validate address - allow letters, numbers, spaces, dots, commas, hyphens
     if (!/^[A-Za-z0-9\s.,-]+$/.test(address)) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Address can only contain letters, numbers, spaces, dots, commas, and hyphens',
@@ -71,6 +103,7 @@ router.post('/', auth, async (req, res) => {
 
     // ✅ Validate address length
     if (address.trim().length < 5 || address.trim().length > 500) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Address must be between 5 and 500 characters',
@@ -80,6 +113,7 @@ router.post('/', auth, async (req, res) => {
 
     // ✅ Validate phone number
     if (!/^\d{10}$/.test(phone)) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Phone number must be exactly 10 digits',
@@ -89,6 +123,7 @@ router.post('/', auth, async (req, res) => {
 
     // ✅ Validate pincode
     if (!/^\d{6}$/.test(pincode)) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Pincode must be exactly 6 digits',
@@ -99,6 +134,7 @@ router.post('/', auth, async (req, res) => {
     // Find user and add address
     const user = await User.findById(req.user._id);
     if (!user) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'User not found'
@@ -126,6 +162,7 @@ router.post('/', auth, async (req, res) => {
 
     await user.save();
 
+    setCorsHeaders(req, res);
     res.status(201).json({
       success: true,
       message: 'Address added successfully',
@@ -133,6 +170,7 @@ router.post('/', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Add address error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to add address',
@@ -149,6 +187,7 @@ router.put('/:addressId', auth, async (req, res) => {
 
     // ✅ Validate all required fields
     if (!fullName || !phone || !pincode || !city || !state || !address) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'All fields are required',
@@ -158,6 +197,7 @@ router.put('/:addressId', auth, async (req, res) => {
 
     // ✅ Validate fullName
     if (!/^[A-Za-z\s.]+$/.test(fullName)) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Name can only contain letters, spaces, and full stops (e.g., S.K. Das)',
@@ -166,6 +206,7 @@ router.put('/:addressId', auth, async (req, res) => {
     }
 
     if (fullName.trim().length < 2 || fullName.trim().length > 100) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Name must be between 2 and 100 characters',
@@ -175,6 +216,7 @@ router.put('/:addressId', auth, async (req, res) => {
 
     // ✅ Validate address
     if (!/^[A-Za-z0-9\s.,-]+$/.test(address)) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Address can only contain letters, numbers, spaces, dots, commas, and hyphens',
@@ -183,6 +225,7 @@ router.put('/:addressId', auth, async (req, res) => {
     }
 
     if (address.trim().length < 5 || address.trim().length > 500) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Address must be between 5 and 500 characters',
@@ -192,6 +235,7 @@ router.put('/:addressId', auth, async (req, res) => {
 
     // ✅ Validate phone
     if (!/^\d{10}$/.test(phone)) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Phone number must be exactly 10 digits',
@@ -201,6 +245,7 @@ router.put('/:addressId', auth, async (req, res) => {
 
     // ✅ Validate pincode
     if (!/^\d{6}$/.test(pincode)) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Pincode must be exactly 6 digits',
@@ -211,6 +256,7 @@ router.put('/:addressId', auth, async (req, res) => {
     // Find user and update address
     const user = await User.findById(req.user._id);
     if (!user) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'User not found'
@@ -222,6 +268,7 @@ router.put('/:addressId', auth, async (req, res) => {
     );
 
     if (addressIndex === -1) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Address not found'
@@ -249,6 +296,7 @@ router.put('/:addressId', auth, async (req, res) => {
 
     await user.save();
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Address updated successfully',
@@ -256,6 +304,7 @@ router.put('/:addressId', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Update address error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to update address',
@@ -271,6 +320,7 @@ router.delete('/:addressId', auth, async (req, res) => {
 
     const user = await User.findById(req.user._id);
     if (!user) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'User not found'
@@ -282,6 +332,7 @@ router.delete('/:addressId', auth, async (req, res) => {
     );
 
     if (addressIndex === -1) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Address not found'
@@ -299,6 +350,7 @@ router.delete('/:addressId', auth, async (req, res) => {
 
     await user.save();
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Address deleted successfully',
@@ -306,6 +358,7 @@ router.delete('/:addressId', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Delete address error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to delete address',
@@ -321,6 +374,7 @@ router.patch('/:addressId/default', auth, async (req, res) => {
 
     const user = await User.findById(req.user._id);
     if (!user) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'User not found'
@@ -332,6 +386,7 @@ router.patch('/:addressId/default', auth, async (req, res) => {
     );
 
     if (addressIndex === -1) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Address not found'
@@ -348,6 +403,7 @@ router.patch('/:addressId/default', auth, async (req, res) => {
 
     await user.save();
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Default address updated',
@@ -355,6 +411,7 @@ router.patch('/:addressId/default', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Set default address error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to set default address',

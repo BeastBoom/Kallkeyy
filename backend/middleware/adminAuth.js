@@ -1,6 +1,32 @@
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
 
+// Helper to set CORS headers (reuse from server.js pattern)
+function setCorsHeaders(req, res) {
+  const origin = req.headers.origin;
+  if (origin) {
+    // Check against common allowed origins
+    const allowedPatterns = [
+      /^https:\/\/[a-z0-9-]+\.vercel\.app$/,
+      /^https:\/\/.*\.kallkeyy\.com$/,
+      /^http:\/\/localhost:\d+$/
+    ];
+    const allowedOrigins = [
+      'https://kallkeyy.com',
+      'https://www.kallkeyy.com',
+      'https://kallkeyy.vercel.app',
+      'https://kallkeyy-admin.vercel.app'
+    ];
+    
+    if (allowedOrigins.includes(origin) || allowedPatterns.some(p => p.test(origin))) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+    }
+  }
+}
+
 // Middleware to verify admin authentication
 const adminAuth = async (req, res, next) => {
   try {
@@ -13,6 +39,7 @@ const adminAuth = async (req, res, next) => {
     }
     
     if (!token) {
+      setCorsHeaders(req, res);
       return res.status(401).json({
         success: false,
         message: 'Access denied. Admin authentication required.'
@@ -24,6 +51,7 @@ const adminAuth = async (req, res, next) => {
     
     // Check if it's an admin token
     if (!decoded.isAdmin) {
+      setCorsHeaders(req, res);
       return res.status(403).json({
         success: false,
         message: 'Access denied. Admin privileges required.'
@@ -34,6 +62,7 @@ const adminAuth = async (req, res, next) => {
     const admin = await Admin.findById(decoded.adminId).select('-password');
     
     if (!admin) {
+      setCorsHeaders(req, res);
       return res.status(401).json({
         success: false,
         message: 'Admin not found. Please login again.'
@@ -41,6 +70,7 @@ const adminAuth = async (req, res, next) => {
     }
 
     if (!admin.isActive) {
+      setCorsHeaders(req, res);
       return res.status(403).json({
         success: false,
         message: 'Your admin account has been deactivated.'
@@ -60,6 +90,8 @@ const adminAuth = async (req, res, next) => {
       res.clearCookie('admin_token');
     }
     
+    setCorsHeaders(req, res);
+    
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,
@@ -78,6 +110,7 @@ const adminAuth = async (req, res, next) => {
 const checkRole = (...allowedRoles) => {
   return (req, res, next) => {
     if (!req.admin) {
+      setCorsHeaders(req, res);
       return res.status(401).json({
         success: false,
         message: 'Authentication required'
@@ -85,6 +118,7 @@ const checkRole = (...allowedRoles) => {
     }
 
     if (!allowedRoles.includes(req.admin.role)) {
+      setCorsHeaders(req, res);
       return res.status(403).json({
         success: false,
         message: `Access denied. Required role: ${allowedRoles.join(' or ')}`

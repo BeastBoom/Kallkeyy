@@ -32,7 +32,14 @@ const connectDB = async () => {
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);
     console.error('💡 Please check your MONGODB_URI in .env file');
-    process.exit(1);
+    
+    // Don't exit process on Vercel - let it retry on next request
+    if (!process.env.VERCEL) {
+      process.exit(1);
+    }
+    
+    // Re-throw error so it can be caught by caller
+    throw error;
   }
 };
 
