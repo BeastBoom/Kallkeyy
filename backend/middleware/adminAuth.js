@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
+const connectDB = require('../config/db');
 
 // Helper to set CORS headers (reuse from server.js pattern)
 function setCorsHeaders(req, res) {
@@ -30,6 +31,8 @@ function setCorsHeaders(req, res) {
 // Middleware to verify admin authentication
 const adminAuth = async (req, res, next) => {
   try {
+    await connectDB();
+    
     // Get token from header OR cookie
     let token = req.header('Authorization')?.replace('Bearer ', '');
     

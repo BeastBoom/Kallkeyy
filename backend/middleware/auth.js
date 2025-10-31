@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const connectDB = require('../config/db');
 
 // Helper to set CORS headers (reuse from server.js pattern)
 function setCorsHeaders(req, res) {
@@ -29,6 +30,8 @@ function setCorsHeaders(req, res) {
 
 const auth = async (req, res, next) => {
   try {
+    await connectDB();
+    
     // Get token from header OR cookie (cookie has priority for seamless UX)
     let token = req.header('Authorization')?.replace('Bearer ', '');
     
