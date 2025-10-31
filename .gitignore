@@ -62,3 +62,7 @@ Desktop.ini
 
 # Archives from npm pack, etc.
 *.tgz
+
+
+backend/server_copy.js
+POSTMAN_API_
