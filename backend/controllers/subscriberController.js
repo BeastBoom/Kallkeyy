@@ -3,21 +3,58 @@ const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
 const { setCorsHeaders } = require('../utils/responseHelper');
 
+// Helper to ensure DB connection (waits if connecting, handles gracefully)
+const ensureDbConnection = async () => {
+  const readyState = mongoose.connection.readyState;
+  
+  // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+  if (readyState === 1) {
+    return true; // Already connected
+  }
+  
+  if (readyState === 2) {
+    // Connecting - wait for it (up to 3 seconds)
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        mongoose.connection.removeListener('connected', onConnected);
+        mongoose.connection.removeListener('error', onError);
+        reject(new Error('Connection timeout'));
+      }, 3000);
+      
+      const onConnected = () => {
+        clearTimeout(timeout);
+        mongoose.connection.removeListener('connected', onConnected);
+        mongoose.connection.removeListener('error', onError);
+        resolve(true);
+      };
+      
+      const onError = (err) => {
+        clearTimeout(timeout);
+        mongoose.connection.removeListener('connected', onConnected);
+        mongoose.connection.removeListener('error', onError);
+        reject(err);
+      };
+      
+      mongoose.connection.once('connected', onConnected);
+      mongoose.connection.once('error', onError);
+    });
+  }
+  
+  // Disconnected - try to connect (server.js middleware should handle this, but just in case)
+  if (readyState === 0 || readyState === 3) {
+    // Let mongoose handle queued operations - don't block
+    return true; // Mongoose will queue operations if not connected
+  }
+  
+  return true;
+};
+
 // @desc    Subscribe to newsletter
 // @route   POST /api/subscribers
 // @access  Public
 const subscribeNewsletter = async (req, res) => {
   try {
-    // Check database connection
-    if (mongoose.connection.readyState !== 1) {
-      setCorsHeaders(req, res);
-      return res.status(503).json({
-        success: false,
-        message: 'Database connection unavailable. Please try again in a moment.',
-      });
-    }
-
-    // Check for validation errors
+    // Check for validation errors first
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       setCorsHeaders(req, res);
@@ -41,7 +78,16 @@ const subscribeNewsletter = async (req, res) => {
       });
     }
 
+    // Ensure DB connection (will wait if connecting, or proceed if mongoose can queue)
+    try {
+      await ensureDbConnection();
+    } catch (error) {
+      console.error('DB connection error:', error.message);
+      // Continue anyway - mongoose might queue operations
+    }
+
     // Check if subscriber already exists (email field is indexed and lowercase in schema)
+    // Mongoose will queue this operation if not connected yet
     const existingSubscriber = await Subscriber.findOne({ email: normalizedEmail });
 
     if (existingSubscriber) {

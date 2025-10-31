@@ -5,10 +5,18 @@ dotenv.config();
 
 const connectDB = async () => {
   try {
+    // Don't reconnect if already connected or connecting
+    if (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2) {
+      console.log('✅ MongoDB already connected/connecting');
+      return;
+    }
+
     // MongoDB Atlas connection options
     const options = {
       serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
       socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+      bufferCommands: true, // Buffer commands when not connected (default: true)
+      bufferMaxEntries: 0, // Disable mongoose buffering limit (0 = unlimited)
     };
 
     await mongoose.connect(process.env.MONGODB_URI, options);

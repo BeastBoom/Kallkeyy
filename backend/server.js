@@ -93,27 +93,35 @@ app.use(async (req, res, next) => {
   }
 
   // Check if mongoose is connected
-  if (mongoose.connection.readyState === 0) {
-    // Not connected - try to connect
+  const readyState = mongoose.connection.readyState;
+  
+  if (readyState === 0 || readyState === 3) {
+    // Disconnected or disconnecting - try to connect
     try {
+      // Start connection (don't await if on Vercel to avoid blocking)
       if (!process.env.VERCEL) {
+        // Local: wait for connection
         await connectDB();
       } else {
-        // On Vercel, attempt connection but don't wait too long
-        const connectPromise = connectDB();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Connection timeout')), 2000)
-        );
-        await Promise.race([connectPromise, timeoutPromise]).catch(() => {
-          console.log('⚠️ DB connection timeout, request will proceed');
+        // Vercel: start connection in background (non-blocking)
+        // Mongoose will queue operations automatically
+        connectDB().catch(err => {
+          console.error('❌ Background DB connection error:', err.message);
         });
+        // Give it a moment to start connecting
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
     } catch (error) {
       console.error('❌ Database connection error in middleware:', error.message);
-      // Continue anyway - let the route handler deal with it
+      // Continue anyway - mongoose will queue operations
     }
+  } else if (readyState === 2) {
+    // Connecting - just wait a bit (connection is in progress)
+    // Mongoose will handle queued operations
+    await new Promise(resolve => setTimeout(resolve, 500));
   }
   
+  // Always continue - mongoose can queue operations if not connected
   next();
 });
 
