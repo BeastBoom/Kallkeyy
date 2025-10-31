@@ -1,4 +1,5 @@
 const Subscriber = require('../models/Subscriber.js');
+const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
 const { setCorsHeaders } = require('../utils/responseHelper');
 
@@ -7,20 +8,41 @@ const { setCorsHeaders } = require('../utils/responseHelper');
 // @access  Public
 const subscribeNewsletter = async (req, res) => {
   try {
+    // Check database connection
+    if (mongoose.connection.readyState !== 1) {
+      setCorsHeaders(req, res);
+      return res.status(503).json({
+        success: false,
+        message: 'Database connection unavailable. Please try again in a moment.',
+      });
+    }
+
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       setCorsHeaders(req, res);
       return res.status(400).json({ 
         success: false,
+        message: errors.array()[0]?.msg || 'Validation failed',
         errors: errors.array() 
       });
     }
 
     const { email } = req.body;
 
-    // Check if subscriber already exists
-    const existingSubscriber = await Subscriber.findOne({ email });
+    // Ensure email is properly normalized (lowercase and trimmed)
+    const normalizedEmail = email ? email.toLowerCase().trim() : null;
+
+    if (!normalizedEmail) {
+      setCorsHeaders(req, res);
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required',
+      });
+    }
+
+    // Check if subscriber already exists (email field is indexed and lowercase in schema)
+    const existingSubscriber = await Subscriber.findOne({ email: normalizedEmail });
 
     if (existingSubscriber) {
       if (existingSubscriber.isActive) {
@@ -32,7 +54,7 @@ const subscribeNewsletter = async (req, res) => {
       } else {
         // Reactivate subscription
         existingSubscriber.isActive = true;
-        existingSubscriber.subscribedAt = Date.now();
+        existingSubscriber.subscribedAt = new Date();
         await existingSubscriber.save();
 
         setCorsHeaders(req, res);
@@ -45,7 +67,7 @@ const subscribeNewsletter = async (req, res) => {
     }
 
     // Create new subscriber
-    const subscriber = await Subscriber.create({ email });
+    const subscriber = await Subscriber.create({ email: normalizedEmail });
 
     setCorsHeaders(req, res);
     res.status(201).json({
@@ -55,11 +77,30 @@ const subscribeNewsletter = async (req, res) => {
     });
   } catch (error) {
     console.error('Subscribe error:', error);
+    
+    // Handle duplicate key error (unique email constraint)
+    if (error.code === 11000 || error.name === 'MongoServerError') {
+      setCorsHeaders(req, res);
+      return res.status(400).json({
+        success: false,
+        message: 'This email is already subscribed to our newsletter',
+      });
+    }
+
+    // Handle validation errors from Mongoose
+    if (error.name === 'ValidationError') {
+      setCorsHeaders(req, res);
+      return res.status(400).json({
+        success: false,
+        message: Object.values(error.errors).map(e => e.message).join(', '),
+      });
+    }
+
     setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Server error. Please try again later.',
-      error: error.message,
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };

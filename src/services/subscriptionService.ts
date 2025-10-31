@@ -1,4 +1,12 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Get API base URL - handle both with and without /api suffix
+const getApiBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  // Remove trailing slash and /api if present
+  const baseUrl = envUrl.replace(/\/api\/?$/, '').replace(/\/$/, '');
+  return baseUrl;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export interface SubscriptionResponse {
   success: boolean;
@@ -13,23 +21,41 @@ export interface SubscriptionResponse {
 
 export const subscribeToNewsletter = async (email: string): Promise<SubscriptionResponse> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/subscribers/subscribe`, {
+    // Construct URL correctly - ensure single /api in path
+    const url = `${API_BASE_URL}/api/subscribers/subscribe`;
+    
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include', // Include cookies for CORS
       body: JSON.stringify({ email }),
     });
 
-    const data = await response.json();
-    
+    // Check if response is ok before parsing JSON
     if (!response.ok) {
-      throw new Error(data.message || 'Subscription failed');
+      let errorMessage = 'Subscription failed';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.errors?.[0]?.msg || errorMessage;
+      } catch (e) {
+        // If JSON parsing fails, use status text
+        errorMessage = response.statusText || errorMessage;
+      }
+      throw new Error(errorMessage);
     }
 
+    const data = await response.json();
     return data;
   } catch (error) {
     console.error('Subscription error:', error);
-    throw error;
+    
+    // Re-throw with better error message
+    if (error instanceof Error) {
+      throw error;
+    }
+    
+    throw new Error('Network error. Please check your connection and try again.');
   }
 };
