@@ -134,7 +134,10 @@ app.use((req, res) => {
   });
 });
 
-// Start server locally; export app for Vercel
+// Export app for Vercel (always export for serverless)
+module.exports = app;
+
+// Start server locally if not on Vercel
 const PORT = process.env.PORT || 5000;
 
 if (!process.env.VERCEL) {
@@ -144,5 +147,3 @@ if (!process.env.VERCEL) {
     console.log(`Allowed origins:`, allowedOrigins);
   });
 }
-
-module.exports = (req, res) => app(req, res);
