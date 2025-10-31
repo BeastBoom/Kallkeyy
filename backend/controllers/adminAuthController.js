@@ -65,20 +65,39 @@ exports.adminLogin = async (req, res) => {
     // Normalize the input to lowercase for comparison
     const searchTerm = username.toLowerCase().trim();
     
+    // Debug: Show database info
+    const dbName = mongoose.connection.db?.databaseName || mongoose.connection.name || 'unknown';
+    const dbHost = mongoose.connection.host || 'unknown';
     console.log('🔍 Searching for admin with:', searchTerm);
     console.log('🔍 Database connection state:', mongoose.connection.readyState, '(1=connected, 2=connecting, 0=disconnected)');
+    console.log('🔍 Connected to database:', dbName);
+    console.log('🔍 Database host:', dbHost);
+    console.log('🔍 MONGODB_URI contains:', process.env.MONGODB_URI ? process.env.MONGODB_URI.split('@')[1]?.split('/')[0] || 'hidden' : 'NOT SET');
     
     // Find admin by username or email
     let admin;
     try {
+      // Try multiple query approaches
       admin = await Admin.findOne({
         $or: [
           { username: searchTerm },
           { email: searchTerm }
         ]
       }).exec();
+      
+      // If not found, try case-insensitive search
+      if (!admin) {
+        console.log('⚠️ Exact match not found, trying case-insensitive search...');
+        admin = await Admin.findOne({
+          $or: [
+            { username: { $regex: new RegExp(`^${searchTerm}$`, 'i') } },
+            { email: { $regex: new RegExp(`^${searchTerm}$`, 'i') } }
+          ]
+        }).exec();
+      }
     } catch (queryError) {
       console.error('❌ Query error:', queryError.message);
+      console.error('Query error stack:', queryError.stack);
       setCorsHeaders(req, res);
       return res.status(500).json({
         success: false,
@@ -91,10 +110,29 @@ exports.adminLogin = async (req, res) => {
       console.log('❌ Admin not found for username/email:', searchTerm);
       // Debug: Check what admins exist in database
       try {
-        const allAdmins = await Admin.find({}).select('username email').limit(5).exec();
-        console.log('📋 Available admins in database:', allAdmins.map(a => ({ username: a.username, email: a.email })));
+        const adminCount = await Admin.countDocuments({}).exec();
+        console.log('📊 Total admins in database:', adminCount);
+        
+        const allAdmins = await Admin.find({}).select('username email role').limit(10).exec();
+        console.log('📋 Available admins in database:', allAdmins.map(a => ({ 
+          username: a.username, 
+          email: a.email,
+          role: a.role,
+          id: a._id 
+        })));
+        
+        // Check collection name
+        const collections = await mongoose.connection.db?.listCollections().toArray();
+        console.log('📚 Available collections:', collections?.map(c => c.name) || 'cannot list');
+        console.log('🔍 Admin model collection name:', Admin.collection?.collectionName || 'unknown');
+        
+        // Try direct collection access
+        const directCount = await mongoose.connection.db?.collection('admins')?.countDocuments({}) || 
+                           await mongoose.connection.db?.collection('admin')?.countDocuments({}) || 0;
+        console.log('🔍 Direct collection count (admins/admin):', directCount);
       } catch (debugError) {
         console.error('⚠️ Could not fetch admin list for debugging:', debugError.message);
+        console.error('Debug error stack:', debugError.stack);
       }
       setCorsHeaders(req, res);
       return res.status(401).json({
