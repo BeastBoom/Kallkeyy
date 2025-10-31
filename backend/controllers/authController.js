@@ -6,6 +6,7 @@ const { generateVerificationCode, sendVerificationEmail } = require('../utils/em
 const { validateEmailWithAPI } = require('../utils/emailValidation');
 const { validatePassword } = require('../utils/passwordValidation');
 const { validateName } = require('../utils/nameValidation');
+const { setCorsHeaders } = require('../utils/responseHelper');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -36,6 +37,7 @@ exports.register = async (req, res) => {
     // Validate name format
     const nameValidation = validateName(name);
     if (!nameValidation.valid) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Invalid name format',
@@ -50,6 +52,7 @@ exports.register = async (req, res) => {
     // ✅ STEP 1: Check if user already exists FIRST (fast database query)
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      setCorsHeaders(req, res);
       return res.status(400).json({ 
         success: false,
         message: 'This email is already registered. Please login instead.',
@@ -60,6 +63,7 @@ exports.register = async (req, res) => {
     // ✅ STEP 2: Validate password strength (fast local check)
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.valid) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Password does not meet requirements',
@@ -71,6 +75,7 @@ exports.register = async (req, res) => {
     // ✅ STEP 3: Validate email using Mailboxlayer API (expensive, do LAST)
     const emailValidation = await validateEmailWithAPI(email);
     if (!emailValidation.valid) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: emailValidation.message,
@@ -96,6 +101,7 @@ exports.register = async (req, res) => {
     // Set HTTP-only cookie
     setAuthCookie(res, token, true);
 
+    setCorsHeaders(req, res);
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
@@ -109,6 +115,7 @@ exports.register = async (req, res) => {
 
   } catch (error) {
     console.error('Registration error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({ 
       success: false,
       message: 'Server error during registration' 
@@ -124,17 +131,20 @@ exports.login = async (req, res) => {
     // Find user
     const user = await User.findOne({ email });
     if (!user) {
+      setCorsHeaders(req, res);
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
     // Check if user registered with Google
     if (!user.password) {
+      setCorsHeaders(req, res);
       return res.status(400).json({ message: 'Please login with Google' });
     }
 
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      setCorsHeaders(req, res);
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
@@ -144,6 +154,7 @@ exports.login = async (req, res) => {
     // Set HTTP-only cookie
     setAuthCookie(res, token, rememberMe);
 
+    setCorsHeaders(req, res);
     res.json({
       message: 'Login successful',
       token,
@@ -156,6 +167,7 @@ exports.login = async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({ message: 'Server error during login' });
   }
 };
@@ -199,6 +211,7 @@ exports.googleAuth = async (req, res) => {
     // Set HTTP-only cookie
     setAuthCookie(res, token, true);
 
+    setCorsHeaders(req, res);
     res.json({
       message: 'Google authentication successful',
       token,
@@ -210,6 +223,7 @@ exports.googleAuth = async (req, res) => {
     });
   } catch (error) {
     console.error('Google auth error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({ message: 'Google authentication failed' });
   }
 };
@@ -222,11 +236,13 @@ exports.forgotPassword = async (req, res) => {
     // Find user
     const user = await User.findOne({ email });
     if (!user) {
+      setCorsHeaders(req, res);
       return res.status(404).json({ message: 'No account found with this email' });
     }
 
     // Check if user registered with Google
     if (!user.password) {
+      setCorsHeaders(req, res);
       return res.status(400).json({ message: 'This account uses Google login. Please use Google to sign in.' });
     }
 
@@ -242,12 +258,15 @@ exports.forgotPassword = async (req, res) => {
     const emailSent = await sendVerificationEmail(email, verificationCode);
 
     if (!emailSent) {
+      setCorsHeaders(req, res);
       return res.status(500).json({ message: 'Failed to send verification email' });
     }
 
+    setCorsHeaders(req, res);
     res.json({ message: 'Verification code sent to your email' });
   } catch (error) {
     console.error('Forgot password error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -265,12 +284,15 @@ exports.verifyResetCode = async (req, res) => {
     });
 
     if (!user) {
+      setCorsHeaders(req, res);
       return res.status(400).json({ message: 'Invalid or expired verification code' });
     }
 
+    setCorsHeaders(req, res);
     res.json({ message: 'Code verified successfully' });
   } catch (error) {
     console.error('Verify code error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -283,6 +305,7 @@ exports.resetPassword = async (req, res) => {
     // Validate new password strength
     const passwordValidation = validatePassword(newPassword);
     if (!passwordValidation.valid) {
+      setCorsHeaders(req, res);
       return res.status(400).json({ 
         message: 'Password does not meet requirements',
         errors: passwordValidation.errors
@@ -297,6 +320,7 @@ exports.resetPassword = async (req, res) => {
     });
 
     if (!user) {
+      setCorsHeaders(req, res);
       return res.status(400).json({ message: 'Invalid or expired verification code' });
     }
 
@@ -309,9 +333,11 @@ exports.resetPassword = async (req, res) => {
     user.resetPasswordExpires = undefined;
     await user.save();
 
+    setCorsHeaders(req, res);
     res.json({ message: 'Password reset successful' });
   } catch (error) {
     console.error('Reset password error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -321,11 +347,14 @@ exports.getCurrentUser = async (req, res) => {
   try {
     const user = await User.findById(req.userId).select('-password');
     if (!user) {
+      setCorsHeaders(req, res);
       return res.status(404).json({ message: 'User not found' });
     }
+    setCorsHeaders(req, res);
     res.json({ user });
   } catch (error) {
     console.error('Get current user error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -337,6 +366,7 @@ exports.getUserProfile = async (req, res) => {
     const userId = req.userId;
     
     if (!userId) {
+      setCorsHeaders(req, res);
       return res.status(401).json({
         success: false,
         message: 'Unauthorized - No user ID found'
@@ -346,12 +376,14 @@ exports.getUserProfile = async (req, res) => {
     const user = await User.findById(userId).select('-password');
     
     if (!user) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'User not found'
       });
     }
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       user: {
@@ -365,6 +397,7 @@ exports.getUserProfile = async (req, res) => {
     });
   } catch (error) {
     console.error('Get user profile error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to get user profile'
@@ -383,12 +416,14 @@ exports.logout = async (req, res) => {
       path: '/'
     });
 
+    setCorsHeaders(req, res);
     res.json({
       success: true,
       message: 'Logged out successfully'
     });
   } catch (error) {
     console.error('Logout error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to logout'
@@ -402,6 +437,7 @@ exports.verifyCookie = async (req, res) => {
     const token = req.cookies.auth_token;
 
     if (!token) {
+      setCorsHeaders(req, res);
       return res.status(401).json({
         success: false,
         message: 'No authentication cookie found'
@@ -415,12 +451,14 @@ exports.verifyCookie = async (req, res) => {
     if (!user) {
       // Clear invalid cookie
       res.clearCookie('auth_token');
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'User not found'
       });
     }
 
+    setCorsHeaders(req, res);
     res.json({
       success: true,
       token,
@@ -433,6 +471,8 @@ exports.verifyCookie = async (req, res) => {
   } catch (error) {
     // Clear invalid cookie
     res.clearCookie('auth_token');
+    
+    setCorsHeaders(req, res);
     
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({

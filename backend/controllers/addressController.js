@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { setCorsHeaders } = require('../utils/responseHelper');
 
 // Get all user addresses
 exports.getAddresses = async (req, res) => {
@@ -6,12 +7,14 @@ exports.getAddresses = async (req, res) => {
     const userId = req.user._id;
     const user = await User.findById(userId).select('addresses');
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       addresses: user.addresses || []
     });
   } catch (error) {
     console.error('Get addresses error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch addresses',
@@ -28,6 +31,7 @@ exports.addAddress = async (req, res) => {
 
     // Validation
     if (!fullName || !phone || !pincode || !city || !state || !address) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'All address fields are required'
@@ -57,6 +61,7 @@ exports.addAddress = async (req, res) => {
 
     await user.save();
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Address added successfully',
@@ -65,6 +70,7 @@ exports.addAddress = async (req, res) => {
 
   } catch (error) {
     console.error('Add address error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to add address',
@@ -84,6 +90,7 @@ exports.updateAddress = async (req, res) => {
     const addressIndex = user.addresses.findIndex(addr => addr._id.toString() === addressId);
 
     if (addressIndex === -1) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Address not found'
@@ -111,6 +118,7 @@ exports.updateAddress = async (req, res) => {
 
     await user.save();
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Address updated successfully',
@@ -119,6 +127,7 @@ exports.updateAddress = async (req, res) => {
 
   } catch (error) {
     console.error('Update address error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to update address',
@@ -137,6 +146,7 @@ exports.deleteAddress = async (req, res) => {
     const addressIndex = user.addresses.findIndex(addr => addr._id.toString() === addressId);
 
     if (addressIndex === -1) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Address not found'
@@ -153,6 +163,7 @@ exports.deleteAddress = async (req, res) => {
 
     await user.save();
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Address deleted successfully',
@@ -161,6 +172,7 @@ exports.deleteAddress = async (req, res) => {
 
   } catch (error) {
     console.error('Delete address error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to delete address',
@@ -186,6 +198,7 @@ exports.setDefaultAddress = async (req, res) => {
     const addressIndex = user.addresses.findIndex(addr => addr._id.toString() === addressId);
     
     if (addressIndex === -1) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Address not found'
@@ -195,6 +208,7 @@ exports.setDefaultAddress = async (req, res) => {
     user.addresses[addressIndex].isDefault = true;
     await user.save();
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Default address updated',
@@ -203,6 +217,7 @@ exports.setDefaultAddress = async (req, res) => {
 
   } catch (error) {
     console.error('Set default address error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to set default address',

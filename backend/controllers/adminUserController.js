@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
+const { setCorsHeaders } = require('../utils/responseHelper');
 
 // Get all users with pagination
 exports.getAllUsers = async (req, res) => {
@@ -67,6 +68,7 @@ exports.getAllUsers = async (req, res) => {
       })
     );
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       data: {
@@ -81,6 +83,7 @@ exports.getAllUsers = async (req, res) => {
     });
   } catch (error) {
     console.error('Get users error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch users'
@@ -97,6 +100,7 @@ exports.getUserDetails = async (req, res) => {
       .select('-password -resetPasswordToken -resetPasswordExpires');
 
     if (!user) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'User not found'
@@ -121,6 +125,7 @@ exports.getUserDetails = async (req, res) => {
       require('../models/Review').countDocuments({ userId })
     ]);
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       data: {
@@ -138,6 +143,7 @@ exports.getUserDetails = async (req, res) => {
     });
   } catch (error) {
     console.error('Get user details error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch user details'
@@ -162,12 +168,14 @@ exports.updateUser = async (req, res) => {
     ).select('-password');
 
     if (!user) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'User not found'
       });
     }
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'User updated successfully',
@@ -175,6 +183,7 @@ exports.updateUser = async (req, res) => {
     });
   } catch (error) {
     console.error('Update user error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to update user',
@@ -191,6 +200,7 @@ exports.deleteUser = async (req, res) => {
     const user = await User.findById(userId);
 
     if (!user) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'User not found'
@@ -204,6 +214,7 @@ exports.deleteUser = async (req, res) => {
     });
 
     if (completedOrders > 0) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Cannot delete user with completed orders. Consider deactivating instead.'
@@ -216,12 +227,14 @@ exports.deleteUser = async (req, res) => {
     // Delete user
     await User.findByIdAndDelete(userId);
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'User deleted successfully'
     });
   } catch (error) {
     console.error('Delete user error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to delete user'
@@ -260,12 +273,14 @@ exports.exportUsers = async (req, res) => {
       })
     );
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       data: userData
     });
   } catch (error) {
     console.error('Export users error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to export users'

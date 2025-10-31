@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 
 // Load environment variables
@@ -83,6 +84,39 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Ensure mongoose connection is ready before handling requests
+// This middleware checks DB connection and waits if needed (skip health check)
+app.use(async (req, res, next) => {
+  // Skip health check - it should work even without DB
+  if (req.path === '/api/health' || req.path === '/') {
+    return next();
+  }
+
+  // Check if mongoose is connected
+  if (mongoose.connection.readyState === 0) {
+    // Not connected - try to connect
+    try {
+      if (!process.env.VERCEL) {
+        await connectDB();
+      } else {
+        // On Vercel, attempt connection but don't wait too long
+        const connectPromise = connectDB();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Connection timeout')), 2000)
+        );
+        await Promise.race([connectPromise, timeoutPromise]).catch(() => {
+          console.log('⚠️ DB connection timeout, request will proceed');
+        });
+      }
+    } catch (error) {
+      console.error('❌ Database connection error in middleware:', error.message);
+      // Continue anyway - let the route handler deal with it
+    }
+  }
+  
+  next();
+});
+
 // Routes
 const subscriberRoutes = require('./routes/subscribers');
 const authRoutes = require('./routes/auth');
@@ -141,9 +175,10 @@ app.use((req, res) => {
 // Connect to database (non-blocking for Vercel)
 // Don't block server startup if DB connection fails on Vercel
 if (process.env.VERCEL) {
-  // On Vercel, connect but don't block
+  // On Vercel, connect but don't block - mongoose will retry automatically
   connectDB().catch(err => {
     console.error('❌ Database connection failed (non-blocking):', err.message);
+    console.log('💡 MongoDB will retry connection on next request');
   });
 } else {
   // On local, connect normally

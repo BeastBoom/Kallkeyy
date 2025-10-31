@@ -1,4 +1,5 @@
 const Cart = require('../models/Cart');
+const { setCorsHeaders } = require('../utils/responseHelper');
 
 // Get user's cart
 exports.getCart = async (req, res) => {
@@ -11,11 +12,13 @@ exports.getCart = async (req, res) => {
       cart = await Cart.create({ userId, items: [] });
     }
     
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       cart
     });
   } catch (error) {
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch cart',
@@ -31,6 +34,7 @@ exports.addToCart = async (req, res) => {
     const { productId, productName, size, quantity, price, image } = req.body;
     
     if (!productId || !productName || !size || !quantity || !price || !image) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Missing required fields'
@@ -65,6 +69,7 @@ exports.addToCart = async (req, res) => {
     
     await cart.save();
     
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Item added to cart',
@@ -72,6 +77,7 @@ exports.addToCart = async (req, res) => {
     });
   } catch (error) {
     console.error('Add to cart error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to add item to cart',
@@ -87,6 +93,7 @@ exports.updateCartItem = async (req, res) => {
     const { productId, size, quantity } = req.body;
     
     if (quantity < 1) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Quantity must be at least 1'
@@ -96,6 +103,7 @@ exports.updateCartItem = async (req, res) => {
     const cart = await Cart.findOne({ userId });
     
     if (!cart) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Cart not found'
@@ -107,6 +115,7 @@ exports.updateCartItem = async (req, res) => {
     );
     
     if (itemIndex === -1) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Item not found in cart'
@@ -116,12 +125,14 @@ exports.updateCartItem = async (req, res) => {
     cart.items[itemIndex].quantity = quantity;
     await cart.save();
     
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Cart updated',
       cart
     });
   } catch (error) {
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to update cart',
@@ -139,6 +150,7 @@ exports.removeFromCart = async (req, res) => {
     const cart = await Cart.findOne({ userId });
     
     if (!cart) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Cart not found'
@@ -151,12 +163,14 @@ exports.removeFromCart = async (req, res) => {
     
     await cart.save();
     
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Item removed from cart',
       cart
     });
   } catch (error) {
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to remove item',
@@ -173,6 +187,7 @@ exports.clearCart = async (req, res) => {
     const cart = await Cart.findOne({ userId });
     
     if (!cart) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Cart not found'
@@ -182,12 +197,14 @@ exports.clearCart = async (req, res) => {
     cart.items = [];
     await cart.save();
     
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Cart cleared',
       cart
     });
   } catch (error) {
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to clear cart',
@@ -205,6 +222,7 @@ exports.saveForLater = async (req, res) => {
     const cart = await Cart.findOne({ userId });
     
     if (!cart) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Cart not found'
@@ -217,6 +235,7 @@ exports.saveForLater = async (req, res) => {
     );
     
     if (itemIndex === -1) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Item not found in cart'
@@ -241,6 +260,7 @@ exports.saveForLater = async (req, res) => {
     
     await cart.save();
     
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Item moved to Save for Later',
@@ -248,6 +268,7 @@ exports.saveForLater = async (req, res) => {
     });
   } catch (error) {
     console.error('Save for later error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to save for later',
@@ -265,6 +286,7 @@ exports.moveToCart = async (req, res) => {
     const cart = await Cart.findOne({ userId });
     
     if (!cart) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Cart not found'
@@ -277,6 +299,7 @@ exports.moveToCart = async (req, res) => {
     );
     
     if (savedIndex === -1) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Item not found in Save for Later'
@@ -301,6 +324,7 @@ exports.moveToCart = async (req, res) => {
     
     await cart.save();
     
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Item moved to cart',
@@ -308,6 +332,7 @@ exports.moveToCart = async (req, res) => {
     });
   } catch (error) {
     console.error('Move to cart error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to move to cart',
@@ -325,6 +350,7 @@ exports.removeFromSaved = async (req, res) => {
     const cart = await Cart.findOne({ userId });
     
     if (!cart) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Cart not found'
@@ -337,12 +363,14 @@ exports.removeFromSaved = async (req, res) => {
     
     await cart.save();
     
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Item removed from Save for Later',
       cart
     });
   } catch (error) {
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to remove item',

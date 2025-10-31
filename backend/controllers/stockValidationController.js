@@ -1,5 +1,21 @@
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
+const { setCorsHeaders } = require('../utils/responseHelper');
+
+// Helper function to get available stock (total stock minus reserved)
+const getAvailableStock = async (productId, size) => {
+  try {
+    const product = await Product.findOne({ productId });
+    if (!product) return 0;
+    
+    const totalStock = product.stock[size] || 0;
+    // For now, just return total stock (can be enhanced with reservation logic later)
+    return totalStock;
+  } catch (error) {
+    console.error('Error getting available stock:', error);
+    return 0;
+  }
+};
 
 /**
  * Validate cart items against current stock before checkout
@@ -13,6 +29,7 @@ exports.validateCartStock = async (req, res) => {
     const cart = await Cart.findOne({ userId });
     
     if (!cart || cart.items.length === 0) {
+      setCorsHeaders(req, res);
       return res.status(200).json({
         success: true,
         allItemsAvailable: true,
@@ -57,6 +74,7 @@ exports.validateCartStock = async (req, res) => {
     // Check if all items are available
     const allItemsAvailable = itemsWithStock.every(item => item.inStock);
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       allItemsAvailable,
@@ -65,6 +83,7 @@ exports.validateCartStock = async (req, res) => {
 
   } catch (error) {
     console.error('Cart stock validation error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to validate cart stock',
@@ -81,6 +100,7 @@ exports.validateItemStock = async (req, res) => {
     const { productId, size, quantity } = req.body;
 
     if (!productId || !size || !quantity) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Missing required fields'
@@ -90,6 +110,7 @@ exports.validateItemStock = async (req, res) => {
     const product = await Product.findOne({ productId });
     
     if (!product) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         isAvailable: false,
@@ -102,6 +123,7 @@ exports.validateItemStock = async (req, res) => {
 
     const isAvailable = availableStock >= quantity;
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       isAvailable,
@@ -112,6 +134,7 @@ exports.validateItemStock = async (req, res) => {
 
   } catch (error) {
     console.error('Item stock validation error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to validate item stock',

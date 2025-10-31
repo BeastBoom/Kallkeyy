@@ -1,5 +1,6 @@
 const Admin = require('../models/Admin');
 const jwt = require('jsonwebtoken');
+const { setCorsHeaders } = require('../utils/responseHelper');
 
 // Generate admin JWT token
 const generateAdminToken = (adminId, role) => {
@@ -31,6 +32,7 @@ exports.adminLogin = async (req, res) => {
     const { username, password } = req.body;
 
     if (!username || !password) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Username and password are required'
@@ -46,6 +48,7 @@ exports.adminLogin = async (req, res) => {
     });
 
     if (!admin) {
+      setCorsHeaders(req, res);
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
@@ -54,6 +57,7 @@ exports.adminLogin = async (req, res) => {
 
     // Check if admin is active
     if (!admin.isActive) {
+      setCorsHeaders(req, res);
       return res.status(403).json({
         success: false,
         message: 'Your account has been deactivated. Contact a founder.'
@@ -64,6 +68,7 @@ exports.adminLogin = async (req, res) => {
     const isPasswordValid = await admin.comparePassword(password);
 
     if (!isPasswordValid) {
+      setCorsHeaders(req, res);
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
@@ -91,6 +96,7 @@ exports.adminLogin = async (req, res) => {
 
     await admin.save();
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Login successful',
@@ -106,9 +112,11 @@ exports.adminLogin = async (req, res) => {
     });
   } catch (error) {
     console.error('Admin login error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
-      message: 'Server error during login'
+      message: 'Server error during login',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -123,12 +131,14 @@ exports.adminLogout = async (req, res) => {
       path: '/'
     });
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Logged out successfully'
     });
   } catch (error) {
     console.error('Admin logout error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Logout failed'
@@ -142,18 +152,21 @@ exports.getCurrentAdmin = async (req, res) => {
     const admin = await Admin.findById(req.adminId).select('-password');
 
     if (!admin) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Admin not found'
       });
     }
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       admin
     });
   } catch (error) {
     console.error('Get current admin error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -168,6 +181,7 @@ exports.createAdmin = async (req, res) => {
 
     // Validation
     if (!username || !email || !password || !fullName) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'All fields are required'
@@ -180,6 +194,7 @@ exports.createAdmin = async (req, res) => {
     });
 
     if (existingAdmin) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Admin with this username or email already exists'
@@ -198,6 +213,7 @@ exports.createAdmin = async (req, res) => {
 
     await admin.save();
 
+    setCorsHeaders(req, res);
     res.status(201).json({
       success: true,
       message: 'Admin created successfully',
@@ -211,6 +227,7 @@ exports.createAdmin = async (req, res) => {
     });
   } catch (error) {
     console.error('Create admin error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to create admin'
@@ -225,6 +242,7 @@ exports.listAdmins = async (req, res) => {
       .select('-password')
       .sort({ createdAt: -1 });
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       count: admins.length,
@@ -232,6 +250,7 @@ exports.listAdmins = async (req, res) => {
     });
   } catch (error) {
     console.error('List admins error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch admins'
@@ -247,6 +266,7 @@ exports.deactivateAdmin = async (req, res) => {
     const admin = await Admin.findById(adminId);
 
     if (!admin) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Admin not found'
@@ -255,6 +275,7 @@ exports.deactivateAdmin = async (req, res) => {
 
     // Prevent deactivating founders
     if (admin.role === 'founder') {
+      setCorsHeaders(req, res);
       return res.status(403).json({
         success: false,
         message: 'Cannot deactivate a founder account'
@@ -264,12 +285,14 @@ exports.deactivateAdmin = async (req, res) => {
     admin.isActive = false;
     await admin.save();
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Admin deactivated successfully'
     });
   } catch (error) {
     console.error('Deactivate admin error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to deactivate admin'
@@ -283,6 +306,7 @@ exports.verifyAdminCookie = async (req, res) => {
     const token = req.cookies.admin_token;
 
     if (!token) {
+      setCorsHeaders(req, res);
       return res.status(401).json({
         success: false,
         message: 'No authentication cookie found'
@@ -294,6 +318,7 @@ exports.verifyAdminCookie = async (req, res) => {
 
     if (!admin) {
       res.clearCookie('admin_token');
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Admin not found'
@@ -302,12 +327,14 @@ exports.verifyAdminCookie = async (req, res) => {
 
     if (!admin.isActive) {
       res.clearCookie('admin_token');
+      setCorsHeaders(req, res);
       return res.status(403).json({
         success: false,
         message: 'Account deactivated'
       });
     }
 
+    setCorsHeaders(req, res);
     res.json({
       success: true,
       token,
@@ -315,6 +342,8 @@ exports.verifyAdminCookie = async (req, res) => {
     });
   } catch (error) {
     res.clearCookie('admin_token');
+    
+    setCorsHeaders(req, res);
     
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({

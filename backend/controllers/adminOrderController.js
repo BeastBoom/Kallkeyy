@@ -1,5 +1,6 @@
 const Order = require('../models/Order');
 const User = require('../models/User');
+const { setCorsHeaders } = require('../utils/responseHelper');
 
 // Get all orders with pagination and filtering
 exports.getAllOrders = async (req, res) => {
@@ -48,6 +49,7 @@ exports.getAllOrders = async (req, res) => {
       Order.countDocuments(query)
     ]);
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       data: {
@@ -62,6 +64,7 @@ exports.getAllOrders = async (req, res) => {
     });
   } catch (error) {
     console.error('Get orders error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch orders'
@@ -78,18 +81,21 @@ exports.getOrderDetails = async (req, res) => {
       .populate('userId', 'name email phone addresses');
 
     if (!order) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Order not found'
       });
     }
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       order
     });
   } catch (error) {
     console.error('Get order details error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch order details'
@@ -106,6 +112,7 @@ exports.updateOrderStatus = async (req, res) => {
     const order = await Order.findById(orderId);
 
     if (!order) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Order not found'
@@ -121,6 +128,7 @@ exports.updateOrderStatus = async (req, res) => {
 
     await order.save();
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Order status updated successfully',
@@ -128,6 +136,7 @@ exports.updateOrderStatus = async (req, res) => {
     });
   } catch (error) {
     console.error('Update order status error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to update order status'
@@ -150,6 +159,7 @@ exports.updateShippingDetails = async (req, res) => {
     const order = await Order.findById(orderId);
 
     if (!order) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Order not found'
@@ -169,6 +179,7 @@ exports.updateShippingDetails = async (req, res) => {
 
     await order.save();
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Shipping details updated successfully',
@@ -176,6 +187,7 @@ exports.updateShippingDetails = async (req, res) => {
     });
   } catch (error) {
     console.error('Update shipping details error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to update shipping details'
@@ -192,6 +204,7 @@ exports.cancelOrder = async (req, res) => {
     const order = await Order.findById(orderId);
 
     if (!order) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Order not found'
@@ -199,6 +212,7 @@ exports.cancelOrder = async (req, res) => {
     }
 
     if (order.status === 'delivered') {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Cannot cancel delivered orders'
@@ -213,6 +227,7 @@ exports.cancelOrder = async (req, res) => {
 
     await order.save();
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Order cancelled successfully',
@@ -220,6 +235,7 @@ exports.cancelOrder = async (req, res) => {
     });
   } catch (error) {
     console.error('Cancel order error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to cancel order'
@@ -269,6 +285,7 @@ exports.getOrderStatistics = async (req, res) => {
       ])
     ]);
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       data: {
@@ -281,6 +298,7 @@ exports.getOrderStatistics = async (req, res) => {
     });
   } catch (error) {
     console.error('Get order statistics error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch order statistics'
@@ -319,12 +337,14 @@ exports.exportOrders = async (req, res) => {
       createdAt: order.createdAt
     }));
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       data: orderData
     });
   } catch (error) {
     console.error('Export orders error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to export orders'

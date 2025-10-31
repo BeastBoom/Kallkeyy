@@ -1,9 +1,11 @@
 const Product = require('../models/Product');
+const { setCorsHeaders } = require('../utils/responseHelper');
 
 // Get all products
 exports.getAllProducts = async (req, res) => {
   try {
     const products = await Product.find().select('-__v');
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       count: products.length,
@@ -11,6 +13,7 @@ exports.getAllProducts = async (req, res) => {
     });
   } catch (error) {
     console.error('Get products error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch products',
@@ -26,18 +29,21 @@ exports.getProductById = async (req, res) => {
     const product = await Product.findOne({ productId });
     
     if (!product) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Product not found'
       });
     }
     
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       product
     });
   } catch (error) {
     console.error('Get product error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch product',
@@ -52,6 +58,7 @@ exports.checkStock = async (req, res) => {
     const { productId, size } = req.query;
     
     if (!productId || !size) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Product ID and size are required'
@@ -61,6 +68,7 @@ exports.checkStock = async (req, res) => {
     const product = await Product.findOne({ productId });
     
     if (!product) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Product not found'
@@ -69,6 +77,7 @@ exports.checkStock = async (req, res) => {
     
     const stockQuantity = product.stock[size] || 0;
     
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       inStock: stockQuantity > 0,
@@ -78,6 +87,7 @@ exports.checkStock = async (req, res) => {
     });
   } catch (error) {
     console.error('Check stock error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to check stock',
@@ -93,6 +103,7 @@ exports.updateStock = async (req, res) => {
     const { size, quantity } = req.body;
     
     if (!size || quantity === undefined) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Size and quantity are required'
@@ -102,6 +113,7 @@ exports.updateStock = async (req, res) => {
     const product = await Product.findOne({ productId });
     
     if (!product) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Product not found'
@@ -111,6 +123,7 @@ exports.updateStock = async (req, res) => {
     product.stock[size] = quantity;
     await product.save();
     
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Stock updated successfully',
@@ -118,6 +131,7 @@ exports.updateStock = async (req, res) => {
     });
   } catch (error) {
     console.error('Update stock error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to update stock',
@@ -138,6 +152,7 @@ exports.createOrUpdateProduct = async (req, res) => {
       Object.assign(product, { name, price, category, description, images, material, stock, tag });
       await product.save();
       
+      setCorsHeaders(req, res);
       res.status(200).json({
         success: true,
         message: 'Product updated successfully',
@@ -149,6 +164,7 @@ exports.createOrUpdateProduct = async (req, res) => {
         productId, name, price, category, description, images, material, stock, tag
       });
       
+      setCorsHeaders(req, res);
       res.status(201).json({
         success: true,
         message: 'Product created successfully',
@@ -157,6 +173,7 @@ exports.createOrUpdateProduct = async (req, res) => {
     }
   } catch (error) {
     console.error('Create/Update product error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to create/update product',

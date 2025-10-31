@@ -1,4 +1,5 @@
 const Subscriber = require('../models/Subscriber');
+const { setCorsHeaders } = require('../utils/responseHelper');
 
 // Get all subscribers with pagination
 exports.getAllSubscribers = async (req, res) => {
@@ -33,6 +34,7 @@ exports.getAllSubscribers = async (req, res) => {
       Subscriber.countDocuments(query)
     ]);
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       data: {
@@ -47,6 +49,7 @@ exports.getAllSubscribers = async (req, res) => {
     });
   } catch (error) {
     console.error('Get subscribers error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch subscribers'
@@ -81,6 +84,7 @@ exports.getSubscriberStats = async (req, res) => {
       ])
     ]);
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       data: {
@@ -92,6 +96,7 @@ exports.getSubscriberStats = async (req, res) => {
     });
   } catch (error) {
     console.error('Get subscriber stats error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch subscriber statistics'
@@ -105,6 +110,7 @@ exports.addSubscriber = async (req, res) => {
     const { email } = req.body;
 
     if (!email) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Email is required'
@@ -115,6 +121,7 @@ exports.addSubscriber = async (req, res) => {
     const existing = await Subscriber.findOne({ email: email.toLowerCase() });
 
     if (existing) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Email already subscribed'
@@ -128,6 +135,7 @@ exports.addSubscriber = async (req, res) => {
 
     await subscriber.save();
 
+    setCorsHeaders(req, res);
     res.status(201).json({
       success: true,
       message: 'Subscriber added successfully',
@@ -135,6 +143,7 @@ exports.addSubscriber = async (req, res) => {
     });
   } catch (error) {
     console.error('Add subscriber error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to add subscriber'
@@ -150,6 +159,7 @@ exports.toggleSubscriberStatus = async (req, res) => {
     const subscriber = await Subscriber.findById(id);
 
     if (!subscriber) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Subscriber not found'
@@ -159,6 +169,7 @@ exports.toggleSubscriberStatus = async (req, res) => {
     subscriber.isActive = !subscriber.isActive;
     await subscriber.save();
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: `Subscriber ${subscriber.isActive ? 'activated' : 'deactivated'} successfully`,
@@ -166,6 +177,7 @@ exports.toggleSubscriberStatus = async (req, res) => {
     });
   } catch (error) {
     console.error('Toggle subscriber status error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to toggle subscriber status'
@@ -181,18 +193,21 @@ exports.deleteSubscriber = async (req, res) => {
     const subscriber = await Subscriber.findByIdAndDelete(id);
 
     if (!subscriber) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Subscriber not found'
       });
     }
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Subscriber deleted successfully'
     });
   } catch (error) {
     console.error('Delete subscriber error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to delete subscriber'
@@ -205,6 +220,7 @@ exports.bulkDeleteInactive = async (req, res) => {
   try {
     const result = await Subscriber.deleteMany({ isActive: false });
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: `Deleted ${result.deletedCount} inactive subscribers`,
@@ -212,6 +228,7 @@ exports.bulkDeleteInactive = async (req, res) => {
     });
   } catch (error) {
     console.error('Bulk delete error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to delete inactive subscribers'
@@ -238,12 +255,14 @@ exports.exportSubscribers = async (req, res) => {
       subscribedAt: sub.subscribedAt
     }));
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       data: subscriberData
     });
   } catch (error) {
     console.error('Export subscribers error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to export subscribers'

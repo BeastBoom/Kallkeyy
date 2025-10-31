@@ -1,4 +1,5 @@
 const Review = require('../models/Review');
+const { setCorsHeaders } = require('../utils/responseHelper');
 
 // Get all reviews for a product
 exports.getReviewsByProduct = async (req, res) => {
@@ -9,6 +10,7 @@ exports.getReviewsByProduct = async (req, res) => {
       .sort({ createdAt: -1 })
       .select('-__v');
     
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       count: reviews.length,
@@ -16,6 +18,7 @@ exports.getReviewsByProduct = async (req, res) => {
     });
   } catch (error) {
     console.error('Get reviews error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch reviews',
@@ -34,6 +37,7 @@ exports.createReview = async (req, res) => {
     
     // Validate required fields
     if (!productId || !rating) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Product ID and rating are required',
@@ -43,6 +47,7 @@ exports.createReview = async (req, res) => {
     
     // Validate rating range
     if (rating < 1 || rating > 5) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Rating must be between 1 and 5',
@@ -53,6 +58,7 @@ exports.createReview = async (req, res) => {
     // Check if user already reviewed this product
     const existingReview = await Review.findOne({ productId, userId });
     if (existingReview) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'You have already reviewed this product',
@@ -70,6 +76,7 @@ exports.createReview = async (req, res) => {
       description: description?.trim() || ''
     });
     
+    setCorsHeaders(req, res);
     res.status(201).json({
       success: true,
       message: 'Review submitted successfully',
@@ -77,6 +84,7 @@ exports.createReview = async (req, res) => {
     });
   } catch (error) {
     console.error('Create review error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to submit review',
@@ -96,6 +104,7 @@ exports.updateReview = async (req, res) => {
     const review = await Review.findById(reviewId);
     
     if (!review) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Review not found'
@@ -104,6 +113,7 @@ exports.updateReview = async (req, res) => {
     
     // Check if user owns this review
     if (review.userId.toString() !== userId.toString()) {
+      setCorsHeaders(req, res);
       return res.status(403).json({
         success: false,
         message: 'You can only edit your own reviews'
@@ -112,6 +122,7 @@ exports.updateReview = async (req, res) => {
     
     // Validate rating if provided
     if (rating && (rating < 1 || rating > 5)) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Rating must be between 1 and 5',
@@ -125,6 +136,7 @@ exports.updateReview = async (req, res) => {
     
     await review.save();
     
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Review updated successfully',
@@ -132,6 +144,7 @@ exports.updateReview = async (req, res) => {
     });
   } catch (error) {
     console.error('Update review error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to update review',
@@ -150,6 +163,7 @@ exports.deleteReview = async (req, res) => {
     const review = await Review.findById(reviewId);
     
     if (!review) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Review not found'
@@ -158,6 +172,7 @@ exports.deleteReview = async (req, res) => {
     
     // Check if user owns this review
     if (review.userId.toString() !== userId.toString()) {
+      setCorsHeaders(req, res);
       return res.status(403).json({
         success: false,
         message: 'You can only delete your own reviews'
@@ -166,12 +181,14 @@ exports.deleteReview = async (req, res) => {
     
     await Review.deleteOne({ _id: reviewId });
     
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Review deleted successfully'
     });
   } catch (error) {
     console.error('Delete review error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to delete review',

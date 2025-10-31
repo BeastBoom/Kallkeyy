@@ -4,6 +4,7 @@ const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Subscriber = require('../models/Subscriber');
 const Review = require('../models/Review');
+const { setCorsHeaders } = require('../utils/responseHelper');
 
 // Get dashboard overview
 exports.getDashboardOverview = async (req, res) => {
@@ -75,6 +76,7 @@ exports.getDashboardOverview = async (req, res) => {
       }
     ]);
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       data: {
@@ -93,6 +95,7 @@ exports.getDashboardOverview = async (req, res) => {
     });
   } catch (error) {
     console.error('Dashboard overview error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch dashboard data'
@@ -164,6 +167,7 @@ exports.getCartAnalytics = async (req, res) => {
     const averageCartValue = carts.reduce((sum, cart) => sum + (cart.totalPrice || 0), 0) / (totalCarts || 1);
     const averageItemsPerCart = carts.reduce((sum, cart) => sum + (cart.totalItems || 0), 0) / (totalCarts || 1);
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       data: {
@@ -187,6 +191,7 @@ exports.getCartAnalytics = async (req, res) => {
     });
   } catch (error) {
     console.error('Cart analytics error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch cart analytics'
@@ -244,6 +249,7 @@ exports.getProductAnalytics = async (req, res) => {
       { $sort: { averageRating: -1 } }
     ]);
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       data: {
@@ -255,6 +261,7 @@ exports.getProductAnalytics = async (req, res) => {
     });
   } catch (error) {
     console.error('Product analytics error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch product analytics'
@@ -317,6 +324,7 @@ exports.getUserAnalytics = async (req, res) => {
       { $sort: { '_id.year': 1, '_id.month': 1 } }
     ]);
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       data: {
@@ -333,6 +341,7 @@ exports.getUserAnalytics = async (req, res) => {
     });
   } catch (error) {
     console.error('User analytics error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch user analytics'
@@ -399,6 +408,7 @@ exports.getOrderAnalytics = async (req, res) => {
       { $limit: 10 }
     ]);
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       data: {
@@ -418,6 +428,7 @@ exports.getOrderAnalytics = async (req, res) => {
     });
   } catch (error) {
     console.error('Order analytics error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch order analytics'

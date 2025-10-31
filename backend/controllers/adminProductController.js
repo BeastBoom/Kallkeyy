@@ -1,4 +1,5 @@
 const Product = require('../models/Product');
+const { setCorsHeaders } = require('../utils/responseHelper');
 
 // Get all products with pagination and filtering
 exports.getAllProducts = async (req, res) => {
@@ -37,6 +38,7 @@ exports.getAllProducts = async (req, res) => {
       Product.countDocuments(query)
     ]);
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       data: {
@@ -51,6 +53,7 @@ exports.getAllProducts = async (req, res) => {
     });
   } catch (error) {
     console.error('Get products error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch products'
@@ -66,18 +69,21 @@ exports.getProductById = async (req, res) => {
     const product = await Product.findOne({ productId });
 
     if (!product) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Product not found'
       });
     }
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       product
     });
   } catch (error) {
     console.error('Get product error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch product'
@@ -102,6 +108,7 @@ exports.createProduct = async (req, res) => {
 
     // Validation
     if (!productId || !name || !price || !category || !description) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Missing required fields'
@@ -111,6 +118,7 @@ exports.createProduct = async (req, res) => {
     // Check if product already exists
     const existingProduct = await Product.findOne({ productId });
     if (existingProduct) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Product with this ID already exists'
@@ -131,6 +139,7 @@ exports.createProduct = async (req, res) => {
 
     await product.save();
 
+    setCorsHeaders(req, res);
     res.status(201).json({
       success: true,
       message: 'Product created successfully',
@@ -138,6 +147,7 @@ exports.createProduct = async (req, res) => {
     });
   } catch (error) {
     console.error('Create product error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to create product',
@@ -155,6 +165,7 @@ exports.updateProduct = async (req, res) => {
     const product = await Product.findOne({ productId });
 
     if (!product) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Product not found'
@@ -170,6 +181,7 @@ exports.updateProduct = async (req, res) => {
 
     await product.save();
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Product updated successfully',
@@ -177,6 +189,7 @@ exports.updateProduct = async (req, res) => {
     });
   } catch (error) {
     console.error('Update product error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to update product',
@@ -192,6 +205,7 @@ exports.updateStock = async (req, res) => {
     const { stock } = req.body;
 
     if (!stock || typeof stock !== 'object') {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Invalid stock data'
@@ -201,6 +215,7 @@ exports.updateStock = async (req, res) => {
     const product = await Product.findOne({ productId });
 
     if (!product) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Product not found'
@@ -217,6 +232,7 @@ exports.updateStock = async (req, res) => {
 
     await product.save();
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Stock updated successfully',
@@ -224,6 +240,7 @@ exports.updateStock = async (req, res) => {
     });
   } catch (error) {
     console.error('Update stock error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to update stock'
@@ -239,18 +256,21 @@ exports.deleteProduct = async (req, res) => {
     const product = await Product.findOneAndDelete({ productId });
 
     if (!product) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Product not found'
       });
     }
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Product deleted successfully'
     });
   } catch (error) {
     console.error('Delete product error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to delete product'
@@ -264,6 +284,7 @@ exports.bulkUpdateStock = async (req, res) => {
     const { updates } = req.body; // Array of { productId, stock }
 
     if (!Array.isArray(updates)) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Updates must be an array'
@@ -295,6 +316,7 @@ exports.bulkUpdateStock = async (req, res) => {
       }
     }
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Bulk update completed',
@@ -302,6 +324,7 @@ exports.bulkUpdateStock = async (req, res) => {
     });
   } catch (error) {
     console.error('Bulk update error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to perform bulk update'

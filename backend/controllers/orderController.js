@@ -1,5 +1,6 @@
 const Order = require("../models/Order");
 const Product = require("../models/Product");
+const { setCorsHeaders } = require('../utils/responseHelper');
 
 // @desc    Get all orders for logged in user
 // @route   GET /api/orders
@@ -9,9 +10,11 @@ exports.getUserOrders = async (req, res) => {
     const orders = await Order.find({ userId: req.user._id })
       .sort({ createdAt: -1 });
 
+    setCorsHeaders(req, res);
     res.json(orders);
   } catch (error) {
     console.error("Error fetching user orders:", error);
+    setCorsHeaders(req, res);
     res.status(500).json({ message: "Server error fetching orders" });
   }
 };
@@ -24,17 +27,21 @@ exports.getOrderById = async (req, res) => {
     const order = await Order.findById(req.params.id);
 
     if (!order) {
+      setCorsHeaders(req, res);
       return res.status(404).json({ message: "Order not found" });
     }
 
     // Make sure user can only see their own order
     if (order.userId.toString() !== req.user._id.toString()) {
+      setCorsHeaders(req, res);
       return res.status(403).json({ message: "Not authorized to view this order" });
     }
 
+    setCorsHeaders(req, res);
     res.json(order);
   } catch (error) {
     console.error("Error fetching order:", error);
+    setCorsHeaders(req, res);
     res.status(500).json({ message: "Server error fetching order" });
   }
 };
@@ -49,16 +56,19 @@ exports.requestReturn = async (req, res) => {
     const order = await Order.findById(req.params.id);
 
     if (!order) {
+      setCorsHeaders(req, res);
       return res.status(404).json({ message: "Order not found" });
     }
 
     // Make sure user can only request return for their own order
     if (order.userId.toString() !== req.user._id.toString()) {
+      setCorsHeaders(req, res);
       return res.status(403).json({ message: "Not authorized" });
     }
 
     // Check if order is eligible for return
     if (order.status === "cancelled" || order.status === "returned") {
+      setCorsHeaders(req, res);
       return res.status(400).json({ message: "Order is not eligible for return" });
     }
 
@@ -70,6 +80,7 @@ exports.requestReturn = async (req, res) => {
       );
 
       if (daysSinceDelivery > 7) {
+        setCorsHeaders(req, res);
         return res.status(400).json({
           message: "Return window has expired. Returns are only accepted within 7 days of delivery.",
         });
@@ -85,12 +96,14 @@ exports.requestReturn = async (req, res) => {
 
     await order.save();
 
+    setCorsHeaders(req, res);
     res.json({
       message: "Return request submitted successfully",
       order,
     });
   } catch (error) {
     console.error("Error requesting return:", error);
+    setCorsHeaders(req, res);
     res.status(500).json({ message: "Server error processing return request" });
   }
 };
@@ -103,16 +116,19 @@ exports.cancelOrder = async (req, res) => {
     const order = await Order.findById(req.params.id);
 
     if (!order) {
+      setCorsHeaders(req, res);
       return res.status(404).json({ message: "Order not found" });
     }
 
     // Make sure user can only cancel their own order
     if (order.userId.toString() !== req.user._id.toString()) {
+      setCorsHeaders(req, res);
       return res.status(403).json({ message: "Not authorized" });
     }
 
     // Check if order can be cancelled (only pending or processing orders)
     if (order.status !== "pending" && order.status !== "processing") {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         message: "Order cannot be cancelled at this stage",
       });
@@ -131,12 +147,14 @@ exports.cancelOrder = async (req, res) => {
     //   });
     // }
 
+    setCorsHeaders(req, res);
     res.json({
       message: "Order cancelled successfully",
       order,
     });
   } catch (error) {
     console.error("Error cancelling order:", error);
+    setCorsHeaders(req, res);
     res.status(500).json({ message: "Server error cancelling order" });
   }
 };

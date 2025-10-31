@@ -1,5 +1,6 @@
 const axios = require("axios");
 const User = require("../models/User");
+const { setCorsHeaders } = require('../utils/responseHelper');
 
 // Store OTPs temporarily (in production, consider using Redis)
 const otpStore = new Map();
@@ -96,6 +97,7 @@ exports.sendOTP = async (req, res) => {
 
     // Validate phone number
     if (!phone || phone.length !== 10 || !/^\d{10}$/.test(phone)) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: "Valid 10-digit phone number is required",
@@ -108,6 +110,7 @@ exports.sendOTP = async (req, res) => {
 
     if (lastSendTime && currentTime - lastSendTime < 60000) {
       const remainingTime = Math.ceil((60000 - (currentTime - lastSendTime)) / 1000);
+      setCorsHeaders(req, res);
       return res.status(429).json({
         success: false,
         message: `Please wait ${remainingTime} seconds before requesting a new OTP`,
@@ -133,6 +136,7 @@ exports.sendOTP = async (req, res) => {
 
     console.log(`WhatsApp OTP sent successfully to: 91${phone}`);
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: "OTP sent successfully to your WhatsApp",
@@ -141,6 +145,7 @@ exports.sendOTP = async (req, res) => {
     });
   } catch (error) {
     console.error("OTP send error:", error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: "Failed to send OTP. Please try again.",
@@ -158,6 +163,7 @@ exports.verifyOTP = async (req, res) => {
     const userId = req.userId;
 
     if (!phone || !otp) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: "Phone number and OTP are required",
@@ -165,6 +171,7 @@ exports.verifyOTP = async (req, res) => {
     }
 
     if (!userId) {
+      setCorsHeaders(req, res);
       return res.status(401).json({
         success: false,
         message: "User not authenticated",
@@ -174,6 +181,7 @@ exports.verifyOTP = async (req, res) => {
     const storedData = otpStore.get(phone);
 
     if (!storedData) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: "No OTP found for this number. Please request a new one.",
@@ -183,6 +191,7 @@ exports.verifyOTP = async (req, res) => {
     // Check expiration
     if (Date.now() > storedData.expiresAt) {
       otpStore.delete(phone);
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: "OTP has expired. Please request a new one.",
@@ -192,6 +201,7 @@ exports.verifyOTP = async (req, res) => {
     // Check attempts (max 5)
     if (storedData.attempts >= 5) {
       otpStore.delete(phone);
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: "Too many failed attempts. Please request a new OTP.",
@@ -202,6 +212,7 @@ exports.verifyOTP = async (req, res) => {
     if (storedData.otp !== otp) {
       storedData.attempts += 1;
       otpStore.set(phone, storedData);
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: `Invalid OTP. ${5 - storedData.attempts} attempts remaining.`,
@@ -219,6 +230,7 @@ exports.verifyOTP = async (req, res) => {
     ).select("-password");
 
     if (!updatedUser) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: "User not found",
@@ -227,6 +239,7 @@ exports.verifyOTP = async (req, res) => {
 
     otpStore.delete(phone);
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: "Phone number verified successfully",
@@ -235,6 +248,7 @@ exports.verifyOTP = async (req, res) => {
     });
   } catch (error) {
     console.error("OTP verification error:", error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: "Failed to verify OTP. Please try again.",
@@ -255,6 +269,7 @@ exports.resendOTP = async (req, res) => {
     return exports.sendOTP(req, res);
   } catch (error) {
     console.error("OTP resend error:", error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: "Failed to resend OTP. Please try again.",

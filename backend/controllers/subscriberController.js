@@ -1,5 +1,6 @@
 const Subscriber = require('../models/Subscriber.js');
 const { validationResult } = require('express-validator');
+const { setCorsHeaders } = require('../utils/responseHelper');
 
 // @desc    Subscribe to newsletter
 // @route   POST /api/subscribers
@@ -9,6 +10,7 @@ const subscribeNewsletter = async (req, res) => {
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      setCorsHeaders(req, res);
       return res.status(400).json({ 
         success: false,
         errors: errors.array() 
@@ -22,6 +24,7 @@ const subscribeNewsletter = async (req, res) => {
 
     if (existingSubscriber) {
       if (existingSubscriber.isActive) {
+        setCorsHeaders(req, res);
         return res.status(400).json({
           success: false,
           message: 'This email is already subscribed to our newsletter',
@@ -32,6 +35,7 @@ const subscribeNewsletter = async (req, res) => {
         existingSubscriber.subscribedAt = Date.now();
         await existingSubscriber.save();
 
+        setCorsHeaders(req, res);
         return res.status(200).json({
           success: true,
           message: 'Welcome back! Your subscription has been reactivated',
@@ -43,6 +47,7 @@ const subscribeNewsletter = async (req, res) => {
     // Create new subscriber
     const subscriber = await Subscriber.create({ email });
 
+    setCorsHeaders(req, res);
     res.status(201).json({
       success: true,
       message: 'Successfully subscribed to newsletter!',
@@ -50,6 +55,7 @@ const subscribeNewsletter = async (req, res) => {
     });
   } catch (error) {
     console.error('Subscribe error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Server error. Please try again later.',
@@ -67,6 +73,7 @@ const getAllSubscribers = async (req, res) => {
       .sort({ subscribedAt: -1 })
       .select('-__v');
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       count: subscribers.length,
@@ -74,6 +81,7 @@ const getAllSubscribers = async (req, res) => {
     });
   } catch (error) {
     console.error('Get subscribers error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Server error. Please try again later.',
@@ -92,6 +100,7 @@ const unsubscribe = async (req, res) => {
     const subscriber = await Subscriber.findOne({ email });
 
     if (!subscriber) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Email not found in our subscription list',
@@ -101,12 +110,14 @@ const unsubscribe = async (req, res) => {
     subscriber.isActive = false;
     await subscriber.save();
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Successfully unsubscribed from newsletter',
     });
   } catch (error) {
     console.error('Unsubscribe error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Server error. Please try again later.',

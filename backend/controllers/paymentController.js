@@ -4,6 +4,7 @@ const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const axios = require('axios');
+const { setCorsHeaders } = require('../utils/responseHelper');
 
 // Initialize Razorpay
 const razorpay = new Razorpay({
@@ -22,6 +23,7 @@ exports.createOrder = async (req, res) => {
     const cart = await Cart.findOne({ userId });
     
     if (!cart || cart.items.length === 0) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Cart is empty'
@@ -56,6 +58,7 @@ exports.createOrder = async (req, res) => {
     }
 
     if (unavailableItems.length > 0) {
+      setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
         message: 'Some items in your cart are no longer available',
@@ -91,6 +94,7 @@ exports.createOrder = async (req, res) => {
       paymentStatus: 'pending'
     });
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       order: {
@@ -104,6 +108,7 @@ exports.createOrder = async (req, res) => {
 
   } catch (error) {
     console.error('Order creation error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to create order',
@@ -143,6 +148,7 @@ exports.verifyPayment = async (req, res) => {
       );
 
       if (!order) {
+        setCorsHeaders(req, res);
         return res.status(404).json({
           success: false,
           message: 'Order not found'
@@ -175,6 +181,7 @@ exports.verifyPayment = async (req, res) => {
         });
       }
 
+      setCorsHeaders(req, res);
       res.status(200).json({
         success: true,
         message: 'Payment verified successfully',
@@ -186,6 +193,7 @@ exports.verifyPayment = async (req, res) => {
         status: 'failed'
       });
 
+      setCorsHeaders(req, res);
       res.status(400).json({
         success: false,
         message: 'Payment verification failed'
@@ -193,6 +201,7 @@ exports.verifyPayment = async (req, res) => {
     }
   } catch (error) {
     console.error('Payment verification error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Payment verification failed',
@@ -236,12 +245,15 @@ exports.webhookHandler = async (req, res) => {
         );
       }
 
+      setCorsHeaders(req, res);
       res.status(200).json({ success: true });
     } else {
+      setCorsHeaders(req, res);
       res.status(400).json({ success: false, message: 'Invalid signature' });
     }
   } catch (error) {
     console.error('Webhook error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -252,11 +264,13 @@ exports.getUserOrders = async (req, res) => {
     const userId = req.user._id;
     const orders = await Order.find({ userId }).sort({ createdAt: -1 });
 
+    setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       orders
     });
   } catch (error) {
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch orders',
@@ -384,6 +398,7 @@ exports.getOrderTracking = async (req, res) => {
     const order = await Order.findById(orderId);
 
     if (!order) {
+      setCorsHeaders(req, res);
       return res.status(404).json({
         success: false,
         message: 'Order not found'
@@ -392,6 +407,7 @@ exports.getOrderTracking = async (req, res) => {
 
     // Check if order belongs to user
     if (order.userId.toString() !== req.user._id.toString()) {
+      setCorsHeaders(req, res);
       return res.status(403).json({
         success: false,
         message: 'Unauthorized access'
@@ -400,6 +416,7 @@ exports.getOrderTracking = async (req, res) => {
 
     // If Shiprocket is not enabled or no shipment ID, return basic order info
     if (!order.shiprocketShipmentId) {
+      setCorsHeaders(req, res);
       return res.status(200).json({
         success: true,
         order: {
@@ -424,6 +441,7 @@ exports.getOrderTracking = async (req, res) => {
         }
       );
 
+      setCorsHeaders(req, res);
       res.status(200).json({
         success: true,
         order: {
@@ -438,6 +456,7 @@ exports.getOrderTracking = async (req, res) => {
       // If tracking fetch fails, return order without tracking
       console.error('Failed to fetch Shiprocket tracking:', trackingError.message);
       
+      setCorsHeaders(req, res);
       res.status(200).json({
         success: true,
         order: {
@@ -454,6 +473,7 @@ exports.getOrderTracking = async (req, res) => {
     }
   } catch (error) {
     console.error('Get order tracking error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Failed to get order tracking',
@@ -476,6 +496,7 @@ exports.shiprocketWebhook = async (req, res) => {
 
     if (!order) {
       console.log(`⚠️  Order not found for Shiprocket ID: ${webhookData.order_id}`);
+      setCorsHeaders(req, res);
       return res.status(200).json({ success: true, message: 'Order not found' });
     }
 
@@ -525,9 +546,11 @@ exports.shiprocketWebhook = async (req, res) => {
       console.log(`✅ Order ${order.orderId} updated:`, updates);
     }
 
+    setCorsHeaders(req, res);
     res.status(200).json({ success: true });
   } catch (error) {
     console.error('❌ Shiprocket webhook error:', error);
+    setCorsHeaders(req, res);
     res.status(500).json({ 
       success: false, 
       error: error.message 
