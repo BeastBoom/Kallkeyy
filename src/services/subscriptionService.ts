@@ -1,12 +1,4 @@
-// Get API base URL - handle both with and without /api suffix
-const getApiBaseUrl = () => {
-  const envUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-  // Remove trailing slash and /api if present
-  const baseUrl = envUrl.replace(/\/api\/?$/, '').replace(/\/$/, '');
-  return baseUrl;
-};
-
-const API_BASE_URL = getApiBaseUrl();
+import { API_BASE_URL } from '../lib/apiConfig';
 
 export interface SubscriptionResponse {
   success: boolean;

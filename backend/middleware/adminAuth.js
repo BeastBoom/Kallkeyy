@@ -1,32 +1,7 @@
 const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
 const connectDB = require('../config/db');
-
-// Helper to set CORS headers (reuse from server.js pattern)
-function setCorsHeaders(req, res) {
-  const origin = req.headers.origin;
-  if (origin) {
-    // Check against common allowed origins
-    const allowedPatterns = [
-      /^https:\/\/[a-z0-9-]+\.vercel\.app$/,
-      /^https:\/\/.*\.kallkeyy\.com$/,
-      /^http:\/\/localhost:\d+$/
-    ];
-    const allowedOrigins = [
-      'https://kallkeyy.com',
-      'https://www.kallkeyy.com',
-      'https://kallkeyy.vercel.app',
-      'https://kallkeyy-admin.vercel.app'
-    ];
-    
-    if (allowedOrigins.includes(origin) || allowedPatterns.some(p => p.test(origin))) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-    }
-  }
-}
+const { setCorsHeaders } = require('../utils/corsHelper');
 
 // Middleware to verify admin authentication
 const adminAuth = async (req, res, next) => {

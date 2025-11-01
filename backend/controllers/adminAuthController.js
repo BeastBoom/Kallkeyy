@@ -26,8 +26,8 @@ const setAdminCookie = (res, token) => {
   // For same-domain, sameSite: 'lax' works fine
   res.cookie('admin_token', token, {
     httpOnly: true,
-    secure: isProduction, // true on Vercel (HTTPS), false on localhost (HTTP)
-    sameSite: isProduction ? 'none' : 'lax', // 'none' needed for cross-domain on HTTPS, 'lax' for same-domain or localhost
+    secure: isProduction, // true on Vercel (HTTPS), false in development (HTTP)
+    sameSite: isProduction ? 'none' : 'lax', // 'none' needed for cross-domain on HTTPS, 'lax' for same-domain or development
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/'
   });

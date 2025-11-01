@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCart } from "../../contexts/CartContext";
+import { API_BASE_URL } from "../../lib/apiConfig";
 
 interface ProductData {
   name: string;
@@ -203,9 +204,7 @@ export default function ProductPageBase({
       try {
         setIsLoadingStock(true);
         const response = await fetch(
-          `${
-            import.meta.env.VITE_API_URL || "http://localhost:5000"
-          }/api/products/${productId}`,
+          `${API_BASE_URL}/api/products/${productId}`,
           {
             method: "GET",
             credentials: 'include',
@@ -245,9 +244,7 @@ export default function ProductPageBase({
       try {
         setIsLoadingReviews(true);
         const response = await fetch(
-          `${
-            import.meta.env.VITE_API_URL || "http://localhost:5000"
-          }/api/reviews/${productId}`,
+          `${API_BASE_URL}/api/reviews/${productId}`,
           {
             method: "GET",
             credentials: 'include',

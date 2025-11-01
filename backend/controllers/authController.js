@@ -24,7 +24,7 @@ const setAuthCookie = (res, token, rememberMe = false) => {
   res.cookie('auth_token', token, {
     httpOnly: true, // Prevents JavaScript access (XSS protection)
     secure: isProduction, // HTTPS only in production
-    sameSite: isProduction ? 'none' : 'lax', // 'none' needed for cross-domain on HTTPS, 'lax' for same-domain or localhost
+    sameSite: isProduction ? 'none' : 'lax', // 'none' needed for cross-domain on HTTPS, 'lax' for same-domain or development
     maxAge: maxAge,
     path: '/'
   });

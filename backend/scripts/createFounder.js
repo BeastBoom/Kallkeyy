@@ -54,7 +54,8 @@ const createFounder = async () => {
     console.log('   Password: Kallkeyy@2025');
     console.log('\n⚠️  IMPORTANT:');
     console.log('   1. Change the email and password IMMEDIATELY');
-    console.log('   2. Login to admin portal at: http://localhost:5000/admin');
+    const adminUrl = process.env.ADMIN_PANEL_URL || (process.env.NODE_ENV !== 'production' ? 'http://localhost:5000/admin' : '');
+    console.log(`   2. Login to admin portal at: ${adminUrl || 'your admin panel URL'}`);
     console.log('   3. Create additional admin accounts from the admin panel');
     console.log('   4. Never share these credentials');
     console.log('\n✅ You can now login to the admin portal!');

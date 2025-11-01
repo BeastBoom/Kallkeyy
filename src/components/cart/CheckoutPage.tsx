@@ -13,8 +13,7 @@ import {
   Trash2,
 } from "lucide-react";
 import PhoneVerificationModal from "../auth/PhoneVerificationModal";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { API_BASE_URL } from "../../lib/apiConfig";
 
 interface Address {
   _id?: string;
@@ -154,7 +153,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false }: C
           return;
         }
 
-        const response = await fetch(`${API_URL}/api/auth/profile`, {
+        const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
           credentials: 'include',
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -185,7 +184,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false }: C
   const fetchAddresses = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${API_URL}/api/addresses`, {
+      const response = await fetch(`${API_BASE_URL}/api/addresses`, {
         credentials: 'include',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -297,8 +296,8 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false }: C
     try {
       const token = localStorage.getItem("token");
       const url = isEditingAddress
-        ? `${API_URL}/api/addresses/${selectedAddress?._id}`
-        : `${API_URL}/api/addresses`;
+        ? `${API_BASE_URL}/api/addresses/${selectedAddress?._id}`
+        : `${API_BASE_URL}/api/addresses`;
 
       const method = isEditingAddress ? "PUT" : "POST";
 
@@ -348,7 +347,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false }: C
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${API_URL}/api/addresses/${addressId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/addresses/${addressId}`, {
         method: "DELETE",
         credentials: 'include',
         headers: { Authorization: `Bearer ${token}` },
@@ -397,7 +396,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false }: C
       }
 
       // Validate cart stock before proceeding
-      const stockValidation = await fetch(`${API_URL}/api/cart/validate`, {
+      const stockValidation = await fetch(`${API_BASE_URL}/api/cart/validate`, {
         method: "POST",
         credentials: 'include',
         headers: {
@@ -437,7 +436,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false }: C
         return;
       }
 
-      const response = await fetch(`${API_URL}/api/payment/create-order`, {
+      const response = await fetch(`${API_BASE_URL}/api/payment/create-order`, {
         method: "POST",
         credentials: 'include',
         headers: {
@@ -469,7 +468,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false }: C
         handler: async function (response: RazorpayResponse) {
           try {
             const verifyResponse = await fetch(
-              `${API_URL}/api/payment/verify-payment`,
+              `${API_BASE_URL}/api/payment/verify-payment`,
               {
                 method: "POST",
                 headers: {

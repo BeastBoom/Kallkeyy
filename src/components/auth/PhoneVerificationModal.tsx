@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Shield, CheckCircle, X } from "lucide-react";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { API_BASE_URL } from "../../lib/apiConfig";
 
 interface PhoneVerificationModalProps {
   onVerificationComplete: (phone: string) => void;
@@ -33,7 +32,7 @@ export default function PhoneVerificationModal({
         return;
       }
 
-      const response = await fetch(`${API_URL}/api/otp/send`, {
+      const response = await fetch(`${API_BASE_URL}/api/otp/send`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -73,7 +72,7 @@ export default function PhoneVerificationModal({
         return;
       }
 
-      const response = await fetch(`${API_URL}/api/otp/verify`, {
+      const response = await fetch(`${API_BASE_URL}/api/otp/verify`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

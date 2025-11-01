@@ -27,7 +27,8 @@ async function createFounder() {
       console.log('Active:', existingFounder.isActive);
       console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log('');
-      console.log('Use these credentials to login at: http://localhost:3001');
+      const adminUrl = process.env.ADMIN_PANEL_URL || (process.env.NODE_ENV !== 'production' ? 'http://localhost:3001' : '');
+      console.log(`Use these credentials to login at: ${adminUrl || 'your admin panel URL'}`);
       await mongoose.connection.close();
       process.exit(0);
     }
@@ -52,7 +53,8 @@ async function createFounder() {
     console.log('Role:', founder.role);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('');
-    console.log('🎉 You can now login at: http://localhost:3001');
+    const adminUrl = process.env.ADMIN_PANEL_URL || (process.env.NODE_ENV !== 'production' ? 'http://localhost:3001' : '');
+    console.log(`🎉 You can now login at: ${adminUrl || 'your admin panel URL'}`);
     console.log('');
     console.log('Login Credentials:');
     console.log('  Username: founder');

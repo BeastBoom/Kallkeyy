@@ -2,31 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const User = require('../models/User');
-
-// Helper function to set CORS headers (must match server.js logic)
-function setCorsHeaders(req, res) {
-  const origin = req.headers.origin;
-  if (origin) {
-    const allowedPatterns = [
-      /^https:\/\/[a-z0-9-]+\.vercel\.app$/,
-      /^https:\/\/.*\.kallkeyy\.com$/,
-      /^http:\/\/localhost:\d+$/
-    ];
-    const allowedOrigins = [
-      'https://kallkeyy.com',
-      'https://www.kallkeyy.com',
-      'https://kallkeyy.vercel.app',
-      'https://kallkeyy-admin.vercel.app'
-    ];
-    
-    if (allowedOrigins.includes(origin) || allowedPatterns.some(p => p.test(origin))) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-    }
-  }
-}
+const { setCorsHeaders } = require('../utils/corsHelper');
 
 // GET all addresses for logged-in user
 router.get('/', auth, async (req, res) => {

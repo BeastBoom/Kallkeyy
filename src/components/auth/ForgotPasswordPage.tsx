@@ -3,6 +3,7 @@ import { ArrowLeft, Mail, Lock, Key } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useToast } from '../ui/use-toast';
+import { API_BASE_URL } from '../../lib/apiConfig';
 
 interface ForgotPasswordPageProps {
   onNavigateToLogin: () => void;
@@ -19,15 +20,13 @@ export default function ForgotPasswordPage({ onNavigateToLogin }: ForgotPassword
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
   // Step 1: Send verification code
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })

@@ -12,24 +12,10 @@ const connectDB = require('./config/db');
 const app = express();
 app.set('trust proxy', 1);
 
-// CORS Configuration
-const allowedOrigins = [
-  'https://kallkeyy.com',
-  'https://www.kallkeyy.com',
-  'https://kallkeyy.vercel.app',
-  'https://kallkeyy-admin.vercel.app',
-  'http://localhost:5173',
-  'http://localhost:3000',
-  'http://localhost:3001',
-];
-
-if (process.env.FRONTEND_URL) allowedOrigins.push(process.env.FRONTEND_URL);
-if (process.env.ADMIN_PANEL_URL) allowedOrigins.push(process.env.ADMIN_PANEL_URL);
-
-const allowedOriginPatterns = [
-  /^https:\/\/[a-z0-9-]+\.vercel\.app$/,
-  /^https:\/\/.*\.kallkeyy\.com$/
-];
+// CORS Configuration - use centralized helper
+const { getAllowedOrigins, getAllowedPatterns, isDevelopment } = require('./utils/corsHelper');
+const allowedOrigins = getAllowedOrigins();
+const allowedOriginPatterns = getAllowedPatterns();
 
 function isOriginAllowed(origin) {
   if (!origin) return false;

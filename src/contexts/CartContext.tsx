@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { API_BASE_URL } from '../lib/apiConfig';
 
 interface CartItem {
   productId: string;
@@ -53,7 +54,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const token = localStorage.getItem('token');
       
             // Fetch cart
-            const cartResponse = await fetch('http://localhost:5000/api/cart', {
+            const cartResponse = await fetch(`${API_BASE_URL}/api/cart`, {
               credentials: 'include',
               headers: {
                 'Authorization': `Bearer ${token}`
@@ -64,7 +65,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (cartData.success) {
         // Fetch stock status for cart items
-        const stockResponse = await fetch('http://localhost:5000/api/cart/validate', {
+        const stockResponse = await fetch(`${API_BASE_URL}/api/cart/validate`, {
           method: 'POST',
           credentials: 'include',
           headers: {
@@ -112,7 +113,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/cart/add', {
+      const response = await fetch(`${API_BASE_URL}/api/cart/add`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -148,7 +149,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/cart/update', {
+      const response = await fetch(`${API_BASE_URL}/api/cart/update`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
@@ -178,7 +179,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/cart/remove', {
+      const response = await fetch(`${API_BASE_URL}/api/cart/remove`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {
@@ -208,7 +209,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/cart/clear', {
+      const response = await fetch(`${API_BASE_URL}/api/cart/clear`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {
@@ -236,7 +237,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/cart/save-for-later', {
+      const response = await fetch(`${API_BASE_URL}/api/cart/save-for-later`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -267,7 +268,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/cart/move-to-cart', {
+      const response = await fetch(`${API_BASE_URL}/api/cart/move-to-cart`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -300,7 +301,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/cart/remove-saved', {
+      const response = await fetch(`${API_BASE_URL}/api/cart/remove-saved`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {
