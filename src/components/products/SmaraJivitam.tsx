@@ -16,9 +16,9 @@ interface Props {
 
 const SMARA_JIVITAM_DATA = {
   name: "SMARA-JIVITAM",
-  price: "₹999",
+  price: "₹1,299",
   originalPrice: "₹1,999",
-  salePrice: "₹999",
+  salePrice: "₹1,299",
   tag: "NEW DROP",
   description:
     '"SMARA JIVITAM — THE ASCENSION" Wings erupt from chaos, forged in will and fire. The sword of self-doubt strikes, but every wound becomes light. Smara Jivitam — proof that no sky limits you but your own mind. Rise. Break. Evolve.',

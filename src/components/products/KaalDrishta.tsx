@@ -16,9 +16,9 @@ interface Props {
 
 const KAAL_DRISHTA_DATA = {
   name: "KAAL-DRISHTA",
-  price: "₹2,199",
+  price: "₹2,499",
   originalPrice: "₹4,499",
-  salePrice: "₹2,199",
+  salePrice: "₹2,499",
   tag: "FLAGSHIP",
   description:
     "KAALDRISHTA — the blazing eye that never blinks. Born from the ashes of forgotten gods, its wings burn through illusion. Omnipresent, it sees past life and death — the watcher of endings, the guardian of rebirth. Nothing escapes its divine sight.",

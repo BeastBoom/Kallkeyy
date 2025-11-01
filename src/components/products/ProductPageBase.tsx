@@ -93,28 +93,28 @@ const ALL_PRODUCTS = [
   {
     id: "kaaldrishta",
     name: "KAAL-DRISHTA",
-    price: "₹2,199",
+    price: "₹2,499",
     image: "/KaalDrishta-1.png",
     tag: "FLAGSHIP",
   },
   {
     id: "antahayugaysa",
     name: "ANTAHA-YUGAYSA",
-    price: "₹2,199",
+    price: "₹2,499",
     image: "/Antahayugasya-1.png",
     tag: "NEW LAUNCH",
   },
   {
     id: "smarajivitam",
     name: "SMARA-JIVITAM",
-    price: "₹999",
+    price: "₹1,299",
     image: "/Smarajivitam-1.png",
     tag: "NEW DROP",
   },
   {
     id: "mrityobaddha",
     name: "MRITYO-BADDHA",
-    price: "₹999",
+    price: "₹1,299",
     image: "/Mrityobaddha-1.png",
     tag: "TRENDING",
   },
@@ -984,7 +984,34 @@ export default function ProductPageBase({
                 </p>
               )}
 
-              <p className="text-[#CCCCCC] leading-relaxed">
+              {/* Discount Code Message */}
+              <p className="text-xs text-[#808088] leading-relaxed mt-2">
+                Use{" "}
+                <button
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText("KALLKEYY10");
+                      toast({
+                        title: "Copied! 📋",
+                        description: "Discount code KALLKEYY10 copied to clipboard",
+                      });
+                    } catch (error) {
+                      toast({
+                        variant: "destructive",
+                        title: "Copy Failed",
+                        description: "Could not copy code. Please try again.",
+                      });
+                    }
+                  }}
+                  className="text-[#b90e0a] font-bold hover:text-[#FF0000] underline transition-colors duration-200 cursor-pointer"
+                  style={{ background: "none", border: "none", padding: 0 }}
+                >
+                  KALLKEYY10
+                </button>{" "}
+                on checkout to get 10% discount on overall bill
+              </p>
+
+              <p className="text-[#CCCCCC] leading-relaxed mt-4">
                 {product.description}
               </p>
 
@@ -1505,9 +1532,9 @@ export default function ProductPageBase({
                     window.scrollTo({ top: 0, behavior: 'instant' });
                     onNavigateToProduct?.(otherProduct.id);
                   }}
-                  className="group bg-[#28282B] rounded-lg border border-white/10 overflow-hidden hover:border-[#b90e0a] transition-all duration-300 cursor-pointer hover:scale-105"
+                  className="group bg-black rounded-lg border border-white/10 overflow-hidden hover:border-[#b90e0a] transition-all duration-300 cursor-pointer hover:scale-105"
                 >
-                  <div className="aspect-square overflow-hidden bg-[#1a1a1a]">
+                  <div className="aspect-square overflow-hidden bg-black">
                     <img
                       src={otherProduct.image}
                       alt={otherProduct.name}

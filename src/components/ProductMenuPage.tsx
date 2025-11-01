@@ -68,7 +68,7 @@ const heroSlides: HeroSlide[] = [
     description:
       "A curated collection of 4 divine drops. Where streetwear meets mythology. Limited edition pieces that define your identity.",
     tag: "COLLECTION",
-    price: "STARTING ₹999",
+    price: "STARTING ₹1,299",
     isUpcoming: false,
     buttonText: "EXPLORE COLLECTION",
     buttonAction: "scroll",
@@ -82,7 +82,7 @@ const heroSlides: HeroSlide[] = [
     description:
       "Born from the ashes of forgotten gods. Our flagship oversized premium hoodie with divine graphics. The crown jewel of Astitva Act-I.",
     tag: "FLAGSHIP",
-    price: "₹2,199",
+    price: "₹2,499",
     isUpcoming: false,
     buttonText: "SHOP NOW",
     buttonAction: "product",
@@ -94,7 +94,7 @@ const heroSlides: HeroSlide[] = [
     title: "🔥 LAUNCH SALE 🔥",
     subtitle: "GET 50% OFF ON EVERYTHING!",
     description:
-      "💥 BIGGEST SALE EVER! Hoodies from ₹1,099 | T-Shirts from ₹499! Limited Time Only. First 100 Orders Get FREE SHIPPING! Don't Miss Out! 💥",
+      "💥 BIGGEST SALE EVER! Hoodies from ₹1,249 | T-Shirts from ₹649! Limited Time Only. First 100 Orders Get FREE SHIPPING! Don't Miss Out! 💥",
     tag: "LIVE NOW",
     price: "UP TO 50% OFF",
     isUpcoming: false,
@@ -110,7 +110,7 @@ const heroSlides: HeroSlide[] = [
     description:
       "Wings erupt from chaos, forged in will and fire. Our signature oversized tee that started it all. Premium 240gsm French Terry Cotton.",
     tag: "SIGNATURE",
-    price: "₹999",
+    price: "₹1,299",
     isUpcoming: false,
     buttonText: "GET YOURS NOW",
     buttonAction: "product",
@@ -141,7 +141,7 @@ const products: Product[] = [
     id: "kaaldrishta",
     name: "KAAL-DRISHTA",
     image: "/KaalDrishta-1.png",
-    price: "₹2,199",
+    price: "₹2,499",
     tag: "FLAGSHIP",
     description:
       "The blazing eye that never blinks. Born from the ashes of forgotten gods.",
@@ -157,7 +157,7 @@ const products: Product[] = [
     id: "smarajivitam",
     name: "SMARA-JIVITAM",
     image: "/Smarajivitam-1.png",
-    price: "₹999",
+    price: "₹1,299",
     tag: "NEW DROP",
     description:
       "The Ascension. Wings erupt from chaos, forged in will and fire.",
@@ -173,7 +173,7 @@ const products: Product[] = [
     id: "antahayugaysa",
     name: "ANTAHA-YUGAYSA",
     image: "/Antahayugasya-1.png",
-    price: "₹2,199",
+    price: "₹2,499",
     tag: "NEW LAUNCH",
     description:
       "Hands of God. Where endings wear eternity, and creation remembers its own destruction.",
@@ -189,7 +189,7 @@ const products: Product[] = [
     id: "mrityobaddha",
     name: "MRITYO-BADDHA",
     image: "/Mrityobaddha-1.png",
-    price: "₹999",
+    price: "₹1,299",
     tag: "TRENDING",
     description:
       "Bound by Death. A graphic tee that embodies the struggle against mortality.",
