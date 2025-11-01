@@ -244,6 +244,10 @@ exports.createOrder = async (req, res) => {
       }
     };
 
+    // Note: Payment configuration ID (config_id) should be passed on the frontend
+    // when initializing Razorpay checkout, not in the order creation payload
+    // The frontend CheckoutPage.tsx handles this via VITE_RAZORPAY_PAYMENT_CONFIG_ID
+
     let razorpayOrder;
     try {
       razorpayOrder = await razorpay.orders.create(options);
@@ -259,8 +263,8 @@ exports.createOrder = async (req, res) => {
 
     // Return Razorpay order details - NO database order created yet
     // Database order will be created only after payment is verified
-    setCorsHeaders(req, res);
-    res.status(200).json({
+    // Include payment configuration ID if set (for frontend to use in checkout)
+    const responseData = {
       success: true,
       order: {
         id: razorpayOrder.id,
@@ -269,7 +273,15 @@ exports.createOrder = async (req, res) => {
         receipt: razorpayOrder.receipt
       },
       key: process.env.RAZORPAY_KEY_ID
-    });
+    };
+
+    // Add payment config ID if set in backend env (so frontend can use it)
+    if (process.env.RAZORPAY_PAYMENT_CONFIG_ID) {
+      responseData.checkout_config_id = process.env.RAZORPAY_PAYMENT_CONFIG_ID;
+    }
+
+    setCorsHeaders(req, res);
+    res.status(200).json(responseData);
 
   } catch (error) {
     console.error('Order creation error:', error);
@@ -355,29 +367,11 @@ exports.verifyPayment = async (req, res) => {
   let useTransactions = false;
   let session = null;
   
-  try {
-    // Try to check if transactions are supported
-    const testSession = await mongoose.startSession();
-    await testSession.endSession();
-    useTransactions = true;
-    session = await mongoose.startSession();
-    session.startTransaction();
-    if (isDevelopment) {
-      console.log('✅ MongoDB transactions supported - using transaction mode');
-    }
-  } catch (transactionError) {
-    // Transactions not supported (standalone MongoDB)
-    if (transactionError.message && transactionError.message.includes('replica set')) {
-      if (isDevelopment) {
-        console.warn('⚠️  MongoDB transactions not supported (standalone instance). Using fallback mode without transactions.');
-      }
-      useTransactions = false;
-      session = null;
-    } else {
-      // Re-throw other errors
-      throw transactionError;
-    }
-  }
+  // Don't test transactions upfront - start without transactions
+  // This avoids errors on standalone MongoDB instances
+  // Transactions will only be used if we detect support during actual operations
+  useTransactions = false;
+  session = null;
   
   try {
     // Validate Razorpay credentials
@@ -635,6 +629,7 @@ exports.verifyPayment = async (req, res) => {
           shippingAddress: shippingAddressData,
           amount: paidAmount,
           currency: razorpayOrderDetails.currency,
+          paymentMethod: 'razorpay',
           status: 'paid',
           paymentStatus: 'completed'
         };
@@ -796,6 +791,7 @@ exports.verifyPayment = async (req, res) => {
             shippingAddress: shippingAddressData || {},
             amount: paidAmount || (reconRazorpayOrderDetails?.amount / 100) || 0,
             currency: reconRazorpayOrderDetails?.currency || 'INR',
+            paymentMethod: 'razorpay',
             status: 'paid',
             paymentStatus: 'completed',
             notes: ['⚠️ MANUAL RECONCILIATION REQUIRED - Stock not deducted due to transaction failure']
@@ -824,7 +820,7 @@ exports.verifyPayment = async (req, res) => {
       
       // Retry Shiprocket creation in background with exponential backoff
       retryOperation(
-        () => createShiprocketOrder(order),
+        () => exports.createShiprocketOrder(order),
         3,
         2000
       )
@@ -838,8 +834,12 @@ exports.verifyPayment = async (req, res) => {
       .catch(err => {
         console.error('⚠️  Shiprocket order creation failed after retries (non-blocking)');
         console.error('🚨 MANUAL SHIPROCKET ORDER REQUIRED');
-        if (isDevelopment) {
-          console.error(`   Error: ${err.response?.data?.message || err.message}`);
+        console.error('Shiprocket error details:', err.message || err);
+        if (err.response?.data) {
+          console.error('Shiprocket API response:', JSON.stringify(err.response.data, null, 2));
+        }
+        if (err.response?.status) {
+          console.error('Shiprocket HTTP status:', err.response.status);
         }
         
         // Log to order notes for admin reference
@@ -849,7 +849,7 @@ exports.verifyPayment = async (req, res) => {
           }
         }).catch(updateErr => {
           if (isDevelopment) {
-            console.error('Failed to update order notes');
+            console.error('Failed to update order notes:', updateErr);
           }
         });
       });
@@ -880,7 +880,11 @@ exports.verifyPayment = async (req, res) => {
       session.endSession().catch(() => {});
     }
     
-    console.error('❌ Payment verification error');
+    console.error('❌ Payment verification error:', error);
+    console.error('Error stack:', error.stack);
+    if (error.response?.data) {
+      console.error('Error response data:', JSON.stringify(error.response.data, null, 2));
+    }
     
     // CRITICAL: Check if payment was actually made but verification failed
     // This handles network failures after payment but before verification
@@ -905,7 +909,19 @@ exports.verifyPayment = async (req, res) => {
               const cartData = JSON.parse(notes.cartSnapshot || '{}');
               const shippingAddressData = JSON.parse(notes.shippingAddress || '{}');
               
-              await Order.create({
+              // Ensure shipping address has email (required for Shiprocket)
+              if (!shippingAddressData.email) {
+                // Try to get user email
+                const User = require('../models/User');
+                const user = await User.findById(req.user._id).select('email');
+                if (user && user.email) {
+                  shippingAddressData.email = user.email;
+    } else {
+                  shippingAddressData.email = 'customer@kallkeyy.com';
+                }
+              }
+              
+              const recoveryOrderData = {
                 userId: req.user._id,
                 orderId: razorpayOrderDetails.receipt,
                 razorpayOrderId: razorpay_order_id,
@@ -915,10 +931,22 @@ exports.verifyPayment = async (req, res) => {
                 shippingAddress: shippingAddressData,
                 amount: razorpayOrderDetails.amount / 100,
                 currency: razorpayOrderDetails.currency,
+                paymentMethod: 'razorpay',
                 status: 'paid',
                 paymentStatus: 'completed',
                 notes: ['⚠️ Created during error recovery - verify stock deduction']
-              });
+              };
+              
+              // Add coupon data if present
+              if (notes.coupon) {
+                try {
+                  recoveryOrderData.coupon = JSON.parse(notes.coupon);
+                } catch (parseErr) {
+                  // Ignore coupon parse errors for recovery orders
+                }
+              }
+              
+              await Order.create(recoveryOrderData);
               
               if (isDevelopment) {
                 console.log('✅ Recovery order created');
@@ -931,7 +959,7 @@ exports.verifyPayment = async (req, res) => {
                   console.log('🚀 Initiating Shiprocket order creation for recovery order');
                 }
                 retryOperation(
-                  () => createShiprocketOrder(recoveryOrder),
+                  () => exports.createShiprocketOrder(recoveryOrder),
                   3,
                   2000
                 )
@@ -942,6 +970,20 @@ exports.verifyPayment = async (req, res) => {
                 })
                 .catch(err => {
                   console.error('⚠️  Shiprocket creation failed for recovery order');
+                  console.error('Shiprocket error details:', err.message || err);
+                  if (err.response?.data) {
+                    console.error('Shiprocket API response:', JSON.stringify(err.response.data, null, 2));
+                  }
+                  // Update order notes with Shiprocket error
+                  Order.findByIdAndUpdate(recoveryOrder._id, {
+                    $push: {
+                      notes: `Shiprocket creation failed for recovery order: ${err.message || err.response?.data?.message || 'Unknown error'}. Manual creation required.`
+                    }
+                  }).catch(updateErr => {
+                    if (isDevelopment) {
+                      console.error('Failed to update recovery order notes:', updateErr);
+                    }
+                  });
                 });
               }
 
@@ -1190,7 +1232,8 @@ function calculatePackageDetails(items) {
 }
 
 // Helper function to create Shiprocket order
-async function createShiprocketOrder(order) {
+// Export Shiprocket order creation function for use in COD controller
+exports.createShiprocketOrder = async function createShiprocketOrder(order) {
   try {
     if (isDevelopment) {
       console.log('🚀 Creating Shiprocket order');
@@ -1317,7 +1360,7 @@ async function createShiprocketOrder(order) {
       billing_phone: formattedPhone,
       shipping_is_billing: true,
       order_items: orderItems,
-      payment_method: 'Prepaid',
+      payment_method: order.paymentMethod === 'cod' ? 'COD' : 'Prepaid',
       shipping_charges: 0,
       giftwrap_charges: 0,
       transaction_charges: 0,

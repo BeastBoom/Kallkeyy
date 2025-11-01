@@ -49,6 +49,13 @@ interface RazorpayOptions {
   modal: { ondismiss: () => void };
   prefill: { name: string; email: string; contact: string };
   theme: { color: string };
+  checkout?: {
+    config?: {
+      config_id?: string;
+    };
+  };
+  // Alternative: direct checkout_config_id parameter
+  checkout_config_id?: string;
 }
 
 interface RazorpayInstance {
@@ -129,6 +136,9 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
   } | null>(null);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
   const [couponError, setCouponError] = useState("");
+
+  // Payment method state
+  const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "cod">("razorpay");
 
   const [newAddress, setNewAddress] = useState<Address>({
     fullName: "",
@@ -441,6 +451,97 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
     setCouponError("");
   };
 
+  const handleCODOrder = async () => {
+    if (!selectedAddress) {
+      alert("Please select a delivery address");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Please login to continue");
+        window.location.href = "/login";
+        setLoading(false);
+        return;
+      }
+
+      // Validate cart stock before proceeding
+      const stockValidation = await fetch(`${API_BASE_URL}/api/cart/validate`, {
+        method: "POST",
+        credentials: 'include',
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const stockData = await stockValidation.json();
+      
+      if (!stockData.success) {
+        alert("Failed to validate cart items. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      if (!stockData.allItemsAvailable) {
+        const outOfStockItems = stockData.itemsWithStock
+          .filter((item: any) => !item.inStock)
+          .map((item: any) => `• ${item.productName} (Size ${item.size}) - ${item.reason}`)
+          .join('\n');
+        
+        alert(
+          `⚠️ Some items in your cart are out of stock:\n\n${outOfStockItems}\n\nPlease remove out-of-stock items or move them to "Save for Later" before proceeding.`
+        );
+        
+        setLoading(false);
+        return;
+      }
+
+      // Create COD order
+      const response = await fetch(`${API_BASE_URL}/api/payment/create-cod-order`, {
+        method: "POST",
+        credentials: 'include',
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          shippingAddress: {
+            ...selectedAddress,
+            email: user?.email,
+          },
+          couponCode: couponApplied?.code || null,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        console.error("COD order creation failed:", data);
+        alert(data.message || "Failed to place COD order. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      // Clear cart
+      await clearCart();
+
+      // Navigate to order confirmation page
+      if (onOrderSuccess && data.order?.orderId) {
+        onOrderSuccess(data.order.orderId);
+      } else {
+        window.location.href = `/order-confirmation?orderId=${data.order.orderId}`;
+      }
+
+    } catch (error) {
+      console.error("COD order error:", error);
+      alert("Failed to place COD order. Please try again.");
+      setLoading(false);
+    }
+  };
+
   const handlePayment = async () => {
     if (!selectedAddress) {
       alert("Please select a delivery address");
@@ -530,6 +631,11 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
         return;
       }
 
+      // Get payment configuration ID from backend response or frontend environment
+      // Backend response takes priority (if RAZORPAY_PAYMENT_CONFIG_ID is set in backend .env)
+      // Otherwise, fallback to frontend env variable (VITE_RAZORPAY_PAYMENT_CONFIG_ID)
+      const paymentConfigId = data.checkout_config_id || import.meta.env.VITE_RAZORPAY_PAYMENT_CONFIG_ID;
+
       const options: RazorpayOptions = {
         key: data.key,
         amount: data.order.amount,
@@ -537,6 +643,12 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
         name: "KALLKEYY",
         description: "Streetwear Fashion",
         order_id: data.order.id,
+        // Add payment configuration ID if specified
+        // This applies the custom payment methods (UPI, Cards, Netbanking only)
+        // checkout_config_id restricts payment methods to those configured in Razorpay Dashboard
+        ...(paymentConfigId && {
+          checkout_config_id: paymentConfigId
+        }),
         handler: async function (response: RazorpayResponse) {
           // Retry verification with exponential backoff for network resilience
           let verifyData;
@@ -1354,7 +1466,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
             </div>
 
             <div
-              className="flex justify-between items-center mb-6 py-4"
+              className="flex justify-between items-center mb-4 py-4"
               style={{ borderTop: "1px solid var(--color-border)", borderBottom: "1px solid var(--color-border)" }}
             >
               <span
@@ -1374,56 +1486,165 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
               </span>
             </div>
 
-            <button
-              onClick={handlePayment}
-              disabled={loading || !selectedAddress}
-              className="w-full py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300"
-              style={{
-                background: "var(--color-error)",
-                color: "white",
-                opacity: loading || !selectedAddress ? 0.6 : 1,
-                cursor: loading || !selectedAddress ? "not-allowed" : "pointer",
-                border: "none",
-                boxShadow: "var(--shadow-md)",
-              }}
-              onMouseEnter={(e) => {
-                if (!loading && selectedAddress) {
-                  e.currentTarget.style.background = "var(--color-red-500)";
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.boxShadow = "var(--shadow-lg)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "var(--color-error)";
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "var(--shadow-md)";
-              }}
-            >
-              <CreditCard size={20} />
-              {loading
-                ? "Processing..."
-                : !selectedAddress
-                ? "Select Address"
-                : `Pay ₹${(couponApplied ? couponApplied.finalAmount : totalPrice).toFixed(2)}`}
-            </button>
+            {/* Payment Method Selection */}
+            <div className="mb-6 py-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
+              <label
+                className="block mb-3 text-sm font-medium"
+                style={{ color: "var(--color-text)" }}
+              >
+                Payment Method
+              </label>
+              <div className="space-y-3">
+                {/* Razorpay Option */}
+                <label
+                  className="flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all"
+                  style={{
+                    borderColor: paymentMethod === "razorpay" ? "var(--color-primary)" : "var(--color-border)",
+                    background: paymentMethod === "razorpay" ? "rgba(185, 14, 10, 0.05)" : "var(--color-surface)",
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="razorpay"
+                    checked={paymentMethod === "razorpay"}
+                    onChange={(e) => setPaymentMethod(e.target.value as "razorpay" | "cod")}
+                    className="mt-1"
+                    style={{ accentColor: "var(--color-primary)" }}
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <CreditCard size={18} style={{ color: "var(--color-primary)" }} />
+                      <span className="font-medium" style={{ color: "var(--color-text)" }}>
+                        Online Payment (Razorpay)
+                      </span>
+                    </div>
+                    <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
+                      Pay securely with UPI, Cards, or Netbanking
+                    </p>
+                  </div>
+                </label>
 
-            <div
-              className="flex items-center justify-center gap-2 mt-4 p-3 rounded"
-              style={{
-                background: "var(--color-secondary)",
-                border: "1px solid var(--color-border)",
-              }}
-            >
-              <Lock size={16} style={{ color: "var(--color-success)" }} />
-              <span
+                {/* COD Option */}
+                <label
+                  className="flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all"
+                  style={{
+                    borderColor: paymentMethod === "cod" ? "var(--color-primary)" : "var(--color-border)",
+                    background: paymentMethod === "cod" ? "rgba(185, 14, 10, 0.05)" : "var(--color-surface)",
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="cod"
+                    checked={paymentMethod === "cod"}
+                    onChange={(e) => setPaymentMethod(e.target.value as "razorpay" | "cod")}
+                    className="mt-1"
+                    style={{ accentColor: "var(--color-primary)" }}
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Package size={18} style={{ color: "var(--color-primary)" }} />
+                      <span className="font-medium" style={{ color: "var(--color-text)" }}>
+                        Cash on Delivery (COD)
+                      </span>
+                    </div>
+                    <p className="text-xs" style={{ color: "var(--color-error)" }}>
+                      ⚠️ Returns are not available for COD orders. Only replacements will be provided.
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* Action Button */}
+            {paymentMethod === "razorpay" ? (
+              <button
+                onClick={handlePayment}
+                disabled={loading || !selectedAddress}
+                className="w-full py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300"
                 style={{
-                  color: "var(--color-text-secondary)",
-                  fontSize: "var(--font-size-sm)",
+                  background: "var(--color-error)",
+                  color: "white",
+                  opacity: loading || !selectedAddress ? 0.6 : 1,
+                  cursor: loading || !selectedAddress ? "not-allowed" : "pointer",
+                  border: "none",
+                  boxShadow: "var(--shadow-md)",
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading && selectedAddress) {
+                    e.currentTarget.style.background = "var(--color-red-500)";
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "var(--shadow-lg)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "var(--color-error)";
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "var(--shadow-md)";
                 }}
               >
-                Secure payment powered by Razorpay
-              </span>
-            </div>
+                <CreditCard size={20} />
+                {loading
+                  ? "Processing..."
+                  : !selectedAddress
+                  ? "Select Address"
+                  : `Pay ₹${(couponApplied ? couponApplied.finalAmount : totalPrice).toFixed(2)}`}
+              </button>
+            ) : (
+              <button
+                onClick={handleCODOrder}
+                disabled={loading || !selectedAddress}
+                className="w-full py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300"
+                style={{
+                  background: "var(--color-primary)",
+                  color: "white",
+                  opacity: loading || !selectedAddress ? 0.6 : 1,
+                  cursor: loading || !selectedAddress ? "not-allowed" : "pointer",
+                  border: "none",
+                  boxShadow: "var(--shadow-md)",
+                }}
+                onMouseEnter={(e) => {
+                  if (!loading && selectedAddress) {
+                    e.currentTarget.style.background = "#990c08";
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "var(--shadow-lg)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "var(--color-primary)";
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "var(--shadow-md)";
+                }}
+              >
+                <Package size={20} />
+                {loading
+                  ? "Placing Order..."
+                  : !selectedAddress
+                  ? "Select Address"
+                  : "Place Order"}
+              </button>
+            )}
+
+            {paymentMethod === "razorpay" && (
+              <div
+                className="flex items-center justify-center gap-2 mt-4 p-3 rounded"
+                style={{
+                  background: "var(--color-secondary)",
+                  border: "1px solid var(--color-border)",
+                }}
+              >
+                <Lock size={16} style={{ color: "var(--color-success)" }} />
+                <span
+                  style={{
+                    color: "var(--color-text-secondary)",
+                    fontSize: "var(--font-size-sm)",
+                  }}
+                >
+                  Secure payment powered by Razorpay
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>

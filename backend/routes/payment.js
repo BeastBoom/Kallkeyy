@@ -9,10 +9,12 @@ const {
   getOrderTracking,
   shiprocketWebhook
 } = require('../controllers/paymentController');
+const codController = require('../controllers/codController');
 
 // Protected routes
 router.post('/create-order', auth, createOrder);
 router.post('/verify-payment', auth, verifyPayment);
+router.post('/create-cod-order', auth, codController.createCODOrder);
 router.get('/orders', auth, getUserOrders);
 router.get('/orders/:orderId/tracking', auth, getOrderTracking);
 
