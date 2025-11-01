@@ -232,9 +232,32 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
     setPhoneVerified(true);
     setShowPhoneVerification(false);
 
-    // Clear any cached phone data to force refresh from server
+    // Phone is already saved to backend by PhoneVerificationModal
+    // Just update localStorage and refresh user data
     localStorage.setItem("userPhone", phone);
     localStorage.setItem("phoneVerified", "true");
+
+    // Refresh user data from backend to confirm phone is saved
+    try {
+      const token = localStorage.getItem("token");
+      if (token) {
+        const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
+          credentials: 'include',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        
+        if (data.success && data.user) {
+          // Update with fresh backend data
+          setUserPhone(data.user.phone || phone);
+          setPhoneVerified(data.user.phoneVerified || true);
+          localStorage.setItem("userPhone", data.user.phone || phone);
+          localStorage.setItem("phoneVerified", data.user.phoneVerified ? "true" : "true");
+        }
+      }
+    } catch (error) {
+      console.error("Error refreshing user data after phone verification:", error);
+    }
 
     await fetchAddresses();
   };

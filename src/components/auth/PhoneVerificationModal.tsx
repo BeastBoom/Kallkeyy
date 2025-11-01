@@ -23,11 +23,37 @@ export default function PhoneVerificationModal({
       return;
     }
 
-    // TEMPORARY: Skip OTP verification and directly proceed
-    // Save to localStorage and complete verification
-    localStorage.setItem("userPhone", phone);
-    localStorage.setItem("phoneVerified", "true");
-    onVerificationComplete(phone);
+    // Save phone number to backend
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Not authenticated. Please login again.");
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/auth/phone`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ phone }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Save to localStorage for quick access
+        localStorage.setItem("userPhone", phone);
+        localStorage.setItem("phoneVerified", "true");
+        onVerificationComplete(phone);
+      } else {
+        setError(data.message || "Failed to save phone number. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error saving phone number:", error);
+      setError("Failed to save phone number. Please try again.");
+    }
 
     // COMMENTED OUT OTP VERIFICATION CODE (Temporary)
     /*

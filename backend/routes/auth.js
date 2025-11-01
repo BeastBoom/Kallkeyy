@@ -13,6 +13,7 @@ router.post('/reset-password', authController.resetPassword);
 router.get('/verify-cookie', authController.verifyCookie); // Check if cookie is valid
 router.post('/logout', authController.logout); // Clear cookie
 router.get('/profile', auth, authController.getUserProfile);
+router.put('/phone', auth, authController.updatePhone);
 
 // Protected routes
 router.get('/me', auth, authController.getCurrentUser);

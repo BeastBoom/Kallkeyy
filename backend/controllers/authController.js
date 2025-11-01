@@ -369,6 +369,67 @@ exports.getCurrentUser = async (req, res) => {
   }
 };
 
+// Update user phone number
+exports.updatePhone = async (req, res) => {
+  try {
+    const connectDB = require('../config/db');
+    await connectDB();
+    
+    const userId = req.userId;
+    const { phone } = req.body;
+
+    if (!userId) {
+      setCorsHeaders(req, res);
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized - No user ID found'
+      });
+    }
+
+    // Validate phone number (10 digits)
+    if (!phone || !/^\d{10}$/.test(phone)) {
+      setCorsHeaders(req, res);
+      return res.status(400).json({
+        success: false,
+        message: 'Valid 10-digit phone number is required'
+      });
+    }
+
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      setCorsHeaders(req, res);
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Update phone number and mark as verified (since OTP is temporarily disabled)
+    user.phone = phone;
+    user.phoneVerified = true;
+    await user.save();
+
+    setCorsHeaders(req, res);
+    res.status(200).json({
+      success: true,
+      message: 'Phone number updated successfully',
+      user: {
+        id: user._id,
+        phone: user.phone,
+        phoneVerified: user.phoneVerified
+      }
+    });
+  } catch (error) {
+    console.error('Update phone error:', error);
+    setCorsHeaders(req, res);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update phone number'
+    });
+  }
+};
+
 // Get user profile
 exports.getUserProfile = async (req, res) => {
   try {
