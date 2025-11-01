@@ -84,6 +84,9 @@ const App = () => {
   const [selectedOrderId, setSelectedOrderId] = useState<string>("");
   const [skipAnimations, setSkipAnimations] = useState(false);
 
+  // Protected routes that cannot be accessed directly via URL
+  const PROTECTED_ROUTES = [ROUTES.CHECKOUT] as const;
+
   // Function to get current route from URL
   const getCurrentRoute = (): AppStage => {
     const path = window.location.pathname;
@@ -124,10 +127,38 @@ const App = () => {
     return "kaaldrishta"; // Default
   };
 
+  // Check if route is protected and should be blocked
+  const isRouteProtected = (path: string): boolean => {
+    return PROTECTED_ROUTES.includes(path as typeof PROTECTED_ROUTES[number]);
+  };
+
+  // Check if navigation is allowed (via programmatic navigation, not direct URL access)
+  const isNavigationAllowed = (path: string): boolean => {
+    // Check sessionStorage for allowed routes (set during programmatic navigation)
+    const allowed = sessionStorage.getItem(`allowed_${path}`);
+    return allowed === 'true';
+  };
+
   // Initialize app based on current URL
   useEffect(() => {
+    const path = window.location.pathname;
     const route = getCurrentRoute();
     const product = getProductFromURL();
+
+    // Check if trying to access protected route directly
+    if (isRouteProtected(path)) {
+      // Check if navigation was allowed (via programmatic navigation)
+      if (!isNavigationAllowed(path)) {
+        // Redirect to home page if accessing protected route directly
+        window.history.replaceState({}, "", ROUTES.HOME);
+        setStage("main");
+        setSkipAnimations(true);
+        return;
+      } else {
+        // Clear the allowed flag after using it
+        sessionStorage.removeItem(`allowed_${path}`);
+      }
+    }
 
     setStage(route === "main" ? "loading" : route);
     setSelectedProduct(product);
@@ -146,8 +177,16 @@ const App = () => {
   // Handle browser back/forward buttons with scroll restoration
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
+      const path = window.location.pathname;
       const route = getCurrentRoute();
       const product = getProductFromURL();
+
+      // Check if trying to navigate to protected route via browser back/forward
+      if (isRouteProtected(path) && !isNavigationAllowed(path)) {
+        // Block navigation to protected route via browser history
+        window.history.go(1); // Go forward to undo the back navigation
+        return;
+      }
 
       // Skip animations when navigating via browser back/forward
       setSkipAnimations(true);
@@ -164,6 +203,31 @@ const App = () => {
 
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  // Listen for direct URL changes (e.g., user typing in address bar or refreshing)
+  useEffect(() => {
+    const handleLocationChange = () => {
+      const path = window.location.pathname;
+      
+      // Check if trying to access protected route directly
+      if (isRouteProtected(path) && !isNavigationAllowed(path)) {
+        // Redirect to home page if accessing protected route directly
+        window.history.replaceState({}, "", ROUTES.HOME);
+        setStage("main");
+        setSkipAnimations(true);
+      }
+    };
+
+    // Check on mount and when pathname changes
+    handleLocationChange();
+
+    // Listen for hashchange (though we're not using hash routing)
+    window.addEventListener("hashchange", handleLocationChange);
+
+    return () => {
+      window.removeEventListener("hashchange", handleLocationChange);
+    };
   }, []);
 
   // Navigation functions with proper URL updates and scroll position saving
@@ -273,6 +337,9 @@ const App = () => {
   };
 
   const navigateToCheckout = () => {
+    // Mark checkout as allowed navigation before navigating
+    sessionStorage.setItem(`allowed_${ROUTES.CHECKOUT}`, 'true');
+    
     window.history.replaceState({ scrollPos: window.scrollY }, "");
     setSkipAnimations(false); // Enable animations for forward navigation
     window.scrollTo({ top: 0, behavior: 'instant' });
