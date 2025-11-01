@@ -28,6 +28,7 @@ import ShippingPage from './components/info/ShippingPage';
 import ReturnsPage from './components/info/ReturnsPage';
 import FAQPage from './components/info/FAQPage';
 import PrivacyPolicyPage from './components/info/PrivacyPolicyPage';
+import TermsOfServicePage from './components/info/TermsOfServicePage';
 
 const queryClient = new QueryClient();
 
@@ -48,7 +49,8 @@ type AppStage =
   | "shipping"
   | "returns"
   | "faq"
-  | "privacy-policy";
+  | "privacy-policy"
+  | "terms-of-service";
 
 // Route configuration
 const ROUTES = {
@@ -61,6 +63,7 @@ const ROUTES = {
   RETURNS: "/returns",
   FAQ: "/faq",
   PRIVACY_POLICY: "/privacy-policy",
+  TERMS_OF_SERVICE: "/terms-of-service",
   KAALDRISHTA: "/product/kaaldrishta",
   SMARAJIVITAM: "/product/smarajivitam",
   ANTAHAYUGAYSA: "/product/antahayugaysa",
@@ -94,6 +97,7 @@ const App = () => {
     if (path === ROUTES.RETURNS) return "returns";
     if (path === ROUTES.FAQ) return "faq";
     if (path === ROUTES.PRIVACY_POLICY) return "privacy-policy";
+    if (path === ROUTES.TERMS_OF_SERVICE) return "terms-of-service";
     if (path === ROUTES.LOGIN) return "login";  
     if (path === ROUTES.SIGNUP) return "signup";
     if (path === ROUTES.FORGOT_PASSWORD) return "forgot-password";
@@ -236,6 +240,14 @@ const App = () => {
     window.history.pushState({ scrollPos: 0 }, "", ROUTES.PRIVACY_POLICY);
   };
 
+  const navigateToTermsOfService = () => {
+    window.history.replaceState({ scrollPos: window.scrollY }, "");
+    setSkipAnimations(false); // Enable animations for forward navigation
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    setStage("terms-of-service");
+    window.history.pushState({ scrollPos: 0 }, "", ROUTES.TERMS_OF_SERVICE);
+  };
+
   const navigateToLogin = () => {
     window.history.replaceState({ scrollPos: window.scrollY }, "");
     setSkipAnimations(false); // Enable animations for forward navigation
@@ -334,6 +346,7 @@ const App = () => {
       returns: "Returns & Exchanges - KALLKEYY",
       faq: "FAQ - KALLKEYY",
       "privacy-policy": "Privacy Policy - KALLKEYY",
+      "terms-of-service": "Terms of Service - KALLKEYY",
       checkout: "Checkout - KALLKEYY",
       login: "Login - KALLKEYY",
       signup: "Sign Up - KALLKEYY",
@@ -378,6 +391,7 @@ const App = () => {
                 onNavigateToReturns={navigateToReturns}
                 onNavigateToFAQ={navigateToFAQ}
                 onNavigateToPrivacyPolicy={navigateToPrivacyPolicy}
+                onNavigateToTermsOfService={navigateToTermsOfService}
                 onBackToMain={navigateToHome}
                 skipAnimations={skipAnimations}
               />
@@ -398,12 +412,26 @@ const App = () => {
                 onNavigateToReturns={navigateToReturns}
                 onNavigateToFAQ={navigateToFAQ}
                 onNavigateToPrivacyPolicy={navigateToPrivacyPolicy}
+                onNavigateToTermsOfService={navigateToTermsOfService}
                 skipAnimations={skipAnimations}
               />
             )}
 
             {stage === "privacy-policy" && (
               <PrivacyPolicyPage 
+                onBackToMain={navigateToHome} 
+                onNavigateToShop={navigateToShop}
+                onNavigateToAbout={navigateToAbout}
+                onNavigateToContact={navigateToContact}
+                onNavigateToLogin={navigateToLogin}
+                onNavigateToSignup={navigateToSignup}
+                onNavigateToOrders={navigateToOrders}
+                skipAnimations={skipAnimations} 
+              />
+            )}
+
+            {stage === "terms-of-service" && (
+              <TermsOfServicePage 
                 onBackToMain={navigateToHome} 
                 onNavigateToShop={navigateToShop}
                 onNavigateToAbout={navigateToAbout}
