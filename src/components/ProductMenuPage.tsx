@@ -87,18 +87,18 @@ const heroSlides: HeroSlide[] = [
     buttonText: "SHOP NOW",
     buttonAction: "product",
   },
-  // Slide 3: 50% OFF SALE - SCROLLS TO PRODUCTS (SUPER CATCHY!)
+  // Slide 3: LAUNCH SALE - SCROLLS TO PRODUCTS
   {
     id: "sale",
     image: "/Antahayugasya-1.png",
     title: "🔥 LAUNCH SALE 🔥",
-    subtitle: "GET 50% OFF ON EVERYTHING!",
+    subtitle: "EXCLUSIVE LAUNCH PRICES!",
     description:
-      "💥 BIGGEST SALE EVER! Hoodies from ₹1,249 | T-Shirts from ₹649! Limited Time Only. First 100 Orders Get FREE SHIPPING! Don't Miss Out! 💥",
+      "Premium hoodies starting at ₹2,499 | T-Shirts starting at ₹1,299. FREE SHIPPING on all orders! Use code KALLKEYY10 at checkout for an additional 10% discount. Don't Miss Out! 💥",
     tag: "LIVE NOW",
-    price: "UP TO 50% OFF",
+    price: "HOODIES ₹2,499 | T-SHIRTS ₹1,299",
     isUpcoming: false,
-    buttonText: "GRAB THE DEALS NOW",
+    buttonText: "SHOP NOW",
     buttonAction: "scroll",
   },
   // Slide 4: Smara-Jivitam Signature T-Shirt - NAVIGATES TO PRODUCT PAGE
