@@ -2055,7 +2055,7 @@ export default function PrivacyPolicyPage({
             Email Request
           </h4>
           <ul className="list-disc pl-8 mb-4 space-y-1">
-            <li>Send detailed request to: <strong>privacy@kallkeyy.com</strong></li>
+            <li>Send detailed request to: <strong>support@kallkeyy.com</strong></li>
             <li>Request must include: User name, email, specific right being exercised, required information</li>
             <li>Include proof of identity (copy of ID, recent utility bill)</li>
           </ul>
@@ -2081,9 +2081,7 @@ export default function PrivacyPolicyPage({
             Communication Channels
           </h4>
           <ul className="list-disc pl-8 mb-4 space-y-1">
-            <li><strong>Support Email:</strong> support@kallkeyy.com</li>
-            <li><strong>Privacy Inquiries:</strong> privacy@kallkeyy.com</li>
-            <li><strong>Grievances:</strong> grievance@kallkeyy.com (once operational)</li>
+            <li><strong>Support and Privacy Email:</strong> support@kallkeyy.com</li>
           </ul>
 
           <h3 className="text-[#b90e0a] text-xl font-bold mb-2">
@@ -2188,7 +2186,7 @@ export default function PrivacyPolicyPage({
           <ul className="list-disc pl-8 mb-4 space-y-1">
             <li>Click "Unsubscribe" link in footer of email</li>
             <li>Update preferences in account settings</li>
-            <li>Email privacy@kallkeyy.com with "Unsubscribe" request</li>
+            <li>Email support@kallkeyy.com with "Unsubscribe" request</li>
             <li>Response within 5 business days</li>
           </ul>
           <p className="mb-4">2. <strong>SMS Communications:</strong></p>
@@ -2440,7 +2438,7 @@ export default function PrivacyPolicyPage({
           </ul>
           <p className="mb-4"><strong>Contacting KALLKEYY About Children's Data:</strong></p>
           <ul className="list-disc pl-8 mb-4 space-y-1">
-            <li>Parents concerned about child's account should contact: <strong>privacy@kallkeyy.com</strong></li>
+            <li>Parents concerned about child's account should contact: <strong>support@kallkeyy.com</strong></li>
             <li>Include child's name, email, account details</li>
             <li>Request will be processed within 5 business days</li>
           </ul>
@@ -2597,7 +2595,7 @@ export default function PrivacyPolicyPage({
           <p className="mb-4"><strong>Opt-Out of Profiling:</strong></p>
           <ul className="list-disc pl-8 mb-4 space-y-1">
             <li>Users can request to opt-out of profiling for marketing (if technically feasible)</li>
-            <li>Opt-out request submitted via privacy@kallkeyy.com</li>
+            <li>Opt-out request submitted via support@kallkeyy.com</li>
             <li>Processing without profiling may result in less personalized experience</li>
           </ul>
           <p className="mb-4"><strong>Appeal of Automated Decisions:</strong></p>
@@ -2964,7 +2962,7 @@ export default function PrivacyPolicyPage({
           <ul className="list-disc pl-8 mb-4 space-y-1">
             <li>Previous versions of Privacy Policy maintained in archives</li>
             <li>Users can access historical versions upon request</li>
-            <li>Email privacy@kallkeyy.com to request previous version</li>
+            <li>Email support@kallkeyy.com to request previous version</li>
           </ul>
 
           <h3 className="text-[#b90e0a] text-xl font-bold mb-2">
@@ -2992,7 +2990,7 @@ export default function PrivacyPolicyPage({
 
               KALLKEYY
 
-              Email: privacy@kallkeyy.com
+              Email: support@kallkeyy.com
 
             </pre>
           </div>
@@ -3041,10 +3039,6 @@ export default function PrivacyPolicyPage({
 
               Dwarka, Delhi 110078
 
-              
-
-              Email: grievance@kallkeyy.com (once operational)
-
             </pre>
           </div>
           <p className="mb-4"><strong>Grievance Resolution Process:</strong></p>
@@ -3071,12 +3065,6 @@ export default function PrivacyPolicyPage({
             <li>Contact your country's Data Protection Authority</li>
             <li>Example: In UK, contact Information Commissioner's Office (ico.org.uk)</li>
             <li>Example: In Germany, contact BfDI (bfdi.bund.de)</li>
-          </ul>
-          <p className="mb-4"><strong>For California Users (CCPA/CPRA):</strong></p>
-          <ul className="list-disc pl-8 mb-4 space-y-1">
-            <li>File complaint with California Attorney General</li>
-            <li>Contact: privacyenforcement@doj.ca.gov</li>
-            <li>Contact California Privacy Protection Agency (once fully operational)</li>
           </ul>
           <p className="mb-4"><strong>For India Users:</strong></p>
           <ul className="list-disc pl-8 mb-4 space-y-1">
@@ -3174,7 +3162,7 @@ export default function PrivacyPolicyPage({
             <li>Immediately stop using the Platform</li>
             <li>Do not create an account</li>
             <li>Do not submit personal information</li>
-            <li>Contact privacy@kallkeyy.com if you have questions</li>
+            <li>Contact support@kallkeyy.com if you have questions</li>
           </ul>
 
           <h3 className="text-[#b90e0a] text-xl font-bold mb-2">
@@ -3185,7 +3173,7 @@ export default function PrivacyPolicyPage({
             <li>Update your account information promptly</li>
             <li>Modify your privacy preferences as needed</li>
             <li>Notify KALLKEYY of changes in consent status</li>
-            <li>Contact privacy@kallkeyy.com if you wish to modify consents</li>
+            <li>Contact support@kallkeyy.com if you wish to modify consents</li>
           </ul>
 
         </section>
@@ -3247,26 +3235,6 @@ export default function PrivacyPolicyPage({
           <p className="mb-4"><strong>Last Updated: October 31, 2025</strong></p>
           <p className="mb-4"><strong>© 2025 KALLKEYY. All Rights Reserved.</strong></p>
 
-        </section>
-
-        {/* Section */}
-        <section className="mb-8">
-          <h2 className="text-[#b90e0a] text-2xl font-bold mb-4">APPENDIX A: COOKIE TYPES AND PURPOSES (DETAILED REFERENCE)</h2>
-          <p className="mb-4">[Detailed table of all cookies used would be inserted here - typically maintained separately and updated regularly]</p>
-        </section>
-
-        {/* Section */}
-        <section className="mb-8">
-          <h2 className="text-[#b90e0a] text-2xl font-bold mb-4">APPENDIX B: DATA RETENTION SCHEDULE</h2>
-          <p className="mb-4">[Detailed schedule of retention periods for each data type would be inserted here]</p>
-        </section>
-
-        {/* Section */}
-        <section className="mb-8">
-          <h2 className="text-[#b90e0a] text-2xl font-bold mb-4">APPENDIX C: THIRD-PARTY SERVICE PROVIDERS</h2>
-          <p className="mb-4">[Updated list of all third-party processors with contact and processing information]</p>
-
-          <p className="mb-4"><strong>END OF PRIVACY POLICY</strong></p>
         </section>
 
         {/* Footer */}

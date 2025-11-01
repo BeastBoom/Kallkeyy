@@ -248,6 +248,7 @@ interface Props {
   onNavigateToReturns?: () => void;
   onNavigateToFAQ?: () => void;
   onNavigateToPrivacyPolicy?: () => void;
+  onNavigateToTermsOfService?: () => void;
   skipAnimations?: boolean;
 }
 
@@ -265,6 +266,7 @@ export default function ProductMenuPage({
   onNavigateToReturns,
   onNavigateToFAQ,
   onNavigateToPrivacyPolicy,
+  onNavigateToTermsOfService,
   skipAnimations = false,
 }: Props) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -1317,18 +1319,16 @@ export default function ProductMenuPage({
                 >
                   Privacy Policy
                 </li>
-                {user && (
-                  <li
-                    onClick={() =>
-                      onNavigateToOrders
-                        ? onNavigateToOrders()
-                        : handleUnavailablePage("Orders")
-                    }
-                    className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
-                  >
-                    Orders
-                  </li>
-                )}
+                <li
+                  onClick={() =>
+                    onNavigateToTermsOfService
+                      ? onNavigateToTermsOfService()
+                      : handleUnavailablePage("Terms of Service")
+                  }
+                  className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
+                >
+                  Terms of Service
+                </li>
               </ul>
             </div>
           </div>
