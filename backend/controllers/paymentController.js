@@ -252,7 +252,10 @@ exports.createOrder = async (req, res) => {
     try {
       razorpayOrder = await razorpay.orders.create(options);
     } catch (razorpayError) {
-      console.error('❌ Razorpay order creation failed:', razorpayError);
+      logCritical('Razorpay order creation failed', razorpayError);
+      console.error('   Order Amount:', finalAmount);
+      console.error('   User ID:', req.user._id);
+      
       setCorsHeaders(req, res);
       return res.status(500).json({
         success: false,
@@ -324,7 +327,23 @@ async function verifyPaymentWithRazorpay(razorpay_order_id, razorpay_payment_id)
 }
 
 // Helper to check if verbose logging should be enabled (development only)
+// Note: VERCEL_ENV can be 'development', 'preview', or 'production'
 const isDevelopment = process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'development';
+
+// Helper to log critical errors that should ALWAYS be logged in production
+const logCritical = (message, error = null) => {
+  console.error(`🚨 CRITICAL: ${message}`);
+  if (error) {
+    console.error(`   Error: ${error.message || error}`);
+    if (error.response) {
+      console.error(`   Status: ${error.response.status}`);
+      console.error(`   Response: ${JSON.stringify(error.response.data)}`);
+    }
+    if (error.stack && isDevelopment) {
+      console.error(`   Stack: ${error.stack}`);
+    }
+  }
+};
 
 // Helper function to check if MongoDB transactions are supported
 async function supportsTransactions() {
@@ -814,9 +833,7 @@ exports.verifyPayment = async (req, res) => {
     // Create Shiprocket order (if enabled) - AFTER transaction is committed
     // This runs asynchronously and won't block the response
     if (process.env.SHIPROCKET_ENABLED === 'true' && order) {
-      if (isDevelopment) {
-        console.log('🚀 Initiating Shiprocket order creation');
-      }
+      console.log('🚀 Initiating Shiprocket order creation for order:', order.orderId);
       
       // Retry Shiprocket creation in background with exponential backoff
       retryOperation(
@@ -826,20 +843,21 @@ exports.verifyPayment = async (req, res) => {
       )
       .then(result => {
         if (result) {
-          if (isDevelopment) {
-            console.log('✅ Shiprocket order successfully created');
-          }
+          console.log('✅ Shiprocket order successfully created. Order ID:', order.orderId, 'Shiprocket Order ID:', result.order_id);
+        } else {
+          logCritical(`Shiprocket returned null/undefined result for order ${order.orderId}`);
         }
       })
       .catch(err => {
-        console.error('⚠️  Shiprocket order creation failed after retries (non-blocking)');
+        logCritical(`Shiprocket order creation failed after retries for order ${order.orderId}`, err);
         console.error('🚨 MANUAL SHIPROCKET ORDER REQUIRED');
-        console.error('Shiprocket error details:', err.message || err);
+        console.error(`   Order ID: ${order.orderId}`);
+        console.error(`   Error: ${err.response?.data?.message || err.message}`);
         if (err.response?.data) {
-          console.error('Shiprocket API response:', JSON.stringify(err.response.data, null, 2));
+          console.error(`   Shiprocket Response: ${JSON.stringify(err.response.data)}`);
         }
         if (err.response?.status) {
-          console.error('Shiprocket HTTP status:', err.response.status);
+          console.error(`   HTTP Status: ${err.response.status}`);
         }
         
         // Log to order notes for admin reference
@@ -848,20 +866,14 @@ exports.verifyPayment = async (req, res) => {
             notes: `Shiprocket creation failed after retries: ${err.response?.data?.message || err.message}. Manual creation required.`
           }
         }).catch(updateErr => {
-          if (isDevelopment) {
-            console.error('Failed to update order notes:', updateErr);
-          }
+          console.error('Failed to update order notes:', updateErr.message);
         });
       });
     } else {
       if (process.env.SHIPROCKET_ENABLED !== 'true') {
-        if (isDevelopment) {
-          console.log('ℹ️  Shiprocket is disabled (SHIPROCKET_ENABLED != true)');
-        }
+        console.log('⚠️  Shiprocket is disabled (SHIPROCKET_ENABLED != true)');
       } else if (!order) {
-        if (isDevelopment) {
-          console.log('ℹ️  No order object available for Shiprocket creation');
-        }
+        console.error('❌ No order object available for Shiprocket creation');
       }
     }
 
@@ -1002,6 +1014,11 @@ exports.verifyPayment = async (req, res) => {
         console.error('❌ Failed to verify payment status during error handling');
       }
     }
+    
+    // Log critical error
+    logCritical('Payment verification failed', error);
+    console.error('   Razorpay Order ID:', razorpay_order_id);
+    console.error('   Razorpay Payment ID:', razorpay_payment_id);
     
     setCorsHeaders(req, res);
     res.status(500).json({
@@ -1151,9 +1168,7 @@ async function getShiprocketToken() {
     shiprocketTokenCache = authResponse.data.token;
     shiprocketTokenExpiry = Date.now() + (20 * 60 * 60 * 1000); // 20 hours
 
-    if (isDevelopment) {
-      console.log('✅ Shiprocket token obtained and cached');
-    }
+    // Token obtained and cached - continue silently
     return shiprocketTokenCache;
   } catch (error) {
     console.error('❌ Shiprocket authentication failed');
@@ -1235,9 +1250,7 @@ function calculatePackageDetails(items) {
 // Export Shiprocket order creation function for use in COD controller
 exports.createShiprocketOrder = async function createShiprocketOrder(order) {
   try {
-    if (isDevelopment) {
-      console.log('🚀 Creating Shiprocket order');
-    }
+    console.log('🚀 Creating Shiprocket order for:', order.orderId);
     
     // Validate Shiprocket is enabled
     if (process.env.SHIPROCKET_ENABLED !== 'true') {
@@ -1283,9 +1296,7 @@ exports.createShiprocketOrder = async function createShiprocketOrder(order) {
       throw new Error(`Invalid phone number format: ${shippingAddress.phone}. Must contain only digits.`);
     }
     
-    if (isDevelopment) {
-      console.log('✅ Phone number validated');
-    }
+    // Phone validated - continue silently
 
     // Validate pincode (must be 6 digits for India)
     const pincode = shippingAddress.pincode.trim().replace(/\D/g, '');
@@ -1403,9 +1414,7 @@ exports.createShiprocketOrder = async function createShiprocketOrder(order) {
       throw new Error('Shiprocket response missing order_id');
     }
 
-    if (isDevelopment) {
-      console.log('✅ Shiprocket response received');
-    }
+    console.log('✅ Shiprocket response received for order:', order.orderId);
 
     // Update order with Shiprocket details
     // Keep status as 'confirmed' - don't change to 'processing' here
@@ -1421,54 +1430,81 @@ exports.createShiprocketOrder = async function createShiprocketOrder(order) {
 
     await Order.findByIdAndUpdate(order._id, updateData);
 
-    if (isDevelopment) {
-      console.log('✅ Shiprocket order created successfully');
-    }
+    console.log('✅ Shiprocket order created successfully. Order ID:', order.orderId, 'Shiprocket Order ID:', responseData.order_id);
 
     return responseData;
   } catch (error) {
     const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message;
+    const errorDetails = error.response?.data;
     
-    console.error('❌ Shiprocket order creation failed');
+    // ALWAYS log Shiprocket errors - critical for production debugging
+    logCritical(`Shiprocket order creation failed for order ${order.orderId}`, error);
+    console.error(`   Order Amount: ₹${order.amount}`);
+    console.error(`   Payment Method: ${order.paymentMethod || 'N/A'}`);
+    
+    // Log full error response for debugging (especially for 400 errors)
+    if (error.response?.status === 400 && error.response?.data) {
+      console.error('📋 Shiprocket 400 Error Details:', JSON.stringify(error.response.data, null, 2));
+      
+      // Check for common issues
+      if (errorDetails.message) {
+        console.error(`   Error Message: ${errorDetails.message}`);
+      }
+      if (errorDetails.errors) {
+        console.error(`   Validation Errors:`, JSON.stringify(errorDetails.errors, null, 2));
+      }
+      if (order.amount <= 0) {
+        console.error('   ⚠️  Issue: Order amount is 0 or negative. Shiprocket requires minimum order value for COD orders.');
+      }
+      if (order.amount < 100 && order.paymentMethod === 'cod') {
+        console.error('   ⚠️  Issue: COD orders with very low amounts (< ₹100) may be rejected by Shiprocket.');
+      }
+    }
 
     // Clear token cache on authentication errors
     if (error.response?.status === 401 || error.message?.includes('authentication')) {
       shiprocketTokenCache = null;
       shiprocketTokenExpiry = null;
-      if (isDevelopment) {
-        console.log('🔄 Cleared Shiprocket token cache due to auth error');
-      }
+      console.log('🔄 Cleared Shiprocket token cache due to auth error');
     }
     
-    // Update order to note Shiprocket failure
+    // Update order to note Shiprocket failure with detailed error
     try {
+      const errorNote = errorDetails 
+        ? `Shiprocket creation failed: ${errorMessage}${errorDetails.errors ? ` - Details: ${JSON.stringify(errorDetails.errors)}` : ''}`
+        : `Shiprocket creation failed: ${errorMessage}`;
+      
     await Order.findByIdAndUpdate(order._id, {
       $push: {
-          notes: `Shiprocket creation failed: ${errorMessage}`
+          notes: errorNote
         }
       });
     } catch (updateError) {
-      console.error('Failed to update order with error note:', updateError);
+      console.error('Failed to update order with error note:', updateError.message);
     }
     
     // Log specific error types for debugging
     if (error.response?.data) {
       const apiError = error.response.data;
       
-      if (apiError.message?.includes('pickup')) {
+      if (apiError.message?.toLowerCase().includes('pickup')) {
         console.error('🔧 Issue: Pickup location might not exist. Check SHIPROCKET_PICKUP_LOCATION in .env');
       }
       
-      if (apiError.message?.includes('phone')) {
+      if (apiError.message?.toLowerCase().includes('phone')) {
         console.error('🔧 Issue: Invalid phone number format. Phone must be 10 digits.');
       }
       
-      if (apiError.message?.includes('pincode')) {
+      if (apiError.message?.toLowerCase().includes('pincode')) {
         console.error('🔧 Issue: Invalid pincode. Must be 6 digits.');
       }
       
-      if (apiError.message?.includes('email')) {
+      if (apiError.message?.toLowerCase().includes('email')) {
         console.error('🔧 Issue: Invalid email format.');
+      }
+      
+      if (apiError.message?.toLowerCase().includes('amount') || apiError.message?.toLowerCase().includes('minimum') || apiError.message?.toLowerCase().includes('value')) {
+        console.error('🔧 Issue: Order amount validation failed. Shiprocket may require minimum order value.');
       }
     }
     

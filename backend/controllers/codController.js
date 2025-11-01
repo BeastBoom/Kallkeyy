@@ -9,7 +9,23 @@ const connectDB = require('../config/db');
 const { createShiprocketOrder } = require('./paymentController');
 
 // Helper to check if verbose logging should be enabled (development only)
+// Note: VERCEL_ENV can be 'development', 'preview', or 'production'
 const isDevelopment = process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'development';
+
+// Helper to log critical errors that should ALWAYS be logged in production
+const logCritical = (message, error = null) => {
+  console.error(`🚨 CRITICAL: ${message}`);
+  if (error) {
+    console.error(`   Error: ${error.message || error}`);
+    if (error.response) {
+      console.error(`   Status: ${error.response.status}`);
+      console.error(`   Response: ${JSON.stringify(error.response.data)}`);
+    }
+    if (error.stack && isDevelopment) {
+      console.error(`   Stack: ${error.stack}`);
+    }
+  }
+};
 
 // Helper function with retry mechanism
 async function retryOperation(operation, maxRetries = 3, delay = 1000) {
@@ -351,9 +367,7 @@ exports.createCODOrder = async (req, res) => {
           // Run asynchronously - don't await, don't block response
           setImmediate(async () => {
             try {
-              if (isDevelopment) {
-                console.log('🚀 Initiating Shiprocket order creation for COD order');
-              }
+              console.log('🚀 Initiating Shiprocket order creation for COD order:', order.orderId);
               
               // Fetch fresh order from DB to ensure all fields are present
               const freshOrder = await Order.findById(order._id).lean();
@@ -361,7 +375,7 @@ exports.createCODOrder = async (req, res) => {
                 throw new Error('Order not found');
               }
               
-              await retryOperation(
+              const result = await retryOperation(
                 async () => {
                   return await createShiprocketOrder(freshOrder);
                 },
@@ -369,13 +383,18 @@ exports.createCODOrder = async (req, res) => {
                 2000
               );
               
-              if (isDevelopment) {
-                console.log('✅ Shiprocket order successfully created for COD order');
+              if (result) {
+                console.log('✅ Shiprocket COD order successfully created. Order ID:', order.orderId, 'Shiprocket Order ID:', result.order_id);
+              } else {
+                logCritical(`Shiprocket returned null/undefined result for COD order ${order.orderId}`);
               }
             } catch (err) {
-              console.error('⚠️  Shiprocket order creation failed for COD order (non-blocking)');
-              if (isDevelopment) {
-                console.error('Shiprocket error details:', err.message);
+              logCritical(`Shiprocket COD order creation failed for order ${order.orderId}`, err);
+              console.error('🚨 MANUAL SHIPROCKET ORDER REQUIRED for COD order');
+              console.error(`   Order ID: ${order.orderId}`);
+              console.error(`   Error: ${err.response?.data?.message || err.message}`);
+              if (err.response?.data) {
+                console.error(`   Shiprocket Response: ${JSON.stringify(err.response.data)}`);
               }
               // Log to order notes for admin reference
               try {
@@ -385,7 +404,7 @@ exports.createCODOrder = async (req, res) => {
                   }
                 });
               } catch (updateError) {
-                // Ignore update errors
+                console.error('Failed to update COD order notes:', updateError.message);
               }
             }
           });
