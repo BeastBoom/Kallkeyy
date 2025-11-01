@@ -109,7 +109,9 @@ const App = () => {
     if (path === ROUTES.FORGOT_PASSWORD) return "forgot-password";
     if (path === ROUTES.CHECKOUT) return "checkout";
     if (path === ROUTES.ORDERS) return "orders";
-    if (path.startsWith(ROUTES.ORDER_DETAIL)) return "order-detail";
+    if (path.startsWith(ROUTES.ORDER_DETAIL)) {
+      return "order-detail";
+    }
     if (path === ROUTES.ORDER_CONFIRMATION) return "order-confirmation";
     if (
       path === ROUTES.KAALDRISHTA ||
@@ -170,6 +172,14 @@ const App = () => {
 
     setStage(route === "main" ? "loading" : route);
     setSelectedProduct(product);
+    
+    // Extract orderId from URL if on order detail page (for page reloads)
+    if (route === "order-detail") {
+      const orderIdFromUrl = path.replace(ROUTES.ORDER_DETAIL + '/', '');
+      if (orderIdFromUrl && orderIdFromUrl !== 'order-detail' && orderIdFromUrl !== path) {
+        setSelectedOrderId(orderIdFromUrl);
+      }
+    }
 
     // Set a small delay for preloader if we're on home page
     if (route === "main") {

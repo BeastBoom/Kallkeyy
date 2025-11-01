@@ -21,10 +21,12 @@ import {
   Copy,
   ExternalLink,
   RotateCcw,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "../../contexts/AuthContext";
-import { getOrderById, requestOrderReturn, cancelOrder, Order } from "../../services/orderService";
+import { getOrderById, requestOrderReturn, Order } from "../../services/orderService";
 
 interface Props {
   orderId: string;
@@ -55,20 +57,48 @@ export default function OrderDetailPage({
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [returnReason, setReturnReason] = useState("");
   const [returnComments, setReturnComments] = useState("");
+  const [showPaymentId, setShowPaymentId] = useState(false);
   const { user, logout } = useAuth();
 
+  // Extract orderId from URL on mount or when URL changes (for page reloads)
   useEffect(() => {
-    if (user && orderId) {
-      fetchOrderDetails();
+    const pathParts = window.location.pathname.split('/');
+    const urlOrderId = pathParts[pathParts.length - 1];
+    if (urlOrderId && urlOrderId !== 'order-detail' && !orderId) {
+      // If orderId prop is not available but URL has it, use URL orderId
+      // This handles page reloads
+      // Note: We can't change props, so we'll use urlOrderId in fetchOrderDetails
+    }
+  }, []);
+
+  useEffect(() => {
+    // Use orderId from props, or extract from URL if props not available (page reload)
+    const pathParts = window.location.pathname.split('/');
+    const urlOrderId = pathParts[pathParts.length - 1];
+    const effectiveOrderId = orderId || (urlOrderId && urlOrderId !== 'order-detail' ? urlOrderId : null);
+    
+    if (user && effectiveOrderId) {
+      fetchOrderDetails(effectiveOrderId);
+    } else if (!user) {
+      setIsLoading(false);
     } else {
       setIsLoading(false);
     }
   }, [user, orderId]);
 
-  const fetchOrderDetails = async () => {
+  const fetchOrderDetails = async (orderIdToFetch?: string) => {
     try {
       setIsLoading(true);
-      const data = await getOrderById(orderId);
+      // Use provided orderId or extract from URL
+      const pathParts = window.location.pathname.split('/');
+      const urlOrderId = pathParts[pathParts.length - 1];
+      const effectiveOrderId = orderIdToFetch || orderId || (urlOrderId && urlOrderId !== 'order-detail' ? urlOrderId : null);
+      
+      if (!effectiveOrderId) {
+        throw new Error('Order ID not found');
+      }
+      
+      const data = await getOrderById(effectiveOrderId);
       setOrder(data);
     } catch (error) {
       console.error("Error fetching order details:", error);
@@ -119,25 +149,12 @@ export default function OrderDetailPage({
     }
   };
 
-  const handleCancelOrder = async () => {
-    if (!confirm("Are you sure you want to cancel this order?")) {
-      return;
-    }
-
-    try {
-      await cancelOrder(orderId);
-      toast({
-        title: "Success",
-        description: "Order cancelled successfully",
-      });
-      fetchOrderDetails();
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to cancel order",
-      });
-    }
+  const handleCancelOrder = () => {
+    toast({
+      variant: "destructive",
+      title: "Order Cancellation",
+      description: "Orders cannot be cancelled right now. Please mail to support@kallkeyy.com for order cancellation.",
+    });
   };
 
   const getStatusIcon = (status: string) => {
@@ -203,7 +220,8 @@ export default function OrderDetailPage({
     return initials;
   };
 
-  const canCancelOrder = order && (order.status === 'pending' || order.status === 'processing');
+  // Note: Cancel order functionality is temporarily disabled - users should email support
+  const showCancelButton = order && (order.status === 'pending' || order.status === 'processing' || order.status === 'paid');
   const canRequestReturn = order && order.status === 'delivered' && !order.returnRequested;
 
   return (
@@ -551,17 +569,46 @@ export default function OrderDetailPage({
                   <div>
                     <p className="text-sm text-gray-400 mb-1">Payment ID</p>
                     <div className="flex items-center gap-2">
-                      <code className="flex-1 bg-white/5 px-3 py-2 rounded text-sm break-all">
-                        {order.razorpayPaymentId || "N/A"}
-                      </code>
-                      {order.razorpayPaymentId && (
-                        <button
-                          onClick={handleCopyPaymentId}
-                          className="p-2 hover:bg-white/10 rounded transition-colors"
-                          title="Copy Payment ID"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </button>
+                      {showPaymentId ? (
+                        <>
+                          <code className="flex-1 bg-white/5 px-3 py-2 rounded text-sm break-all">
+                            {order.razorpayPaymentId || "N/A"}
+                          </code>
+                          {order.razorpayPaymentId && (
+                            <>
+                              <button
+                                onClick={handleCopyPaymentId}
+                                className="p-2 hover:bg-white/10 rounded transition-colors"
+                                title="Copy Payment ID"
+                              >
+                                <Copy className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => setShowPaymentId(false)}
+                                className="p-2 hover:bg-white/10 rounded transition-colors"
+                                title="Hide Payment ID"
+                              >
+                                <EyeOff className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <div className="flex-1 flex items-center gap-2">
+                          <code className="flex-1 bg-white/5 px-3 py-2 rounded text-sm">
+                            •••••••••••••••••
+                          </code>
+                          {order.razorpayPaymentId && (
+                            <button
+                              onClick={() => setShowPaymentId(true)}
+                              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded text-sm transition-colors flex items-center gap-2"
+                              title="Show Payment ID"
+                            >
+                              <Eye className="w-4 h-4" />
+                              View
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -659,8 +706,8 @@ export default function OrderDetailPage({
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
               <h2 className="text-xl font-bold mb-4">Need Help?</h2>
               <div className="grid md:grid-cols-3 gap-4">
-                {canCancelOrder && (
-                  <Button onClick={handleCancelOrder} variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white">
+                {showCancelButton && (
+                  <Button onClick={handleCancelOrder} variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white cursor-pointer">
                     <XCircle className="w-4 h-4 mr-2" />
                     Cancel Order
                   </Button>
