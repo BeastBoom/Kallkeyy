@@ -511,13 +511,13 @@ exports.verifyPayment = async (req, res) => {
       if (useTransactions && session) {
         updateOptions.session = session;
       }
-      order = await Order.findByIdAndUpdate(
+        order = await Order.findByIdAndUpdate(
         order._id,
         {
           razorpayPaymentId: razorpay_payment_id,
           razorpaySignature: razorpay_signature,
           paymentStatus: 'completed',
-          status: 'paid'
+          status: 'confirmed'
         },
         updateOptions
       );
@@ -630,7 +630,7 @@ exports.verifyPayment = async (req, res) => {
           amount: paidAmount,
           currency: razorpayOrderDetails.currency,
           paymentMethod: 'razorpay',
-          status: 'paid',
+          status: 'confirmed',
           paymentStatus: 'completed'
         };
 
@@ -792,7 +792,7 @@ exports.verifyPayment = async (req, res) => {
             amount: paidAmount || (reconRazorpayOrderDetails?.amount / 100) || 0,
             currency: reconRazorpayOrderDetails?.currency || 'INR',
             paymentMethod: 'razorpay',
-            status: 'paid',
+            status: 'confirmed',
             paymentStatus: 'completed',
             notes: ['⚠️ MANUAL RECONCILIATION REQUIRED - Stock not deducted due to transaction failure']
           });
@@ -932,7 +932,7 @@ exports.verifyPayment = async (req, res) => {
                 amount: razorpayOrderDetails.amount / 100,
                 currency: razorpayOrderDetails.currency,
                 paymentMethod: 'razorpay',
-                status: 'paid',
+                status: 'confirmed',
                 paymentStatus: 'completed',
                 notes: ['⚠️ Created during error recovery - verify stock deduction']
               };
@@ -1061,7 +1061,7 @@ exports.webhookHandler = async (req, res) => {
           { razorpayPaymentId: payload.id },
           { 
             paymentStatus: 'completed',
-            status: 'paid'
+            status: 'confirmed'
         },
         { new: true }
       );
@@ -1408,9 +1408,11 @@ exports.createShiprocketOrder = async function createShiprocketOrder(order) {
     }
 
     // Update order with Shiprocket details
+    // Keep status as 'confirmed' - don't change to 'processing' here
+    // Status will be updated to 'processing' when order is actually being prepared/shipped
     const updateData = {
-      shiprocketOrderId: responseData.order_id,
-      status: 'processing'
+      shiprocketOrderId: responseData.order_id
+      // Note: We keep the current status (confirmed) instead of changing to 'processing'
     };
 
     if (responseData.shipment_id) {

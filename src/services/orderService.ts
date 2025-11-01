@@ -27,6 +27,7 @@ export interface Order {
   currency: string;
   status: string;
   paymentStatus: string;
+  paymentMethod?: string;
   razorpayOrderId?: string;
   razorpayPaymentId?: string;
   razorpaySignature?: string;

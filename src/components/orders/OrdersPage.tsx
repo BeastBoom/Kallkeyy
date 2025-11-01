@@ -76,6 +76,8 @@ export default function OrdersPage({
     switch (status.toLowerCase()) {
       case "delivered":
         return <CheckCircle className="w-5 h-5 text-green-500" />;
+      case "confirmed":
+        return <CheckCircle className="w-5 h-5 text-green-500" />;
       case "shipped":
         return <Truck className="w-5 h-5 text-blue-500" />;
       case "processing":
@@ -95,6 +97,8 @@ export default function OrdersPage({
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "delivered":
+        return "bg-green-500";
+      case "confirmed":
         return "bg-green-500";
       case "shipped":
         return "bg-blue-500";
@@ -449,7 +453,11 @@ export default function OrdersPage({
                         className={`${getStatusColor(order.status)} text-white border-0 capitalize flex items-center gap-2`}
                       >
                         {getStatusIcon(order.status)}
-                        <span>{order.status === 'return_requested' ? 'Return Requested' : order.status}</span>
+                        <span>
+                          {order.status === 'return_requested' ? 'Return Requested' : 
+                           order.status === 'confirmed' ? 'Confirmed' : 
+                           order.status}
+                        </span>
                       </Badge>
                     </div>
 

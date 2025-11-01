@@ -161,6 +161,8 @@ export default function OrderDetailPage({
     switch (status.toLowerCase()) {
       case "delivered":
         return <CheckCircle className="w-6 h-6 text-green-500" />;
+      case "confirmed":
+        return <CheckCircle className="w-6 h-6 text-green-500" />;
       case "shipped":
         return <Truck className="w-6 h-6 text-blue-500" />;
       case "processing":
@@ -180,6 +182,8 @@ export default function OrderDetailPage({
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "delivered":
+        return "bg-green-500";
+      case "confirmed":
         return "bg-green-500";
       case "shipped":
         return "bg-blue-500";
@@ -221,7 +225,7 @@ export default function OrderDetailPage({
   };
 
   // Note: Cancel order functionality is temporarily disabled - users should email support
-  const showCancelButton = order && (order.status === 'pending' || order.status === 'processing' || order.status === 'paid');
+  const showCancelButton = order && (order.status === 'pending' || order.status === 'processing' || order.status === 'paid' || order.status === 'confirmed');
   const canRequestReturn = order && order.status === 'delivered' && !order.returnRequested;
 
   return (
@@ -502,7 +506,11 @@ export default function OrderDetailPage({
                 </div>
                 <Badge variant="outline" className={`${getStatusColor(order.status)} text-white border-0 capitalize flex items-center gap-2 text-base px-4 py-2`}>
                   {getStatusIcon(order.status)}
-                  <span>{order.status === 'return_requested' ? 'Return Requested' : order.status}</span>
+                  <span>
+                    {order.status === 'return_requested' ? 'Return Requested' : 
+                     order.status === 'confirmed' ? 'Confirmed' : 
+                     order.status}
+                  </span>
                 </Badge>
               </div>
             </div>
@@ -565,58 +573,64 @@ export default function OrderDetailPage({
                   <CreditCard className="w-5 h-5" />
                   Payment Information
                 </h2>
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm text-gray-400 mb-1">Payment ID</p>
-                    <div className="flex items-center gap-2">
-                      {showPaymentId ? (
-                        <>
-                          <code className="flex-1 bg-white/5 px-3 py-2 rounded text-sm break-all">
-                            {order.razorpayPaymentId || "N/A"}
-                          </code>
-                          {order.razorpayPaymentId && (
-                            <>
+                {order.paymentMethod === 'cod' ? (
+                  <div className="text-center py-4">
+                    <p className="text-gray-400">Payment Information is not available for COD Orders</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-400 mb-1">Payment ID</p>
+                      <div className="flex items-center gap-2">
+                        {showPaymentId ? (
+                          <>
+                            <code className="flex-1 bg-white/5 px-3 py-2 rounded text-sm break-all">
+                              {order.razorpayPaymentId || "N/A"}
+                            </code>
+                            {order.razorpayPaymentId && (
+                              <>
+                                <button
+                                  onClick={handleCopyPaymentId}
+                                  className="p-2 hover:bg-white/10 rounded transition-colors"
+                                  title="Copy Payment ID"
+                                >
+                                  <Copy className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => setShowPaymentId(false)}
+                                  className="p-2 hover:bg-white/10 rounded transition-colors"
+                                  title="Hide Payment ID"
+                                >
+                                  <EyeOff className="w-4 h-4" />
+                                </button>
+                              </>
+                            )}
+                          </>
+                        ) : (
+                          <div className="flex-1 flex items-center gap-2">
+                            <code className="flex-1 bg-white/5 px-3 py-2 rounded text-sm">
+                              •••••••••••••••••
+                            </code>
+                            {order.razorpayPaymentId && (
                               <button
-                                onClick={handleCopyPaymentId}
-                                className="p-2 hover:bg-white/10 rounded transition-colors"
-                                title="Copy Payment ID"
+                                onClick={() => setShowPaymentId(true)}
+                                className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded text-sm transition-colors flex items-center gap-2"
+                                title="Show Payment ID"
                               >
-                                <Copy className="w-4 h-4" />
+                                <Eye className="w-4 h-4" />
+                                View
                               </button>
-                              <button
-                                onClick={() => setShowPaymentId(false)}
-                                className="p-2 hover:bg-white/10 rounded transition-colors"
-                                title="Hide Payment ID"
-                              >
-                                <EyeOff className="w-4 h-4" />
-                              </button>
-                            </>
-                          )}
-                        </>
-                      ) : (
-                        <div className="flex-1 flex items-center gap-2">
-                          <code className="flex-1 bg-white/5 px-3 py-2 rounded text-sm">
-                            •••••••••••••••••
-                          </code>
-                          {order.razorpayPaymentId && (
-                            <button
-                              onClick={() => setShowPaymentId(true)}
-                              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded text-sm transition-colors flex items-center gap-2"
-                              title="Show Payment ID"
-                            >
-                              <Eye className="w-4 h-4" />
-                              View
-                            </button>
-                          )}
-                        </div>
-                      )}
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-400 mb-1">Payment Status</p>
+                      <Badge className={order.paymentStatus === 'completed' ? 'bg-green-500' : 'bg-yellow-500'}>{order.paymentStatus}</Badge>
                     </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-400 mb-1">Payment Status</p>
-                    <Badge className={order.paymentStatus === 'completed' ? 'bg-green-500' : 'bg-yellow-500'}>{order.paymentStatus}</Badge>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
 
