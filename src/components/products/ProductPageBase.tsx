@@ -835,7 +835,7 @@ export default function ProductPageBase({
         <div className="grid lg:grid-cols-2 gap-12 items-start mb-16">
           {/* Left: Product Images/Videos */}
           <div className="space-y-6 sticky top-24">
-            <div className="relative aspect-square rounded-2xl overflow-hidden border border-white/10 bg-[#28282B] group">
+            <div className="relative aspect-square rounded-2xl overflow-hidden border border-white/10 bg-black group">
               {product.images[activeIdx]?.endsWith(".mp4") ? (
                 <video
                   src={product.images[activeIdx]}
@@ -879,7 +879,7 @@ export default function ProductPageBase({
                   aria-label={`View ${
                     src.endsWith(".mp4") ? "video" : "image"
                   } ${i + 1}`}
-                  className={`aspect-square rounded-lg overflow-hidden border transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#b90e0a] ${
+                  className={`aspect-square rounded-lg overflow-hidden border bg-black transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#b90e0a] ${
                     activeIdx === i
                       ? "border-[#b90e0a] ring-1 ring-[#b90e0a]"
                       : "border-[#808088]/30 hover:border-white"

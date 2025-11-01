@@ -64,5 +64,7 @@ Desktop.ini
 *.tgz
 
 
+
+src/components/auth/PhoneVerificationModal copy.tsx
 backend/server_copy.js
 POSTMAN_API_

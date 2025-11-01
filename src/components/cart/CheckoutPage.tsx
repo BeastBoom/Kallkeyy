@@ -842,6 +842,16 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false }: C
                     }}
                     maxLength={10}
                   />
+                  <p
+                    className="text-xs mt-2"
+                    style={{
+                      color: "var(--color-text-secondary)",
+                      fontSize: "11px",
+                      lineHeight: "1.4",
+                    }}
+                  >
+                    You might get a call to confirm your order on this number after 1-2 days of order placement
+                  </p>
                 </div>
 
                 <div>
