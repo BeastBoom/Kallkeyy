@@ -9,6 +9,8 @@ import { useToast } from "../ui/use-toast";
 interface SignupPageProps {
   onNavigateToHome: () => void;
   onNavigateToLogin: () => void;
+  onNavigateToPrivacyPolicy?: () => void;
+  onNavigateToTermsOfService?: () => void;
 }
 
 interface PasswordRequirement {
@@ -30,6 +32,8 @@ const passwordRequirements: PasswordRequirement[] = [
 export default function SignupPage({
   onNavigateToHome,
   onNavigateToLogin,
+  onNavigateToPrivacyPolicy,
+  onNavigateToTermsOfService,
 }: SignupPageProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -345,6 +349,47 @@ export default function SignupPage({
             >
               Login
             </button>
+          </p>
+
+          {/* Privacy Policy and Terms of Service Links - Required for Google OAuth */}
+          <p className="text-center text-white/40 text-xs mt-4">
+            By signing up, you agree to our{" "}
+            {onNavigateToTermsOfService ? (
+              <button
+                onClick={onNavigateToTermsOfService}
+                className="text-[#b90e0a] hover:text-[#FF0000] underline transition-colors"
+              >
+                Terms of Service
+              </button>
+            ) : (
+              <a
+                href="/terms-of-service"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#b90e0a] hover:text-[#FF0000] underline transition-colors"
+              >
+                Terms of Service
+              </a>
+            )}{" "}
+            and{" "}
+            {onNavigateToPrivacyPolicy ? (
+              <button
+                onClick={onNavigateToPrivacyPolicy}
+                className="text-[#b90e0a] hover:text-[#FF0000] underline transition-colors"
+              >
+                Privacy Policy
+              </button>
+            ) : (
+              <a
+                href="/privacy-policy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#b90e0a] hover:text-[#FF0000] underline transition-colors"
+              >
+                Privacy Policy
+              </a>
+            )}
+            .
           </p>
         </div>
       </div>

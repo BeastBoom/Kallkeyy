@@ -10,12 +10,16 @@ interface LoginPageProps {
   onNavigateToHome: () => void;
   onNavigateToSignup: () => void;
   onNavigateToForgotPassword: () => void;
+  onNavigateToPrivacyPolicy?: () => void;
+  onNavigateToTermsOfService?: () => void;
 }
 
 export default function LoginPage({ 
   onNavigateToHome, 
   onNavigateToSignup,
-  onNavigateToForgotPassword 
+  onNavigateToForgotPassword,
+  onNavigateToPrivacyPolicy,
+  onNavigateToTermsOfService
 }: LoginPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -120,7 +124,7 @@ export default function LoginPage({
                 onError={handleGoogleError}
                 theme="filled_black"
                 size="large"
-                text="signup_with"
+                text="signin_with"
                 width={googleButtonWidth}
               />
             </div>
@@ -212,6 +216,47 @@ export default function LoginPage({
             >
               Sign Up
             </button>
+          </p>
+
+          {/* Privacy Policy and Terms of Service Links - Required for Google OAuth */}
+          <p className="text-center text-white/40 text-xs mt-4">
+            By logging in, you agree to our{" "}
+            {onNavigateToTermsOfService ? (
+              <button
+                onClick={onNavigateToTermsOfService}
+                className="text-[#b90e0a] hover:text-[#FF0000] underline transition-colors"
+              >
+                Terms of Service
+              </button>
+            ) : (
+              <a
+                href="/terms-of-service"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#b90e0a] hover:text-[#FF0000] underline transition-colors"
+              >
+                Terms of Service
+              </a>
+            )}{" "}
+            and{" "}
+            {onNavigateToPrivacyPolicy ? (
+              <button
+                onClick={onNavigateToPrivacyPolicy}
+                className="text-[#b90e0a] hover:text-[#FF0000] underline transition-colors"
+              >
+                Privacy Policy
+              </button>
+            ) : (
+              <a
+                href="/privacy-policy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#b90e0a] hover:text-[#FF0000] underline transition-colors"
+              >
+                Privacy Policy
+              </a>
+            )}
+            .
           </p>
         </div>
       </div>

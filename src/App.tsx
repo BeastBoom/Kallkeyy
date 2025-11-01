@@ -504,6 +504,8 @@ const App = () => {
                 onNavigateToHome={navigateToHome} 
                 onNavigateToSignup={navigateToSignup}
                 onNavigateToForgotPassword={navigateToForgotPassword}
+                onNavigateToPrivacyPolicy={navigateToPrivacyPolicy}
+                onNavigateToTermsOfService={navigateToTermsOfService}
               />
             )}
 
@@ -511,6 +513,8 @@ const App = () => {
               <SignupPage
                 onNavigateToHome={navigateToHome}
                 onNavigateToLogin={navigateToLogin}
+                onNavigateToPrivacyPolicy={navigateToPrivacyPolicy}
+                onNavigateToTermsOfService={navigateToTermsOfService}
               />
             )}
 
