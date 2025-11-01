@@ -61,7 +61,7 @@ export default function ForgotPasswordPage({ onNavigateToLogin }: ForgotPassword
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/api/auth/verify-reset-code`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/verify-reset-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code })
@@ -115,7 +115,7 @@ export default function ForgotPasswordPage({ onNavigateToLogin }: ForgotPassword
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/api/auth/reset-password`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code, newPassword })
@@ -192,7 +192,7 @@ export default function ForgotPasswordPage({ onNavigateToLogin }: ForgotPassword
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
+                    placeholder="Enter your email"
                     className="pl-11 bg-white/5 border-white/10 text-white"
                     required
                   />

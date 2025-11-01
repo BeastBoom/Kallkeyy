@@ -348,8 +348,8 @@ export default function ProductPageBase({
       // Determine if creating new or updating existing
       const isUpdate = isEditingReview && userReviewData?._id;
       const url = isUpdate
-        ? `${import.meta.env.VITE_API_URL}/api/reviews/${userReviewData._id}`
-        : `${import.meta.env.VITE_API_URL}/api/reviews`;
+        ? `${API_BASE_URL}/api/reviews/${userReviewData._id}`
+        : `${API_BASE_URL}/api/reviews`;
       const method = isUpdate ? "PUT" : "POST";
 
       const response = await fetch(url, {
@@ -381,7 +381,7 @@ export default function ProductPageBase({
 
         // Refresh reviews
         const reviewsResponse = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/reviews/${productId}`,
+          `${API_BASE_URL}/api/reviews/${productId}`,
           {
             method: "GET",
             headers: {

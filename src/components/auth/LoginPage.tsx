@@ -152,7 +152,7 @@ export default function LoginPage({
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
+                  placeholder="Enter your email"
                   className="pl-11 bg-white/5 border-white/10 text-white"
                   required
                 />
