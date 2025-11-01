@@ -9,6 +9,7 @@ const adminProductController = require('../controllers/adminProductController');
 const adminUserController = require('../controllers/adminUserController');
 const adminOrderController = require('../controllers/adminOrderController');
 const adminSubscriberController = require('../controllers/adminSubscriberController');
+const adminCouponController = require('../controllers/adminCouponController');
 
 // ==========================================
 // AUTH ROUTES (No authentication required)
@@ -75,6 +76,16 @@ router.put('/subscribers/:id/toggle', adminAuth, adminSubscriberController.toggl
 router.delete('/subscribers/:id', adminAuth, adminSubscriberController.deleteSubscriber);
 router.delete('/subscribers/bulk/inactive', adminAuth, checkRole('founder', 'developer'), adminSubscriberController.bulkDeleteInactive);
 router.get('/subscribers/export/csv', adminAuth, adminSubscriberController.exportSubscribers);
+
+// ==========================================
+// COUPON MANAGEMENT (All admins)
+// ==========================================
+router.get('/coupons', adminAuth, adminCouponController.getAllCoupons);
+router.get('/coupons/:couponId', adminAuth, adminCouponController.getCouponDetails);
+router.post('/coupons', adminAuth, adminCouponController.createCoupon);
+router.put('/coupons/:couponId', adminAuth, adminCouponController.updateCoupon);
+router.delete('/coupons/:couponId', adminAuth, adminCouponController.deleteCoupon);
+router.put('/coupons/:couponId/toggle-status', adminAuth, adminCouponController.toggleCouponStatus);
 
 module.exports = router;
 

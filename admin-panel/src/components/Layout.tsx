@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { LayoutDashboard, Package, Users, ShoppingCart, Mail, BarChart3, Settings, LogOut } from 'lucide-react'
+import { LayoutDashboard, Package, Users, ShoppingCart, Mail, BarChart3, Settings, LogOut, Tag } from 'lucide-react'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -15,6 +15,7 @@ export default function Layout({ children }: LayoutProps) {
     { path: '/products', label: 'Products', icon: Package },
     { path: '/users', label: 'Users', icon: Users },
     { path: '/orders', label: 'Orders', icon: ShoppingCart },
+    { path: '/coupons', label: 'Coupons', icon: Tag },
     { path: '/subscribers', label: 'Subscribers', icon: Mail },
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
     { path: '/settings', label: 'Settings', icon: Settings },

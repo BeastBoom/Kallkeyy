@@ -80,7 +80,14 @@ const orderSchema = new mongoose.Schema({
   },
   notes: [{
     type: String
-  }]
+  }],
+  coupon: {
+    code: String,
+    name: String,
+    discountType: String,
+    discountValue: Number,
+    discountAmount: Number
+  }
 }, {
   timestamps: true
 });

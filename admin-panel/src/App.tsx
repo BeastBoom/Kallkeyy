@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard'
 import Products from './pages/Products'
 import Users from './pages/Users'
 import Orders from './pages/Orders'
+import Coupons from './pages/Coupons'
 import Subscribers from './pages/Subscribers'
 import Analytics from './pages/Analytics'
 import Settings from './pages/Settings'
@@ -20,6 +21,7 @@ function App() {
           <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
           <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
           <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+          <Route path="/coupons" element={<ProtectedRoute><Coupons /></ProtectedRoute>} />
           <Route path="/subscribers" element={<ProtectedRoute><Subscribers /></ProtectedRoute>} />
           <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />

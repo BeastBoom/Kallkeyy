@@ -4,8 +4,10 @@ const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
+const Coupon = require('../models/Coupon');
 const axios = require('axios');
 const { setCorsHeaders } = require('../utils/responseHelper');
+const { recordCouponUsage } = require('./couponController');
 
 // Validate Razorpay credentials
 if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
@@ -31,7 +33,7 @@ exports.createOrder = async (req, res) => {
     }
 
     const userId = req.user._id;
-    const { shippingAddress } = req.body;
+    const { shippingAddress, couponCode } = req.body;
 
     // Validate shipping address
     if (!shippingAddress || !shippingAddress.fullName || !shippingAddress.phone || !shippingAddress.address || !shippingAddress.city || !shippingAddress.state || !shippingAddress.pincode) {
@@ -89,15 +91,135 @@ exports.createOrder = async (req, res) => {
       });
     }
 
-    // Calculate total amount
-    const amount = cart.totalPrice;
+    // Calculate base total amount
+    let baseAmount = cart.totalPrice;
+    let discountAmount = 0;
+    let couponData = null;
+
+    // Validate and apply coupon if provided
+    if (couponCode && couponCode.trim()) {
+      try {
+        const coupon = await Coupon.findOne({ 
+          code: couponCode.toUpperCase().trim(),
+          isActive: true
+        });
+
+        if (coupon) {
+          // Check if coupon is expired
+          if (coupon.validUntil && new Date() > coupon.validUntil) {
+            setCorsHeaders(req, res);
+            return res.status(400).json({
+              success: false,
+              message: 'This coupon has expired'
+            });
+          }
+
+          // Check if coupon is valid yet
+          if (coupon.validFrom && new Date() < coupon.validFrom) {
+            setCorsHeaders(req, res);
+            return res.status(400).json({
+              success: false,
+              message: 'This coupon is not yet valid'
+            });
+          }
+
+          // Check usage limit
+          if (coupon.usageLimit !== null && coupon.usedCount >= coupon.usageLimit) {
+            setCorsHeaders(req, res);
+            return res.status(400).json({
+              success: false,
+              message: 'This coupon has reached its usage limit'
+            });
+          }
+
+          // Check minimum purchase amount
+          if (baseAmount < coupon.minPurchaseAmount) {
+            setCorsHeaders(req, res);
+            return res.status(400).json({
+              success: false,
+              message: `Minimum purchase amount of ₹${coupon.minPurchaseAmount} is required for this coupon`
+            });
+          }
+
+          // Check first-time purchase rule
+          if (coupon.rules.firstTimePurchaseOnly) {
+            const existingOrders = await Order.countDocuments({
+              userId: userId,
+              paymentStatus: 'completed'
+            });
+
+            if (existingOrders > 0) {
+              setCorsHeaders(req, res);
+              return res.status(400).json({
+                success: false,
+                message: 'This coupon is valid only for first-time purchases'
+              });
+            }
+          }
+
+          // Check once per account rule
+          if (coupon.rules.oncePerAccount) {
+            const hasUsedCoupon = coupon.usedBy.some(
+              usage => usage.userId.toString() === userId.toString()
+            );
+
+            if (hasUsedCoupon) {
+              setCorsHeaders(req, res);
+              return res.status(400).json({
+                success: false,
+                message: 'You have already used this coupon'
+              });
+            }
+          }
+
+          // Calculate discount
+          if (coupon.discountType === 'percentage') {
+            discountAmount = (baseAmount * coupon.discountValue) / 100;
+            // Apply max discount limit if set
+            if (coupon.maxDiscountAmount !== null && discountAmount > coupon.maxDiscountAmount) {
+              discountAmount = coupon.maxDiscountAmount;
+            }
+          } else {
+            // Fixed discount
+            discountAmount = coupon.discountValue;
+            // Don't allow discount more than cart total
+            if (discountAmount > baseAmount) {
+              discountAmount = baseAmount;
+            }
+          }
+
+          couponData = {
+            code: coupon.code,
+            name: coupon.name,
+            discountType: coupon.discountType,
+            discountValue: coupon.discountValue,
+            discountAmount: discountAmount
+          };
+        } else {
+          setCorsHeaders(req, res);
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid coupon code'
+          });
+        }
+      } catch (couponError) {
+        setCorsHeaders(req, res);
+        return res.status(400).json({
+          success: false,
+          message: 'Failed to validate coupon code'
+        });
+      }
+    }
+
+    // Calculate final amount after discount
+    const finalAmount = Math.max(1, baseAmount - discountAmount); // Minimum 1 INR
 
     // Validate amount (minimum 1 INR)
-    if (amount < 1) {
+    if (finalAmount < 1) {
       setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
-        message: 'Invalid order amount'
+        message: 'Invalid order amount after discount'
       });
     }
 
@@ -106,7 +228,7 @@ exports.createOrder = async (req, res) => {
 
     // Create Razorpay order (DO NOT create database order yet - only after payment confirmation)
     const options = {
-      amount: Math.round(amount * 100), // Amount in paise (must be integer)
+      amount: Math.round(finalAmount * 100), // Amount in paise (must be integer)
       currency: 'INR',
       receipt: receiptId,
       notes: {
@@ -115,9 +237,10 @@ exports.createOrder = async (req, res) => {
         // Store cart snapshot and shipping address in notes for later order creation
         cartSnapshot: JSON.stringify({
           items: cart.items,
-          totalPrice: amount
+          totalPrice: baseAmount
         }),
-        shippingAddress: JSON.stringify(shippingAddress)
+        shippingAddress: JSON.stringify(shippingAddress),
+        coupon: couponData ? JSON.stringify(couponData) : ''
       }
     };
 
@@ -432,13 +555,17 @@ exports.verifyPayment = async (req, res) => {
         });
       }
 
-      // Parse cart and shipping address from Razorpay notes
+      // Parse cart, shipping address, and coupon from Razorpay notes
       const notes = razorpayOrderDetails.notes || {};
       let cartData;
+      let couponDataFromNotes = null;
 
       try {
         cartData = JSON.parse(notes.cartSnapshot || '{}');
         shippingAddressData = JSON.parse(notes.shippingAddress || '{}');
+        if (notes.coupon) {
+          couponDataFromNotes = JSON.parse(notes.coupon);
+        }
       } catch (parseError) {
         if (useTransactions && session) {
           await session.abortTransaction();
@@ -498,37 +625,41 @@ exports.verifyPayment = async (req, res) => {
 
       // CREATE ORDER IN DATABASE (only after payment is confirmed)
       try {
+        const orderData = {
+          userId: req.user._id,
+          orderId: razorpayOrderDetails.receipt,
+          razorpayOrderId: razorpay_order_id,
+          razorpayPaymentId: razorpay_payment_id,
+          razorpaySignature: razorpay_signature,
+          items: itemsToUse,
+          shippingAddress: shippingAddressData,
+          amount: paidAmount,
+          currency: razorpayOrderDetails.currency,
+          status: 'paid',
+          paymentStatus: 'completed'
+        };
+
+        // Add coupon data if available
+        if (couponDataFromNotes) {
+          orderData.coupon = couponDataFromNotes;
+        }
+
         const createOptions = useTransactions && session ? { session } : {};
         if (useTransactions && session) {
           // With transaction: create returns array
-          order = await Order.create([{
-            userId: req.user._id,
-            orderId: razorpayOrderDetails.receipt,
-            razorpayOrderId: razorpay_order_id,
-            razorpayPaymentId: razorpay_payment_id,
-            razorpaySignature: razorpay_signature,
-            items: itemsToUse,
-            shippingAddress: shippingAddressData,
-            amount: paidAmount,
-            currency: razorpayOrderDetails.currency,
-            status: 'paid',
-            paymentStatus: 'completed'
-          }], createOptions);
+          order = await Order.create([orderData], createOptions);
           order = order[0]; // Create returns an array when using session
         } else {
           // Without transaction: create returns single object
-          order = await Order.create({
-            userId: req.user._id,
-            orderId: razorpayOrderDetails.receipt,
-            razorpayOrderId: razorpay_order_id,
-            razorpayPaymentId: razorpay_payment_id,
-            razorpaySignature: razorpay_signature,
-            items: itemsToUse,
-            shippingAddress: shippingAddressData,
-            amount: paidAmount,
-            currency: razorpayOrderDetails.currency,
-            status: 'paid',
-            paymentStatus: 'completed'
+          order = await Order.create(orderData);
+        }
+
+        // Record coupon usage after order is created
+        if (couponDataFromNotes && couponDataFromNotes.code) {
+          recordCouponUsage(couponDataFromNotes.code, req.user._id, order.orderId).catch(err => {
+            if (isDevelopment) {
+              console.error('Failed to record coupon usage:', err);
+            }
           });
         }
 

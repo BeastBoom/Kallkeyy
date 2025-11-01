@@ -268,6 +268,41 @@ export const adminAPI = {
   deactivateAdmin: async (id: string) => {
     const { data} = await api.put(`/admins/${id}/deactivate`)
     return data
+  },
+
+  // Coupons
+  getCoupons: async (params?: any) => {
+    const { data } = await api.get('/coupons', { params })
+    return {
+      success: data.success,
+      coupons: data.data?.coupons || [],
+      pagination: data.data?.pagination
+    }
+  },
+
+  getCoupon: async (couponId: string) => {
+    const { data } = await api.get(`/coupons/${couponId}`)
+    return data
+  },
+
+  createCoupon: async (coupon: any) => {
+    const { data } = await api.post('/coupons', coupon)
+    return data
+  },
+
+  updateCoupon: async (couponId: string, coupon: any) => {
+    const { data } = await api.put(`/coupons/${couponId}`, coupon)
+    return data
+  },
+
+  deleteCoupon: async (couponId: string) => {
+    const { data } = await api.delete(`/coupons/${couponId}`)
+    return data
+  },
+
+  toggleCouponStatus: async (couponId: string) => {
+    const { data } = await api.put(`/coupons/${couponId}/toggle-status`)
+    return data
   }
 }
 

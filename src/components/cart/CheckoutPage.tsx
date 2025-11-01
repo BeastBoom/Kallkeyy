@@ -120,6 +120,16 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [isEditingAddress, setIsEditingAddress] = useState(false);
 
+  // Coupon states
+  const [couponCode, setCouponCode] = useState("");
+  const [couponApplied, setCouponApplied] = useState<{
+    code: string;
+    discountAmount: number;
+    finalAmount: number;
+  } | null>(null);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [couponError, setCouponError] = useState("");
+
   const [newAddress, setNewAddress] = useState<Address>({
     fullName: "",
     phone: "",
@@ -380,6 +390,57 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
     });
   };
 
+  const validateCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError("Please enter a coupon code");
+      return;
+    }
+
+    setValidatingCoupon(true);
+    setCouponError("");
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE_URL}/api/coupons/validate`, {
+        method: "POST",
+        credentials: 'include',
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          code: couponCode.trim().toUpperCase(),
+          cartTotal: totalPrice,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setCouponApplied({
+          code: data.coupon.code,
+          discountAmount: data.coupon.discountAmount,
+          finalAmount: data.coupon.finalAmount,
+        });
+        setCouponError("");
+      } else {
+        setCouponError(data.message || "Invalid coupon code");
+        setCouponApplied(null);
+      }
+    } catch (error) {
+      setCouponError("Failed to validate coupon. Please try again.");
+      setCouponApplied(null);
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setCouponCode("");
+    setCouponApplied(null);
+    setCouponError("");
+  };
+
   const handlePayment = async () => {
     if (!selectedAddress) {
       alert("Please select a delivery address");
@@ -449,6 +510,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
             ...selectedAddress,
             email: user?.email,
           },
+          couponCode: couponApplied?.code || null,
         }),
       });
 
@@ -1195,9 +1257,105 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
               ))}
             </div>
 
+            {/* Coupon Code Section */}
+            <div className="mb-4 py-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
+              <label
+                className="block mb-2 text-sm font-medium"
+                style={{ color: "var(--color-text)" }}
+              >
+                Coupon Code
+              </label>
+              {!couponApplied ? (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Enter coupon code"
+                    value={couponCode}
+                    onChange={(e) => {
+                      setCouponCode(e.target.value.toUpperCase());
+                      setCouponError("");
+                    }}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        validateCoupon();
+                      }
+                    }}
+                    className="flex-1 px-4 py-2 rounded"
+                    style={{
+                      background: "var(--color-surface)",
+                      color: "var(--color-text)",
+                      border: couponError
+                        ? "1px solid var(--color-error)"
+                        : "1px solid var(--color-border)",
+                    }}
+                  />
+                  <button
+                    onClick={validateCoupon}
+                    disabled={validatingCoupon || !couponCode.trim()}
+                    className="px-4 py-2 rounded font-medium transition-all"
+                    style={{
+                      background: validatingCoupon || !couponCode.trim()
+                        ? "var(--color-secondary)"
+                        : "var(--color-primary)",
+                      color: "white",
+                      cursor: validatingCoupon || !couponCode.trim()
+                        ? "not-allowed"
+                        : "pointer",
+                      opacity: validatingCoupon || !couponCode.trim() ? 0.6 : 1,
+                    }}
+                  >
+                    {validatingCoupon ? "Applying..." : "Apply"}
+                  </button>
+                </div>
+              ) : (
+                <div
+                  className="flex items-center justify-between p-3 rounded"
+                  style={{
+                    background: "rgba(185, 14, 10, 0.1)",
+                    border: "1px solid var(--color-primary)",
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <CheckCircle size={16} style={{ color: "var(--color-success)" }} />
+                    <span style={{ color: "var(--color-text)", fontWeight: "500" }}>
+                      {couponApplied.code} applied! Saved ₹{couponApplied.discountAmount.toFixed(2)}
+                    </span>
+                  </div>
+                  <button
+                    onClick={removeCoupon}
+                    className="text-sm hover:underline"
+                    style={{ color: "var(--color-error)" }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+              {couponError && (
+                <p className="mt-2 text-sm" style={{ color: "var(--color-error)" }}>
+                  {couponError}
+                </p>
+              )}
+            </div>
+
+            {/* Order Summary */}
+            <div className="mb-4 space-y-2">
+              <div className="flex justify-between items-center">
+                <span style={{ color: "var(--color-text-secondary)" }}>Subtotal</span>
+                <span style={{ color: "var(--color-text)" }}>₹{totalPrice.toFixed(2)}</span>
+              </div>
+              {couponApplied && (
+                <div className="flex justify-between items-center">
+                  <span style={{ color: "var(--color-success)" }}>Discount ({couponApplied.code})</span>
+                  <span style={{ color: "var(--color-success)", fontWeight: "500" }}>
+                    -₹{couponApplied.discountAmount.toFixed(2)}
+                  </span>
+                </div>
+              )}
+            </div>
+
             <div
               className="flex justify-between items-center mb-6 py-4"
-              style={{ borderBottom: "1px solid var(--color-border)" }}
+              style={{ borderTop: "1px solid var(--color-border)", borderBottom: "1px solid var(--color-border)" }}
             >
               <span
                 className="text-heading"
@@ -1212,7 +1370,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                   fontWeight: "var(--font-weight-bold)",
                 }}
               >
-                ₹{totalPrice.toFixed(2)}
+                ₹{(couponApplied ? couponApplied.finalAmount : totalPrice).toFixed(2)}
               </span>
             </div>
 
@@ -1246,7 +1404,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                 ? "Processing..."
                 : !selectedAddress
                 ? "Select Address"
-                : `Pay ₹${totalPrice.toFixed(2)}`}
+                : `Pay ₹${(couponApplied ? couponApplied.finalAmount : totalPrice).toFixed(2)}`}
             </button>
 
             <div
