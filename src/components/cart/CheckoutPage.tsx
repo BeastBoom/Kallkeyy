@@ -29,6 +29,7 @@ interface Address {
 interface CheckoutPageProps {
   onBackToShop?: () => void;
   skipAnimations?: boolean;
+  onOrderSuccess?: (orderId?: string) => void;
 }
 
 interface RazorpayResponse {
@@ -99,7 +100,7 @@ const INDIAN_STATES = [
   "West Bengal",
 ];
 
-export default function CheckoutPage({ onBackToShop, skipAnimations = false }: CheckoutPageProps) {
+export default function CheckoutPage({ onBackToShop, skipAnimations = false, onOrderSuccess }: CheckoutPageProps) {
   const { items, totalPrice, clearCart, saveForLater, fetchCart } = useCart();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -453,7 +454,16 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false }: C
 
       const data = await response.json();
       if (!data.success) {
-        alert(data.message || "Failed to create order");
+        console.error("Order creation failed:", data);
+        alert(data.message || "Failed to create order. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      // Validate response data
+      if (!data.order || !data.order.id || !data.key) {
+        console.error("Invalid order creation response:", data);
+        alert("Invalid response from server. Please try again.");
         setLoading(false);
         return;
       }
@@ -466,41 +476,96 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false }: C
         description: "Streetwear Fashion",
         order_id: data.order.id,
         handler: async function (response: RazorpayResponse) {
-          try {
-            const verifyResponse = await fetch(
-              `${API_BASE_URL}/api/payment/verify-payment`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature,
-                  orderId: data.order.orderId,
-                }),
-              }
-            );
+          // Retry verification with exponential backoff for network resilience
+          let verifyData;
+          let lastError;
+          const maxRetries = 3;
+          
+          for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+              const verifyResponse = await fetch(
+                `${API_BASE_URL}/api/payment/verify-payment`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_signature: response.razorpay_signature,
+                  }),
+                }
+              );
 
-            const verifyData = await verifyResponse.json();
-            if (verifyData.success) {
-              alert("Payment successful! Your order has been placed.");
-              await clearCart();
-              window.location.href = "/shop";
-            } else {
-              alert("Payment verification failed. Please contact support.");
+              verifyData = await verifyResponse.json();
+              
+              // If successful, break out of retry loop
+              if (verifyData.success) {
+                break;
+              }
+              
+              // If not successful and it's not a retry-able error, break
+              if (verifyResponse.status === 400 || verifyResponse.status === 403) {
+                break;
+              }
+              
+              // If it's a 500 error, retry
+              lastError = verifyData;
+              if (attempt < maxRetries) {
+                const delay = Math.pow(2, attempt) * 1000; // Exponential backoff: 2s, 4s, 8s
+                console.log(`⚠️ Verification attempt ${attempt} failed, retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+              }
+            } catch (error) {
+              lastError = error;
+              if (attempt < maxRetries) {
+                const delay = Math.pow(2, attempt) * 1000;
+                console.log(`⚠️ Network error on attempt ${attempt}, retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+              }
             }
-          } catch (error) {
-            console.error("Payment verification error:", error);
-            alert("Payment verification failed. Please contact support.");
+          }
+
+          // Handle final result
+          if (verifyData?.success) {
+            // Payment successful - navigate to order confirmation page
+            await clearCart();
+            
+            // Get order ID from response (use order._id, orderId, or order.orderId field)
+            // Backend returns order object with _id (MongoDB ObjectId) and orderId (receipt string)
+            const orderId = verifyData.order?._id?.toString() || verifyData.order?.orderId || verifyData.order?._id || verifyData.orderId || '';
+            
+            // Use navigation callback if provided, otherwise fallback to window.location
+            if (onOrderSuccess) {
+              onOrderSuccess(orderId || undefined);
+            } else {
+              // Fallback: Navigate using window.location (shouldn't happen but keeping as safety)
+              sessionStorage.setItem('allowed_/order-confirmation', 'true');
+              if (orderId) {
+                window.location.href = `/order-confirmation?orderId=${orderId}`;
+              } else {
+                window.location.href = "/order-confirmation";
+              }
+            }
+          } else {
+            // Payment verification failed after all retries
+            console.error("Payment verification failed after retries:", verifyData || lastError);
+            const errorMessage = verifyData?.message || lastError?.message || "Unknown error";
+            alert(
+              `❌ Payment verification failed: ${errorMessage}\n\n` +
+              `🔑 Razorpay Payment ID: ${response.razorpay_payment_id}\n` +
+              `🔑 Razorpay Order ID: ${response.razorpay_order_id}\n\n` +
+              `Please save these IDs and contact support. Your payment may have been processed - do not retry payment.`
+            );
+            setLoading(false);
           }
         },
         modal: {
           ondismiss: function () {
             setLoading(false);
-            alert("Payment cancelled");
+            // Don't show alert on modal dismiss - user might close intentionally
           },
         },
         prefill: {
@@ -509,7 +574,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false }: C
           contact: selectedAddress.phone,
         },
         theme: {
-          color: "#C0152F",
+          color: "#b90e0a", // KALLKEYY brand color
         },
       };
 

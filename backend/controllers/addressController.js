@@ -2,6 +2,19 @@ const User = require('../models/User');
 const { setCorsHeaders } = require('../utils/responseHelper');
 const connectDB = require('../config/db');
 
+// Helper function to format phone number (same as in paymentController.js)
+function formatPhoneNumber(phone) {
+  if (!phone) return '';
+  // Remove all non-digits
+  const cleaned = phone.replace(/\D/g, '');
+  // If starts with country code (91), remove it
+  if (cleaned.length === 12 && cleaned.startsWith('91')) {
+    return cleaned.substring(2);
+  }
+  // Return last 10 digits
+  return cleaned.slice(-10);
+}
+
 // Get all user addresses
 exports.getAddresses = async (req, res) => {
   try {
@@ -43,6 +56,26 @@ exports.addAddress = async (req, res) => {
       });
     }
 
+    // Validate and format phone number (must be 10 digits for Shiprocket)
+    const formattedPhone = formatPhoneNumber(phone);
+    if (!formattedPhone || formattedPhone.length !== 10 || !/^\d{10}$/.test(formattedPhone)) {
+      setCorsHeaders(req, res);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid phone number. Phone must be exactly 10 digits.'
+      });
+    }
+
+    // Validate pincode (must be 6 digits for India)
+    const formattedPincode = pincode.trim().replace(/\D/g, '');
+    if (formattedPincode.length !== 6) {
+      setCorsHeaders(req, res);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid pincode. Pincode must be exactly 6 digits.'
+      });
+    }
+
     const user = await User.findById(userId);
 
     // If this is the first address or set as default, make it default
@@ -53,11 +86,11 @@ exports.addAddress = async (req, res) => {
       });
     }
 
-    // Add new address
+    // Add new address (use formatted phone and pincode)
     user.addresses.push({
       fullName,
-      phone,
-      pincode,
+      phone: formattedPhone, // Use formatted phone
+      pincode: formattedPincode, // Use formatted pincode
       city,
       state,
       address,
@@ -93,6 +126,30 @@ exports.updateAddress = async (req, res) => {
     const { addressId } = req.params;
     const { fullName, phone, pincode, city, state, address, isDefault } = req.body;
 
+    // Validate and format phone number (must be 10 digits for Shiprocket)
+    if (phone) {
+      const formattedPhone = formatPhoneNumber(phone);
+      if (!formattedPhone || formattedPhone.length !== 10 || !/^\d{10}$/.test(formattedPhone)) {
+        setCorsHeaders(req, res);
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid phone number. Phone must be exactly 10 digits.'
+        });
+      }
+    }
+
+    // Validate pincode (must be 6 digits for India)
+    if (pincode) {
+      const formattedPincode = pincode.trim().replace(/\D/g, '');
+      if (formattedPincode.length !== 6) {
+        setCorsHeaders(req, res);
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid pincode. Pincode must be exactly 6 digits.'
+        });
+      }
+    }
+
     const user = await User.findById(userId);
     const addressIndex = user.addresses.findIndex(addr => addr._id.toString() === addressId);
 
@@ -111,17 +168,16 @@ exports.updateAddress = async (req, res) => {
       });
     }
 
-    // Update address
-    user.addresses[addressIndex] = {
-      ...user.addresses[addressIndex],
-      fullName,
-      phone,
-      pincode,
-      city,
-      state,
-      address,
-      isDefault: isDefault || user.addresses[addressIndex].isDefault
-    };
+    // Update address fields (use formatted phone and pincode if provided)
+    if (fullName) user.addresses[addressIndex].fullName = fullName;
+    if (phone) user.addresses[addressIndex].phone = formatPhoneNumber(phone);
+    if (pincode) user.addresses[addressIndex].pincode = pincode.trim().replace(/\D/g, '');
+    if (city) user.addresses[addressIndex].city = city;
+    if (state) user.addresses[addressIndex].state = state;
+    if (address) user.addresses[addressIndex].address = address;
+    if (isDefault !== undefined) {
+      user.addresses[addressIndex].isDefault = isDefault;
+    }
 
     await user.save();
 

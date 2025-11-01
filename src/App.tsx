@@ -21,6 +21,7 @@ import ForgotPasswordPage from '@/components/auth/ForgotPasswordPage';
 import CheckoutPage from './components/cart/CheckoutPage';
 import OrdersPage from './components/orders/OrdersPage';
 import OrderDetailPage from './components/orders/OrderDetailPage';
+import OrderConfirmationPage from './components/orders/OrderConfirmationPage';
 import AboutPage from './components/info/AboutPage';
 import ContactPage from './components/info/ContactPage';
 import SizeGuidePage from './components/info/SizeGuidePage';
@@ -45,6 +46,7 @@ type AppStage =
   | "checkout"
   | "orders"
   | "order-detail"
+  | "order-confirmation"
   | "size-guide"
   | "shipping"
   | "returns"
@@ -74,6 +76,7 @@ const ROUTES = {
   CHECKOUT: "/checkout",
   ORDERS: "/orders",
   ORDER_DETAIL: "/order",
+  ORDER_CONFIRMATION: "/order-confirmation",
 } as const;
 
 
@@ -85,7 +88,7 @@ const App = () => {
   const [skipAnimations, setSkipAnimations] = useState(false);
 
   // Protected routes that cannot be accessed directly via URL
-  const PROTECTED_ROUTES = [ROUTES.CHECKOUT] as const;
+  const PROTECTED_ROUTES = [ROUTES.CHECKOUT, ROUTES.ORDER_CONFIRMATION] as const;
 
   // Function to get current route from URL
   const getCurrentRoute = (): AppStage => {
@@ -107,6 +110,7 @@ const App = () => {
     if (path === ROUTES.CHECKOUT) return "checkout";
     if (path === ROUTES.ORDERS) return "orders";
     if (path.startsWith(ROUTES.ORDER_DETAIL)) return "order-detail";
+    if (path === ROUTES.ORDER_CONFIRMATION) return "order-confirmation";
     if (
       path === ROUTES.KAALDRISHTA ||
       path === ROUTES.SMARAJIVITAM ||
@@ -150,13 +154,17 @@ const App = () => {
       // Check if navigation was allowed (via programmatic navigation)
       if (!isNavigationAllowed(path)) {
         // Redirect to home page if accessing protected route directly
+        console.log('⚠️ Blocked direct access to protected route:', path);
         window.history.replaceState({}, "", ROUTES.HOME);
         setStage("main");
         setSkipAnimations(true);
         return;
       } else {
-        // Clear the allowed flag after using it
-        sessionStorage.removeItem(`allowed_${path}`);
+        // Clear the allowed flag after using it (but don't clear it immediately for order-confirmation)
+        // We want to keep it until the component is fully loaded
+        if (path !== ROUTES.ORDER_CONFIRMATION) {
+          sessionStorage.removeItem(`allowed_${path}`);
+        }
       }
     }
 
@@ -364,6 +372,26 @@ const App = () => {
     window.history.pushState({ scrollPos: 0 }, "", `${ROUTES.ORDER_DETAIL}/${orderId}`);
   };
 
+  const navigateToOrderConfirmation = (orderId?: string) => {
+    window.history.replaceState({ scrollPos: window.scrollY }, "");
+    setSkipAnimations(false);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    
+    // Set allowed flag for protected route BEFORE setting stage
+    sessionStorage.setItem(`allowed_${ROUTES.ORDER_CONFIRMATION}`, 'true');
+    
+    // Set the stage to trigger rendering of OrderConfirmationPage
+    setStage("order-confirmation");
+    
+    // Update URL
+    const url = orderId 
+      ? `${ROUTES.ORDER_CONFIRMATION}?orderId=${orderId}`
+      : ROUTES.ORDER_CONFIRMATION;
+    window.history.pushState({ scrollPos: 0 }, "", url);
+    
+    console.log('✅ Navigating to order confirmation page', { orderId, url });
+  };
+
   const navigateToProduct = (productId: string) => {
     // Save current scroll position before navigating
     window.history.replaceState({ scrollPos: window.scrollY }, "");
@@ -420,6 +448,7 @@ const App = () => {
       "forgot-password": "Reset Password - KALLKEYY",
       orders: "My Orders - KALLKEYY",
       "order-detail": "Order Details - KALLKEYY",
+      "order-confirmation": "Order Confirmed - KALLKEYY",
     };
 
     document.title = titles[stage] || "KALLKEYY";
@@ -633,7 +662,11 @@ const App = () => {
             )}
 
             {stage === "checkout" && (
-              <CheckoutPage onBackToShop={navigateToShop} skipAnimations={skipAnimations} />
+              <CheckoutPage 
+                onBackToShop={navigateToShop} 
+                skipAnimations={skipAnimations}
+                onOrderSuccess={navigateToOrderConfirmation}
+              />
             )}
 
             {stage === "orders" && (
@@ -647,6 +680,10 @@ const App = () => {
                 onViewOrderDetail={navigateToOrderDetail}
                 skipAnimations={skipAnimations}
               />
+            )}
+
+            {stage === "order-confirmation" && (
+              <OrderConfirmationPage />
             )}
 
             {stage === "order-detail" && (
