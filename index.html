@@ -31,10 +31,38 @@
     <!-- Google OAuth Compliance - Privacy and Terms Links -->
     <link rel="privacy-policy" href="/privacy-policy" />
     <link rel="terms-of-service" href="/terms-of-service" />
+    
+    <!-- Structured Data for Google Verification -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "KALLKEYY",
+      "url": "https://kallkeyy.com",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://kallkeyy.com/search?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
 
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   </head>
   <body>
+    <!-- Noscript fallback for Google bot and non-JS users -->
+    <noscript>
+      <div style="padding: 20px; text-align: center; background: #000; color: #fff; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <h1 style="margin-bottom: 20px;">KALLKEYY - Streetwear Fashion</h1>
+        <p style="margin-bottom: 20px;">Please enable JavaScript to view this website.</p>
+        <div style="margin-top: 20px;">
+          <a href="/privacy-policy" style="color: #b90e0a; margin: 0 10px; text-decoration: underline;">Privacy Policy</a>
+          <span style="margin: 0 10px;">|</span>
+          <a href="/terms-of-service" style="color: #b90e0a; margin: 0 10px; text-decoration: underline;">Terms of Service</a>
+        </div>
+      </div>
+    </noscript>
+    
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -1054,25 +1054,37 @@ export default function MainBrandPage({
                 >
                   FAQ
                 </li>
-                <li
-                  onClick={() =>
-                    onNavigateToPrivacyPolicy
-                      ? onNavigateToPrivacyPolicy()
-                      : handleUnavailablePage("Privacy Policy")
-                  }
-                  className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
-                >
-                  Privacy Policy
+                <li>
+                  <a
+                    href="/privacy-policy"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (onNavigateToPrivacyPolicy) {
+                        onNavigateToPrivacyPolicy();
+                      } else {
+                        handleUnavailablePage("Privacy Policy");
+                      }
+                    }}
+                    className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300 text-[#808088]"
+                  >
+                    Privacy Policy
+                  </a>
                 </li>
-                <li
-                  onClick={() =>
-                    onNavigateToTermsOfService
-                      ? onNavigateToTermsOfService()
-                      : handleUnavailablePage("Terms of Service")
-                  }
-                  className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
-                >
-                  Terms of Service
+                <li>
+                  <a
+                    href="/terms-of-service"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (onNavigateToTermsOfService) {
+                        onNavigateToTermsOfService();
+                      } else {
+                        handleUnavailablePage("Terms of Service");
+                      }
+                    }}
+                    className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300 text-[#808088]"
+                  >
+                    Terms of Service
+                  </a>
                 </li>
               </ul>
             </div>
@@ -1081,10 +1093,38 @@ export default function MainBrandPage({
             className="border-t border-[#808088]/20 mt-8 pt-8 text-center text-[#808088] animate-fade-in-up"
             style={{ animationDelay: "0.6s" }}
           >
-            <p>
+            <p className="mb-4">
               &copy; 2025 KALLKEYY. All rights reserved. Made with passion for
               street culture.
             </p>
+            {/* Google OAuth Compliance - Visible Links on Homepage */}
+            <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
+              <a
+                href="/privacy-policy"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (onNavigateToPrivacyPolicy) {
+                    onNavigateToPrivacyPolicy();
+                  }
+                }}
+                className="hover:text-white hover:text-[#b90e0a] transition-colors duration-300 underline"
+              >
+                Privacy Policy
+              </a>
+              <span className="text-[#808088]/50">|</span>
+              <a
+                href="/terms-of-service"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (onNavigateToTermsOfService) {
+                    onNavigateToTermsOfService();
+                  }
+                }}
+                className="hover:text-white hover:text-[#b90e0a] transition-colors duration-300 underline"
+              >
+                Terms of Service
+              </a>
+            </div>
           </div>
         </div>
       </footer>
