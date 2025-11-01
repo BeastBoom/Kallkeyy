@@ -17,7 +17,7 @@ interface Props {
 const SMARA_JIVITAM_DATA = {
   name: "SMARA-JIVITAM",
   price: "₹1,299",
-  originalPrice: "₹1,999",
+  originalPrice: "₹2,499",
   salePrice: "₹1,299",
   tag: "NEW DROP",
   description:

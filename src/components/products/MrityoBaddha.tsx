@@ -17,7 +17,7 @@ interface Props {
 const MRITYO_BADDHA_DATA = {
   name: "MRITYO-BADDHA",
   price: "₹1,299",
-  originalPrice: "₹1,999",
+  originalPrice: "₹2,499",
   salePrice: "₹1,299",
   tag: "TRENDING",
   description:
