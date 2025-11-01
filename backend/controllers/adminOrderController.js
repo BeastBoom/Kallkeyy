@@ -13,6 +13,7 @@ exports.getAllOrders = async (req, res) => {
       limit = 20,
       status,
       paymentStatus,
+      paymentMethod,
       search,
       startDate,
       endDate,
@@ -24,6 +25,7 @@ exports.getAllOrders = async (req, res) => {
 
     if (status) query.status = status;
     if (paymentStatus) query.paymentStatus = paymentStatus;
+    if (paymentMethod) query.paymentMethod = paymentMethod;
     
     if (search) {
       query.$or = [

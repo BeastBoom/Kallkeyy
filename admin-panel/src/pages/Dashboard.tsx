@@ -116,9 +116,12 @@ export default function Dashboard() {
                     <div className="text-right">
                       <p className="font-bold text-gray-900">₹{order.amount || order.totalAmount}</p>
                       <span className={`text-xs px-2 py-1 rounded-full ${
-                        order.status === 'delivered' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                        order.status === 'delivered' || order.status === 'confirmed' ? 'bg-green-100 text-green-700' : 
+                        order.status === 'shipped' ? 'bg-purple-100 text-purple-700' :
+                        order.status === 'processing' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-blue-100 text-blue-700'
                       }`}>
-                        {order.status}
+                        {order.status === 'confirmed' ? 'Confirmed' : order.status}
                       </span>
                     </div>
                   </div>

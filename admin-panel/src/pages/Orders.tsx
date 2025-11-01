@@ -10,6 +10,7 @@ export default function Orders() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [paymentFilter, setPaymentFilter] = useState('all')
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState('all')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [selectedOrder, setSelectedOrder] = useState<any>(null)
@@ -17,13 +18,25 @@ export default function Orders() {
   const [showReturnModal, setShowReturnModal] = useState(false)
   const [returnDecision, setReturnDecision] = useState('')
 
+  // Debounce search to avoid too many API calls
   useEffect(() => {
-    fetchOrders()
-  }, [])
+    const timeoutId = setTimeout(() => {
+      fetchOrders()
+    }, searchTerm ? 500 : 0) // Only debounce if there's a search term
+    return () => clearTimeout(timeoutId)
+  }, [searchTerm, statusFilter, paymentFilter, paymentMethodFilter, startDate, endDate])
 
   const fetchOrders = async () => {
     try {
-      const result = await adminAPI.getOrders()
+      const params: any = {}
+      if (statusFilter !== 'all') params.status = statusFilter
+      if (paymentFilter !== 'all') params.paymentStatus = paymentFilter
+      if (paymentMethodFilter !== 'all') params.paymentMethod = paymentMethodFilter
+      if (startDate) params.startDate = startDate
+      if (endDate) params.endDate = endDate
+      if (searchTerm) params.search = searchTerm
+
+      const result = await adminAPI.getOrders(params)
       if (result.success) {
         setOrders(result.orders)
       }
@@ -80,26 +93,13 @@ export default function Orders() {
     }
   }
 
+  // Server-side filtering is now handled, so we just use the orders directly
   const filteredOrders = orders
-    .filter(order => {
-      const matchesStatus = statusFilter === 'all' || order.status === statusFilter
-      const matchesPayment = paymentFilter === 'all' || order.paymentStatus === paymentFilter
-      const matchesSearch = order.orderId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           order.userId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           order.shippingAddress?.fullName?.toLowerCase().includes(searchTerm.toLowerCase())
-      
-      let matchesDateRange = true
-      if (startDate || endDate) {
-        const orderDate = new Date(order.createdAt)
-        if (startDate) matchesDateRange = matchesDateRange && orderDate >= new Date(startDate)
-        if (endDate) matchesDateRange = matchesDateRange && orderDate <= new Date(endDate + 'T23:59:59')
-      }
-      
-      return matchesStatus && matchesPayment && matchesSearch && matchesDateRange
-    })
 
   const getStatusColor = (status: string) => {
     switch (status) {
+      case 'confirmed':
+        return 'bg-green-100 text-green-800'
       case 'paid':
         return 'bg-blue-100 text-blue-800'
       case 'pending':
@@ -189,7 +189,7 @@ export default function Orders() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Order Status:</label>
             <div className="flex gap-2 flex-wrap">
-              {['all', 'paid', 'pending', 'processing', 'shipped', 'delivered', 'cancelled', 'return_requested', 'returned'].map((status) => (
+              {['all', 'confirmed', 'paid', 'pending', 'processing', 'shipped', 'delivered', 'cancelled', 'return_requested', 'returned'].map((status) => (
                 <button
                   key={status}
                   onClick={() => setStatusFilter(status)}
@@ -199,7 +199,7 @@ export default function Orders() {
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  {status === 'return_requested' ? 'Return Requested' : status}
+                  {status === 'return_requested' ? 'Return Requested' : status === 'confirmed' ? 'Confirmed' : status}
                 </button>
               ))}
             </div>
@@ -220,6 +220,17 @@ export default function Orders() {
               <option value="pending">Pending</option>
               <option value="completed">Completed</option>
               <option value="failed">Failed</option>
+            </select>
+
+            {/* Payment Method Filter */}
+            <select
+              value={paymentMethodFilter}
+              onChange={(e) => setPaymentMethodFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 text-sm"
+            >
+              <option value="all">All Payment Methods</option>
+              <option value="razorpay">Razorpay (Online)</option>
+              <option value="cod">Cash on Delivery (COD)</option>
             </select>
 
             {/* Date Range */}
@@ -243,11 +254,12 @@ export default function Orders() {
             </div>
 
             {/* Clear Filters */}
-            {(statusFilter !== 'all' || paymentFilter !== 'all' || startDate || endDate || searchTerm) && (
+            {(statusFilter !== 'all' || paymentFilter !== 'all' || paymentMethodFilter !== 'all' || startDate || endDate || searchTerm) && (
               <button
                 onClick={() => {
                   setStatusFilter('all')
                   setPaymentFilter('all')
+                  setPaymentMethodFilter('all')
                   setStartDate('')
                   setEndDate('')
                   setSearchTerm('')
@@ -312,12 +324,20 @@ export default function Orders() {
                       {new Date(order.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">
-                      <p className="font-bold text-gray-900">₹{order.totalAmount?.toLocaleString()}</p>
+                      <p className="font-bold text-gray-900">₹{order.amount?.toLocaleString() || order.totalAmount?.toLocaleString()}</p>
+                      {order.coupon && (
+                        <p className="text-xs text-green-600 mt-1">Coupon: {order.coupon.code} (-₹{order.coupon.discountAmount?.toLocaleString() || 0})</p>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(order.status)}`}>
-                        {order.status === 'return_requested' ? 'Return Requested' : order.status}
+                        {order.status === 'return_requested' ? 'Return Requested' : order.status === 'confirmed' ? 'Confirmed' : order.status}
                       </span>
+                      {order.paymentMethod && (
+                        <span className="block mt-1 text-xs text-gray-500">
+                          {order.paymentMethod === 'cod' ? '💰 COD' : '💳 Online'}
+                        </span>
+                      )}
                       {order.returnRequested && (
                         <span className="block mt-1 text-xs text-amber-600 font-medium">
                           Return Pending
@@ -365,6 +385,7 @@ export default function Orders() {
                           onChange={(e) => handleStatusUpdate(order._id, e.target.value)}
                           className="text-sm border border-gray-300 rounded px-2 py-1"
                         >
+                          <option value="confirmed">Confirmed</option>
                           <option value="paid">Paid</option>
                           <option value="pending">Pending</option>
                           <option value="processing">Processing</option>
@@ -410,13 +431,31 @@ export default function Orders() {
                   <div>
                     <h3 className="text-sm font-medium text-gray-500">Status</h3>
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(selectedOrder.status)}`}>
-                      {selectedOrder.status === 'return_requested' ? 'Return Requested' : selectedOrder.status}
+                      {selectedOrder.status === 'return_requested' ? 'Return Requested' : selectedOrder.status === 'confirmed' ? 'Confirmed' : selectedOrder.status}
                     </span>
                   </div>
                   <div>
-                    <h3 className="text-sm font-medium text-gray-500">Payment ID</h3>
-                    <p className="text-gray-900 text-sm break-all">{selectedOrder.razorpayPaymentId || 'N/A'}</p>
+                    <h3 className="text-sm font-medium text-gray-500">Payment Method</h3>
+                    <p className="text-gray-900 text-sm font-semibold">
+                      {selectedOrder.paymentMethod === 'cod' ? '💰 Cash on Delivery (COD)' : '💳 Razorpay (Online Payment)'}
+                    </p>
                   </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Payment Status</h3>
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium capitalize ${
+                      selectedOrder.paymentStatus === 'completed' ? 'bg-green-100 text-green-800' : 
+                      selectedOrder.paymentStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {selectedOrder.paymentStatus || 'N/A'}
+                    </span>
+                  </div>
+                  {selectedOrder.paymentMethod !== 'cod' && (
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Payment ID</h3>
+                      <p className="text-gray-900 text-sm break-all">{selectedOrder.razorpayPaymentId || 'N/A'}</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Customer Info */}
@@ -492,11 +531,44 @@ export default function Orders() {
                   </div>
                 )}
 
+                {/* Coupon Information */}
+                {selectedOrder.coupon && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Coupon Applied</h3>
+                    <div className="bg-green-50 p-4 rounded-lg space-y-2">
+                      <p><span className="font-medium">Code:</span> {selectedOrder.coupon.code}</p>
+                      <p><span className="font-medium">Name:</span> {selectedOrder.coupon.name || 'N/A'}</p>
+                      <p><span className="font-medium">Discount:</span> 
+                        {selectedOrder.coupon.discountType === 'percentage' 
+                          ? `${selectedOrder.coupon.discountValue}%` 
+                          : `₹${selectedOrder.coupon.discountValue}`}
+                        {selectedOrder.coupon.discountAmount && (
+                          <span className="text-green-600 font-semibold"> (₹{selectedOrder.coupon.discountAmount.toLocaleString()} saved)</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Total */}
                 <div className="border-t border-gray-200 pt-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-semibold text-gray-900">Total Amount:</span>
-                    <span className="text-2xl font-bold text-gray-900">₹{selectedOrder.amount?.toLocaleString()}</span>
+                  <div className="space-y-2">
+                    {selectedOrder.coupon && (
+                      <>
+                        <div className="flex justify-between items-center text-gray-600">
+                          <span>Subtotal:</span>
+                          <span>₹{((selectedOrder.amount || 0) + (selectedOrder.coupon.discountAmount || 0)).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-green-600">
+                          <span>Discount ({selectedOrder.coupon.code}):</span>
+                          <span>-₹{selectedOrder.coupon.discountAmount?.toLocaleString() || 0}</span>
+                        </div>
+                      </>
+                    )}
+                    <div className="flex justify-between items-center pt-2 border-t">
+                      <span className="text-lg font-semibold text-gray-900">Total Amount:</span>
+                      <span className="text-2xl font-bold text-gray-900">₹{selectedOrder.amount?.toLocaleString() || 0}</span>
+                    </div>
                   </div>
                 </div>
               </div>
