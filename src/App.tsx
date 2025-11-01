@@ -433,7 +433,7 @@ const App = () => {
             <Toaster />
             <Sonner />
 
-            <FloatingCart onNavigateToProduct={navigateToProduct} />
+            <FloatingCart onNavigateToProduct={navigateToProduct} onNavigateToCheckout={navigateToCheckout} />
 
             {stage === "loading" && (
               <Preloader onComplete={() => setStage("main")} />

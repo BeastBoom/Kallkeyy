@@ -7,9 +7,10 @@ import { Button } from '../ui/button';
 
 interface FloatingCartProps {
   onNavigateToProduct?: (productId: string) => void;
+  onNavigateToCheckout?: () => void;
 }
 
-export const FloatingCart: React.FC<FloatingCartProps> = ({ onNavigateToProduct }) => {
+export const FloatingCart: React.FC<FloatingCartProps> = ({ onNavigateToProduct, onNavigateToCheckout }) => {
   const { items, savedForLater, totalItems, totalPrice, updateQuantity, removeFromCart, saveForLater, moveToCart, removeFromSaved, loading } = useCart();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -265,9 +266,16 @@ export const FloatingCart: React.FC<FloatingCartProps> = ({ onNavigateToProduct 
                 {/* Checkout Button */}
                 <button
                   onClick={() => {
-                    window.location.href = '/checkout'; // Or use your navigation prop
+                    if (onNavigateToCheckout) {
+                      setIsOpen(false);
+                      onNavigateToCheckout();
+                    } else {
+                      // Fallback: Set sessionStorage flag before navigating
+                      sessionStorage.setItem('allowed_/checkout', 'true');
+                      window.location.href = '/checkout';
+                    }
                   }}
-                  className="w-full bg-[#b90e0a] text-white py-3 rounded hover:bg-gray-800"
+                  className="w-full bg-[#b90e0a] text-white py-3 rounded hover:bg-gray-800 transition-colors duration-300 hover:bg-[#BB0003]"
                 >
                   Proceed to Checkout
                 </button>
