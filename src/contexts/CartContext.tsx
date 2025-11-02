@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { API_BASE_URL } from '../lib/apiConfig';
+import { trackAddToCart, trackRemoveFromCart } from '../lib/analytics';
 
 interface CartItem {
   productId: string;
@@ -132,6 +133,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setItems(data.cart.items);
         setTotalItems(data.cart.totalItems);
         setTotalPrice(data.cart.totalPrice);
+        
+        // Track add to cart with Google Analytics
+        trackAddToCart({
+          item_id: item.productId,
+          item_name: item.productName,
+          item_category: item.productId.includes('hoodie') ? 'Hoodies' : 'T-Shirts',
+          price: item.price,
+          currency: 'INR',
+          quantity: item.quantity || 1,
+        });
       } else {
         throw new Error(data.message);
       }
@@ -192,6 +203,21 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await response.json();
 
       if (data.success) {
+        // Find the removed item to track it
+        const removedItem = items.find(i => i.productId === productId && i.size === size);
+        
+        if (removedItem) {
+          // Track remove from cart with Google Analytics
+          trackRemoveFromCart({
+            item_id: removedItem.productId,
+            item_name: removedItem.productName,
+            item_category: removedItem.productId.includes('hoodie') ? 'Hoodies' : 'T-Shirts',
+            price: removedItem.price,
+            currency: 'INR',
+            quantity: removedItem.quantity,
+          });
+        }
+        
         setItems(data.cart.items);
         setTotalItems(data.cart.totalItems);
         setTotalPrice(data.cart.totalPrice);

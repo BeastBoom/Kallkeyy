@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import PhoneVerificationModal from "../auth/PhoneVerificationModal";
 import { API_BASE_URL } from "../../lib/apiConfig";
+import { trackBeginCheckout, trackPurchase } from "../../lib/analytics";
 
 interface Address {
   _id?: string;
@@ -120,6 +121,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
   const [showPhoneVerification, setShowPhoneVerification] = useState(false);
   const [userPhone, setUserPhone] = useState("");
   const [phoneVerified, setPhoneVerified] = useState(false);
+  const [checkoutTracked, setCheckoutTracked] = useState(false);
 
   // Address states
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
@@ -178,10 +180,17 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
           credentials: 'include',
           headers: { Authorization: `Bearer ${token}` },
         });
+        
+        if (!response.ok) {
+          console.error("Failed to fetch user profile:", response.status);
+          throw new Error(`Failed to fetch profile: ${response.status}`);
+        }
+        
         const data = await response.json();
 
-        if (data.success && data.user.phone && data.user.phoneVerified) {
+        if (data.success && data.user && data.user.phone && data.user.phoneVerified) {
           // Phone is verified in database
+          console.log("Phone verified in database:", data.user.phone);
           setUserPhone(data.user.phone);
           setPhoneVerified(true);
           localStorage.setItem("userPhone", data.user.phone);
@@ -189,6 +198,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
           await fetchAddresses();
         } else {
           // Phone not verified - show modal
+          console.log("Phone not verified. User data:", data.user);
           localStorage.removeItem("userPhone");
           localStorage.removeItem("phoneVerified");
           setShowPhoneVerification(true);
@@ -201,6 +211,24 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
 
     checkPhoneVerification();
   }, [user, items]);
+
+  // Track begin checkout when items are available and phone is verified (only once)
+  useEffect(() => {
+    if (phoneVerified && items.length > 0 && selectedAddress && !checkoutTracked) {
+      const checkoutItems = items.map(item => ({
+        item_id: item.productId,
+        item_name: item.productName,
+        item_category: item.productId.includes('hoodie') ? 'Hoodies' : 'T-Shirts',
+        price: item.price,
+        quantity: item.quantity,
+      }));
+      
+      const finalPrice = couponApplied ? couponApplied.finalAmount : totalPrice;
+      trackBeginCheckout(checkoutItems, finalPrice, 'INR');
+      setCheckoutTracked(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phoneVerified, selectedAddress, checkoutTracked]);
 
   const fetchAddresses = async () => {
     try {
@@ -245,14 +273,30 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
           credentials: 'include',
           headers: { Authorization: `Bearer ${token}` },
         });
+        
+        if (!response.ok) {
+          console.error("Failed to verify phone save:", response.status);
+          throw new Error(`Failed to verify: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         if (data.success && data.user) {
-          // Update with fresh backend data
-          setUserPhone(data.user.phone || phone);
-          setPhoneVerified(data.user.phoneVerified || true);
-          localStorage.setItem("userPhone", data.user.phone || phone);
-          localStorage.setItem("phoneVerified", data.user.phoneVerified ? "true" : "true");
+          // Verify the phone was actually saved
+          if (data.user.phone === phone && data.user.phoneVerified) {
+            console.log("Phone number confirmed saved in database:", data.user.phone);
+            // Update with fresh backend data
+            setUserPhone(data.user.phone);
+            setPhoneVerified(true);
+            localStorage.setItem("userPhone", data.user.phone);
+            localStorage.setItem("phoneVerified", "true");
+          } else {
+            console.warn("Phone verification mismatch:", {
+              expected: phone,
+              received: data.user.phone,
+              verified: data.user.phoneVerified
+            });
+          }
         }
       }
     } catch (error) {
@@ -548,6 +592,27 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
         return;
       }
 
+      // Track purchase with Google Analytics
+      if (data.order) {
+        const purchaseItems = items.map(item => ({
+          item_id: item.productId,
+          item_name: item.productName,
+          item_category: item.productId.includes('hoodie') ? 'Hoodies' : 'T-Shirts',
+          price: item.price,
+          quantity: item.quantity,
+        }));
+        
+        const finalAmount = couponApplied ? couponApplied.finalAmount : totalPrice;
+        trackPurchase({
+          transaction_id: data.order.orderId || data.order._id?.toString() || '',
+          value: finalAmount,
+          currency: 'INR',
+          tax: 0,
+          shipping: 0,
+          items: purchaseItems,
+        });
+      }
+
       // Clear cart
       await clearCart();
 
@@ -727,6 +792,27 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
 
           // Handle final result
           if (verifyData?.success) {
+            // Track purchase with Google Analytics
+            if (verifyData.order) {
+              const purchaseItems = items.map(item => ({
+                item_id: item.productId,
+                item_name: item.productName,
+                item_category: item.productId.includes('hoodie') ? 'Hoodies' : 'T-Shirts',
+                price: item.price,
+                quantity: item.quantity,
+              }));
+              
+              const finalAmount = couponApplied ? couponApplied.finalAmount : totalPrice;
+              trackPurchase({
+                transaction_id: verifyData.order.orderId || verifyData.order._id?.toString() || '',
+                value: finalAmount,
+                currency: 'INR',
+                tax: 0,
+                shipping: 0,
+                items: purchaseItems,
+              });
+            }
+            
             // Payment successful - navigate to order confirmation page
             await clearCart();
             
@@ -1233,11 +1319,11 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                     value={newAddress.address}
                     onChange={(e) => {
                       const value = e.target.value;
-                      const sanitized = value.replace(/[^A-Za-z0-9\s.,-]/g, "");
+                      const sanitized = value.replace(/[^A-Za-z0-9\s.,-\/]/g, "");
                       setNewAddress({ ...newAddress, address: sanitized });
                     }}
                     onKeyPress={(e) => {
-                      if (!/[A-Za-z0-9\s.,-]/.test(e.key)) {
+                      if (!/[A-Za-z0-9\s.,-\/]/.test(e.key)) {
                         e.preventDefault();
                       }
                     }}

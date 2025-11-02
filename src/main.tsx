@@ -3,8 +3,14 @@ import { createRoot } from "react-dom/client";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import App from "./App.tsx";
 import "./index.css";
+import { initGA } from "./lib/analytics";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+
+// Initialize Google Analytics
+if (typeof window !== 'undefined') {
+  initGA();
+}
 
 // Suppress Instagram CORS errors from cluttering the console
 if (typeof window !== 'undefined') {

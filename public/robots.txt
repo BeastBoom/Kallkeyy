@@ -1,0 +1,35 @@
+# robots.txt for KALLKEYY
+# Allow all search engines to crawl the site
+
+User-agent: *
+Allow: /
+Disallow: /checkout
+Disallow: /order-confirmation
+Disallow: /order/
+Disallow: /orders
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /api/
+Disallow: /*.json$
+
+# Allow specific bots
+User-agent: Googlebot
+Allow: /
+Disallow: /checkout
+Disallow: /order-confirmation
+Disallow: /order/
+Disallow: /orders
+Disallow: /api/
+
+User-agent: Bingbot
+Allow: /
+Disallow: /checkout
+Disallow: /order-confirmation
+Disallow: /order/
+Disallow: /orders
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://kallkeyy.com/sitemap.xml
+

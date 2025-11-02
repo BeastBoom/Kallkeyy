@@ -40,12 +40,35 @@ export default function PhoneVerificationModal({
         body: JSON.stringify({ phone }),
       });
 
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Server error: ${response.status}`);
+      }
+
       const data = await response.json();
 
       if (data.success) {
         // Save to localStorage for quick access
         localStorage.setItem("userPhone", phone);
         localStorage.setItem("phoneVerified", "true");
+        
+        // Verify the phone was actually saved by fetching user profile
+        try {
+          const verifyResponse = await fetch(`${API_BASE_URL}/api/auth/profile`, {
+            credentials: 'include',
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          
+          if (verifyResponse.ok) {
+            const verifyData = await verifyResponse.json();
+            if (verifyData.success && verifyData.user.phone === phone) {
+              console.log("Phone number successfully saved to database:", phone);
+            }
+          }
+        } catch (verifyError) {
+          console.error("Error verifying phone save:", verifyError);
+        }
+        
         onVerificationComplete(phone);
       } else {
         setError(data.message || "Failed to save phone number. Please try again.");

@@ -238,6 +238,24 @@ export default function ProductPageBase({
     fetchProductStock();
   }, [productId]);
 
+  // Track product view with Google Analytics
+  useEffect(() => {
+    // Import analytics dynamically to avoid circular dependencies
+    import('../../lib/analytics').then(({ trackProductView }) => {
+      const priceMatch = product.price.match(/₹([\d,]+)/);
+      const price = priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : 0;
+      
+      trackProductView({
+        item_id: productId,
+        item_name: product.name,
+        item_category: product.productType === 'hoodie' ? 'Hoodies' : 'T-Shirts',
+        price: price,
+        currency: 'INR',
+        quantity: 1,
+      });
+    });
+  }, [productId, product.name, product.price, product.productType]);
+
   // Fetch reviews on component mount
   useEffect(() => {
     const fetchReviews = async () => {

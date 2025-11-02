@@ -67,12 +67,12 @@ router.post('/', auth, async (req, res) => {
       });
     }
 
-    // ✅ Validate address - allow letters, numbers, spaces, dots, commas, hyphens
-    if (!/^[A-Za-z0-9\s.,-]+$/.test(address)) {
+    // ✅ Validate address - allow letters, numbers, spaces, dots, commas, hyphens, and slashes
+    if (!/^[A-Za-z0-9\s.,-\/]+$/.test(address)) {
       setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
-        message: 'Address can only contain letters, numbers, spaces, dots, commas, and hyphens',
+        message: 'Address can only contain letters, numbers, spaces, dots, commas, hyphens, and slashes',
         field: 'address'
       });
     }
@@ -190,12 +190,12 @@ router.put('/:addressId', auth, async (req, res) => {
       });
     }
 
-    // ✅ Validate address
-    if (!/^[A-Za-z0-9\s.,-]+$/.test(address)) {
+    // ✅ Validate address - allow letters, numbers, spaces, dots, commas, hyphens, and slashes
+    if (!/^[A-Za-z0-9\s.,-\/]+$/.test(address)) {
       setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
-        message: 'Address can only contain letters, numbers, spaces, dots, commas, and hyphens',
+        message: 'Address can only contain letters, numbers, spaces, dots, commas, hyphens, and slashes',
         field: 'address'
       });
     }

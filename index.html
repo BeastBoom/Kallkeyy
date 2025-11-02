@@ -14,19 +14,27 @@
     <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
     
     <!-- Primary Meta Tags -->
-    <title>KALLKEYY - Streetwear Fashion</title>
-    <meta name="title" content="KALLKEYY - Streetwear Fashion" />
-    <meta name="description" content="Premium streetwear fashion brand. Shop quality hoodies, t-shirts, and accessories. Sign up with Google or email to get started." />
+    <title>KALLKEYY - Premium Streetwear Fashion | Hoodies, T-Shirts & Accessories</title>
+    <meta name="title" content="KALLKEYY - Premium Streetwear Fashion | Hoodies, T-Shirts & Accessories" />
+    <meta name="description" content="Discover KALLKEYY - premium streetwear fashion brand. Shop quality hoodies, t-shirts, and accessories designed for the modern streetwear enthusiast. Free shipping available." />
+    <meta name="keywords" content="streetwear, hoodies, t-shirts, fashion, clothing, KALLKEYY, urban fashion, street style, apparel, accessories, India streetwear" />
+    <meta name="author" content="KALLKEYY" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="English" />
+    <meta name="revisit-after" content="7 days" />
+    <link rel="canonical" href="https://kallkeyy.com/" />
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="KALLKEYY - Streetwear Fashion" />
-    <meta property="og:description" content="Premium streetwear fashion brand. Shop quality hoodies, t-shirts, and accessories." />
+    <meta property="og:url" content="https://kallkeyy.com/" />
+    <meta property="og:title" content="KALLKEYY - Premium Streetwear Fashion | Hoodies, T-Shirts & Accessories" />
+    <meta property="og:description" content="Discover KALLKEYY - premium streetwear fashion brand. Shop quality hoodies, t-shirts, and accessories designed for the modern streetwear enthusiast." />
+    <meta property="og:image" content="https://kallkeyy.com/navbar-logo.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="KALLKEYY" />
+    <meta property="og:locale" content="en_US" />
     
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:title" content="KALLKEYY - Streetwear Fashion" />
-    <meta property="twitter:description" content="Premium streetwear fashion brand. Shop quality hoodies, t-shirts, and accessories." />
     
     <!-- Google OAuth Compliance - Privacy and Terms Links -->
     <link rel="privacy-policy" href="/privacy-policy" />
@@ -41,9 +49,29 @@
       "url": "https://kallkeyy.com",
       "potentialAction": {
         "@type": "SearchAction",
-        "target": "https://kallkeyy.com/search?q={search_term_string}",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://kallkeyy.com/shop?q={search_term_string}"
+        },
         "query-input": "required name=search_term_string"
       }
+    }
+    </script>
+    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "KALLKEYY",
+      "url": "https://kallkeyy.com",
+      "logo": "https://kallkeyy.com/navbar-logo.png",
+      "description": "Premium streetwear fashion brand. Shop quality hoodies, t-shirts, and accessories designed for the modern streetwear enthusiast.",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "Customer Service",
+        "url": "https://kallkeyy.com/contact"
+      },
+      "sameAs": []
     }
     </script>
 

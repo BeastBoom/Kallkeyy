@@ -7,6 +7,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import Preloader from "@/components/Preloader";
 import MainBrandPage from "@/components/MainBrandPage";
+import { useSEO } from "./hooks/useSEO";
+import { trackPageView } from "./lib/analytics";
+import { SITE_CONFIG } from "./lib/seo";
 import KaalDrishta from "@/components/products/KaalDrishta";
 import SmaraJivitam from "@/components/products/SmaraJivitam";
 import AntahaYugaysa from "@/components/products/AntahaYugaysa";
@@ -435,34 +438,128 @@ const App = () => {
     navigateToProduct(productId);
   };
 
-  // Update document title based on current page
-  useEffect(() => {
-    const titles = {
-      loading: "KALLKEYY - Loading...",
-      main: "KALLKEYY - Streetwear Fashion",
-      "product-menu": "Shop - KALLKEYY",
-      product: `${
-        selectedProduct.charAt(0).toUpperCase() + selectedProduct.slice(1)
-      } - KALLKEYY`,
-      about: "About Us - KALLKEYY",
-      contact: "Contact - KALLKEYY",
-      "size-guide": "Size Guide - KALLKEYY",
-      shipping: "Shipping - KALLKEYY",
-      returns: "Returns & Exchanges - KALLKEYY",
-      faq: "FAQ - KALLKEYY",
-      "privacy-policy": "Privacy Policy - KALLKEYY",
-      "terms-of-service": "Terms of Service - KALLKEYY",
-      checkout: "Checkout - KALLKEYY",
-      login: "Login - KALLKEYY",
-      signup: "Sign Up - KALLKEYY",
-      "forgot-password": "Reset Password - KALLKEYY",
-      orders: "My Orders - KALLKEYY",
-      "order-detail": "Order Details - KALLKEYY",
-      "order-confirmation": "Order Confirmed - KALLKEYY",
+  // SEO configuration for each page
+  const getSEOConfig = (): { title: string; description: string; keywords?: string; url?: string } => {
+    const baseUrl = SITE_CONFIG.url;
+    const pageConfigs: Record<string, any> = {
+      loading: {
+        title: "KALLKEYY - Loading...",
+        description: SITE_CONFIG.description,
+      },
+      main: {
+        title: "KALLKEYY - Premium Streetwear Fashion | Hoodies, T-Shirts & Accessories",
+        description: "Discover KALLKEYY - premium streetwear fashion brand. Shop quality hoodies, t-shirts, and accessories designed for the modern streetwear enthusiast.",
+        keywords: "streetwear, hoodies, t-shirts, fashion, clothing, KALLKEYY, urban fashion, street style",
+        url: `${baseUrl}/`,
+      },
+      "product-menu": {
+        title: "Shop - Premium Streetwear Collection | KALLKEYY",
+        description: "Browse our complete collection of premium streetwear including hoodies, t-shirts, and accessories. Free shipping available.",
+        keywords: "streetwear shop, hoodies, t-shirts, clothing store, KALLKEYY shop",
+        url: `${baseUrl}/shop`,
+      },
+      product: {
+        title: `${selectedProduct.charAt(0).toUpperCase() + selectedProduct.slice(1)} - Premium Streetwear | KALLKEYY`,
+        description: `Shop ${selectedProduct.charAt(0).toUpperCase() + selectedProduct.slice(1)} - premium streetwear from KALLKEYY. High quality, comfortable, and stylish.`,
+        keywords: `${selectedProduct}, streetwear, KALLKEYY, premium clothing`,
+        url: `${baseUrl}/product/${selectedProduct}`,
+      },
+      about: {
+        title: "About Us - KALLKEYY Streetwear Brand",
+        description: "Learn about KALLKEYY - a premium streetwear fashion brand committed to quality, style, and authenticity.",
+        keywords: "about KALLKEYY, streetwear brand, fashion company",
+        url: `${baseUrl}/about`,
+      },
+      contact: {
+        title: "Contact Us - KALLKEYY Customer Support",
+        description: "Get in touch with KALLKEYY. We're here to help with orders, questions, or feedback. Contact our customer support team.",
+        keywords: "contact KALLKEYY, customer support, help",
+        url: `${baseUrl}/contact`,
+      },
+      "size-guide": {
+        title: "Size Guide - Find Your Perfect Fit | KALLKEYY",
+        description: "KALLKEYY size guide. Find the perfect fit for our hoodies and t-shirts. Detailed measurements and sizing information.",
+        keywords: "size guide, sizing, measurements, fit guide",
+        url: `${baseUrl}/size-guide`,
+      },
+      shipping: {
+        title: "Shipping Information - KALLKEYY",
+        description: "KALLKEYY shipping information. Learn about our shipping options, delivery times, and tracking your order.",
+        keywords: "shipping, delivery, KALLKEYY shipping",
+        url: `${baseUrl}/shipping`,
+      },
+      returns: {
+        title: "Returns & Exchanges - KALLKEYY",
+        description: "KALLKEYY returns and exchange policy. Learn how to return or exchange your items.",
+        keywords: "returns, exchanges, refund policy",
+        url: `${baseUrl}/returns`,
+      },
+      faq: {
+        title: "Frequently Asked Questions - KALLKEYY",
+        description: "Find answers to common questions about KALLKEYY products, orders, shipping, and more.",
+        keywords: "FAQ, questions, help, KALLKEYY",
+        url: `${baseUrl}/faq`,
+      },
+      "privacy-policy": {
+        title: "Privacy Policy - KALLKEYY",
+        description: "KALLKEYY privacy policy. Learn how we collect, use, and protect your personal information.",
+        url: `${baseUrl}/privacy-policy`,
+      },
+      "terms-of-service": {
+        title: "Terms of Service - KALLKEYY",
+        description: "KALLKEYY terms of service. Read our terms and conditions for using our website and services.",
+        url: `${baseUrl}/terms-of-service`,
+      },
+      checkout: {
+        title: "Checkout - Complete Your Order | KALLKEYY",
+        description: "Complete your KALLKEYY order. Secure checkout with multiple payment options.",
+        url: `${baseUrl}/checkout`,
+      },
+      login: {
+        title: "Login - KALLKEYY Account",
+        description: "Login to your KALLKEYY account to view orders and manage your profile.",
+        url: `${baseUrl}/login`,
+      },
+      signup: {
+        title: "Sign Up - Create KALLKEYY Account",
+        description: "Create a KALLKEYY account to track orders, save favorites, and enjoy exclusive offers.",
+        url: `${baseUrl}/signup`,
+      },
+      "forgot-password": {
+        title: "Reset Password - KALLKEYY",
+        description: "Reset your KALLKEYY account password.",
+        url: `${baseUrl}/forgot-password`,
+      },
+      orders: {
+        title: "My Orders - KALLKEYY",
+        description: "View your KALLKEYY order history and track your purchases.",
+        url: `${baseUrl}/orders`,
+      },
+      "order-detail": {
+        title: "Order Details - KALLKEYY",
+        description: "View details of your KALLKEYY order.",
+        url: `${baseUrl}/order/${selectedOrderId}`,
+      },
+      "order-confirmation": {
+        title: "Order Confirmed - Thank You | KALLKEYY",
+        description: "Your KALLKEYY order has been confirmed. Thank you for your purchase!",
+        url: `${baseUrl}/order-confirmation`,
+      },
     };
 
-    document.title = titles[stage] || "KALLKEYY";
-  }, [stage, selectedProduct]);
+    return pageConfigs[stage] || pageConfigs.main;
+  };
+
+  // Update SEO and track page views
+  const seoConfig = getSEOConfig();
+  useSEO(seoConfig);
+
+  useEffect(() => {
+    // Track page view with Google Analytics
+    const path = window.location.pathname;
+    trackPageView(path, seoConfig.title);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage, selectedProduct, selectedOrderId]);
 
   return (
     <QueryClientProvider client={queryClient}>

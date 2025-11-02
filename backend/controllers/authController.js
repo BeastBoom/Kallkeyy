@@ -408,16 +408,39 @@ exports.updatePhone = async (req, res) => {
     // Update phone number and mark as verified (since OTP is temporarily disabled)
     user.phone = phone;
     user.phoneVerified = true;
-    await user.save();
+    
+    // Save user and verify the save was successful
+    const savedUser = await user.save();
+    
+    // Verify the phone was actually saved
+    if (savedUser.phone !== phone || !savedUser.phoneVerified) {
+      console.error('Phone number save verification failed:', {
+        userId,
+        expectedPhone: phone,
+        savedPhone: savedUser.phone,
+        phoneVerified: savedUser.phoneVerified
+      });
+      setCorsHeaders(req, res);
+      return res.status(500).json({
+        success: false,
+        message: 'Phone number was not saved correctly'
+      });
+    }
+
+    console.log('Phone number successfully updated:', {
+      userId,
+      phone: savedUser.phone,
+      phoneVerified: savedUser.phoneVerified
+    });
 
     setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
       message: 'Phone number updated successfully',
       user: {
-        id: user._id,
-        phone: user.phone,
-        phoneVerified: user.phoneVerified
+        id: savedUser._id,
+        phone: savedUser.phone,
+        phoneVerified: savedUser.phoneVerified
       }
     });
   } catch (error) {
