@@ -5,11 +5,10 @@
 
 declare global {
   interface Window {
-    gtag?: (
-      command: 'config' | 'event' | 'set' | 'js',
-      targetId: string | Date,
-      config?: any
-    ) => void;
+    gtag?: {
+      (command: 'config' | 'event' | 'set', targetId: string | Date, config?: any): void;
+      (command: 'js', date: Date): void;
+    };
     dataLayer?: any[];
   }
 }
@@ -17,47 +16,135 @@ declare global {
 // Get GA4 Measurement ID from environment variable
 const GA4_MEASUREMENT_ID = import.meta.env.VITE_GA4_MEASUREMENT_ID || '';
 
+// Log measurement ID status in development
+if (import.meta.env.DEV && typeof window !== 'undefined') {
+  if (GA4_MEASUREMENT_ID) {
+    console.log('✅ GA4 Measurement ID found:', GA4_MEASUREMENT_ID);
+  } else {
+    console.warn('⚠️ GA4 Measurement ID NOT found in environment variables');
+    console.warn('   Add VITE_GA4_MEASUREMENT_ID=G-XXXXXXXXXX to your .env file');
+  }
+}
+
 /**
  * Initialize Google Analytics
  */
 export const initGA = () => {
-  if (!GA4_MEASUREMENT_ID || typeof window === 'undefined') {
-    console.warn('Google Analytics Measurement ID not found. Set VITE_GA4_MEASUREMENT_ID environment variable.');
+  if (typeof window === 'undefined') {
     return;
   }
 
-  // Load gtag.js script
-  const script1 = document.createElement('script');
-  script1.async = true;
-  script1.src = `https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`;
-  document.head.appendChild(script1);
+  if (!GA4_MEASUREMENT_ID) {
+    console.warn('⚠️ Google Analytics Measurement ID not found. Set VITE_GA4_MEASUREMENT_ID environment variable.');
+    console.warn('   Format: VITE_GA4_MEASUREMENT_ID=G-XXXXXXXXXX');
+    return;
+  }
 
-  // Initialize dataLayer and gtag function
+  // Validate Measurement ID format (should start with G-)
+  if (!GA4_MEASUREMENT_ID.startsWith('G-')) {
+    console.error('❌ Invalid GA4 Measurement ID format. Should start with "G-" (e.g., G-XXXXXXXXXX)');
+    console.error('   Current value:', GA4_MEASUREMENT_ID);
+    return;
+  }
+
+  // Prevent double initialization - check if script already exists
+  const existingScript = document.querySelector(`script[src*="googletagmanager.com/gtag/js"]`);
+  if (existingScript) {
+    console.log('✅ Google Analytics script already loaded');
+    // Ensure gtag function exists (it should already be defined in index.html)
+    if (!window.gtag) {
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function() {
+        window.dataLayer.push(arguments);
+      };
+    }
+    return;
+  }
+
+  // If gtag was already defined in index.html, use it; otherwise define it
+  if (!window.gtag) {
+    window.gtag = function() {
+      window.dataLayer.push(arguments);
+    };
+  }
+
+  // Initialize dataLayer first (before script loads) - matches Google's official code
   window.dataLayer = window.dataLayer || [];
-  window.gtag = function(...args: any[]) {
-    window.dataLayer.push(args);
-  };
 
+  // Set initial configuration (matches Google's official code)
   window.gtag('js', new Date());
-  window.gtag('config', GA4_MEASUREMENT_ID, {
-    page_path: window.location.pathname,
-    send_page_view: true,
-  });
+  window.gtag('config', GA4_MEASUREMENT_ID);
 
-  console.log('Google Analytics initialized:', GA4_MEASUREMENT_ID);
+  // Load gtag.js script
+  const script = document.createElement('script');
+  script.async = true;
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`;
+  
+  // Add error handling for script load
+  script.onerror = () => {
+    console.error('❌ Failed to load Google Analytics script');
+  };
+  
+  script.onload = () => {
+    console.log('✅ Google Analytics script loaded successfully:', GA4_MEASUREMENT_ID);
+    console.log('✅ You should see data in GA Real-time reports within 1-2 minutes');
+    
+    // Verify gtag is now properly available
+    if (typeof window.gtag === 'function') {
+      console.log('✅ gtag function is ready');
+      
+      // Send initial page view after script loads
+      window.gtag('config', GA4_MEASUREMENT_ID, {
+        page_path: window.location.pathname,
+        page_location: window.location.href,
+        page_title: document.title,
+      });
+      
+      // Test event to verify everything works
+      window.gtag('event', 'analytics_initialized', {
+        event_category: 'system',
+        event_label: 'GA4_loaded',
+      });
+      console.log('✅ Test event sent - check GA Real-time reports');
+    } else {
+      console.error('❌ gtag function not available after script load');
+    }
+  };
+  
+  document.head.appendChild(script);
+
+  console.log('🚀 Google Analytics initialization started:', GA4_MEASUREMENT_ID);
 };
 
 /**
  * Track page view
  */
 export const trackPageView = (path: string, title?: string) => {
-  if (!window.gtag || !GA4_MEASUREMENT_ID) return;
+  if (!GA4_MEASUREMENT_ID) {
+    console.warn('⚠️ GA4 Measurement ID not found for page view tracking');
+    return;
+  }
 
-  window.gtag('config', GA4_MEASUREMENT_ID, {
-    page_path: path,
-    page_title: title || document.title,
-    page_location: window.location.href,
-  });
+  // Initialize dataLayer if not already done
+  if (typeof window !== 'undefined') {
+    window.dataLayer = window.dataLayer || [];
+    
+    // Define gtag if not exists (fallback) - matches Google's official pattern
+    if (!window.gtag) {
+      window.gtag = function() {
+        window.dataLayer.push(arguments);
+      };
+    }
+
+    // Track page view
+    window.gtag('config', GA4_MEASUREMENT_ID, {
+      page_path: path,
+      page_title: title || document.title,
+      page_location: window.location.href,
+    });
+
+    console.log('📊 Page view tracked:', { path, title: title || document.title });
+  }
 };
 
 /**
@@ -69,12 +156,32 @@ export const trackEvent = (
     [key: string]: any;
   }
 ) => {
-  if (!window.gtag || !GA4_MEASUREMENT_ID) return;
+  if (!GA4_MEASUREMENT_ID) {
+    console.warn('⚠️ GA4 Measurement ID not found for event tracking:', eventName);
+    return;
+  }
 
-  window.gtag('event', eventName, {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  // Initialize dataLayer if not already done
+  window.dataLayer = window.dataLayer || [];
+  
+  // Define gtag if not exists (fallback)
+  if (!window.gtag) {
+    window.gtag = function(...args: any[]) {
+      window.dataLayer.push(args);
+    };
+  }
+
+  const eventParams = {
     ...parameters,
     event_category: parameters?.event_category || 'engagement',
-  });
+  };
+
+  window.gtag('event', eventName, eventParams);
+  console.log('📈 Event tracked:', eventName, eventParams);
 };
 
 /**

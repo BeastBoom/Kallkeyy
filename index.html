@@ -76,6 +76,14 @@
     </script>
 
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    
+    <!-- Google Analytics 4 - Initialize early (matches Google's official pattern) -->
+    <script>
+      // Initialize dataLayer and gtag function early - matches Google's official code exactly
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      window.gtag = gtag;
+    </script>
   </head>
   <body>
     <!-- Noscript fallback for Google bot and non-JS users -->

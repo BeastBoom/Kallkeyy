@@ -4,12 +4,21 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import App from "./App.tsx";
 import "./index.css";
 import { initGA } from "./lib/analytics";
+import "./lib/analytics-debug"; // Load debug utilities
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
-// Initialize Google Analytics
+// Initialize Google Analytics as early as possible
 if (typeof window !== 'undefined') {
-  initGA();
+  // Use DOMContentLoaded to ensure DOM is ready, but if already loaded, run immediately
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      initGA();
+    });
+  } else {
+    // DOM already loaded
+    initGA();
+  }
 }
 
 // Suppress Instagram CORS errors from cluttering the console
@@ -20,18 +29,21 @@ if (typeof window !== 'undefined') {
     text.includes('ERR_BLOCKED_BY_RESPONSE') ||
     text.includes('NotSameOrigin');
 
-  // Suppress console errors and warnings
+  // Suppress console errors and warnings (but allow Google Analytics messages)
   const originalError = console.error;
   const originalWarn = console.warn;
   
   console.error = (...args: any[]) => {
-    if (!isInstagramError(args.join(' '))) {
+    const message = args.join(' ');
+    if (!isInstagramError(message) && !message.includes('Failed to load Google Analytics')) {
       originalError.apply(console, args);
     }
   };
 
   console.warn = (...args: any[]) => {
-    if (!isInstagramError(args.join(' '))) {
+    const message = args.join(' ');
+    // Don't suppress GA warnings - they're important for debugging
+    if (!isInstagramError(message)) {
       originalWarn.apply(console, args);
     }
   };
