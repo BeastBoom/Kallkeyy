@@ -74,6 +74,10 @@ const couponSchema = new mongoose.Schema({
       default: false // Discount on shipping charges
     }
   },
+  isGeneralPurpose: {
+    type: Boolean,
+    default: true // Whether this coupon is visible to all users in checkout
+  },
   usedBy: [{
     userId: {
       type: mongoose.Schema.Types.ObjectId,

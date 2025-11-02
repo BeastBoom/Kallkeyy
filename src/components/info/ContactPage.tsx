@@ -29,6 +29,11 @@ export default function ContactPage({
 }: Props) {
   const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Get current route to determine active nav item
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+  const isHomeActive = currentPath === '/';
+  const isShopActive = currentPath === '/shop' || currentPath.startsWith('/product/');
 
   const handleUnavailablePage = (pageName: string) => {
     toast({
@@ -115,10 +120,13 @@ export default function ContactPage({
             </div>
 
             <div className="flex items-center z-10">
-              <div className="hidden lg:flex gap-2 text-sm lg:text-base font-bold">
+              <div className="hidden lg:flex gap-0.5 text-sm font-bold">
                 <button
                   onClick={() => onBackToMain()}
-                  className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                  className={isHomeActive 
+                    ? "text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 bg-white/5 rounded-lg whitespace-nowrap"
+                    : "hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                  }
                 >
                   HOME
                 </button>
@@ -128,7 +136,10 @@ export default function ContactPage({
                       ? onNavigateToShop()
                       : handleUnavailablePage("Shop")
                   }
-                  className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                  className={isShopActive
+                    ? "text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 bg-white/5 rounded-lg whitespace-nowrap"
+                    : "hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                  }
                 >
                   SHOP
                 </button>
@@ -139,7 +150,7 @@ export default function ContactPage({
                         ? onNavigateToOrders()
                         : handleUnavailablePage("Orders")
                     }
-                    className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                    className="hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
                   >
                     ORDERS
                   </button>
@@ -150,19 +161,19 @@ export default function ContactPage({
                       ? onNavigateToAbout()
                       : handleUnavailablePage("About")
                   }
-                  className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
+                  className="hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
                 >
                   ABOUT
                 </button>
                 <button
-                  className="text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 bg-white/5 rounded-lg whitespace-nowrap"
+                  className="text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 bg-white/5 rounded-lg whitespace-nowrap"
                 >
                   CONTACT
                 </button>
 
                 {user ? (
                   <>
-                    <span className="text-white px-2 lg:px-3 py-2 flex items-center text-xs lg:text-sm whitespace-nowrap">
+                    <span className="text-white px-1 lg:px-2 py-2 flex items-center text-xs whitespace-nowrap">
                       HEY,{" "}
                       <span className="text-[#b90e0a] ml-1">
                         {formatDisplayName(user.name)}
@@ -170,23 +181,23 @@ export default function ContactPage({
                     </span>
                     <button
                       onClick={logout}
-                      className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg flex items-center gap-1 whitespace-nowrap"
+                      className="hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg flex items-center gap-1 whitespace-nowrap"
                     >
                       <LogOut size={14} className="lg:w-4 lg:h-4" />
-                      <span className="text-xs lg:text-sm">LOGOUT</span>
+                      <span className="text-xs">LOGOUT</span>
                     </button>
                   </>
                 ) : (
                   <>
                     <button
                       onClick={() => onNavigateToLogin()}
-                      className="hover:text-[#b90e0a] transition-colors duration-300 px-2 lg:px-3 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap text-xs lg:text-sm"
+                      className="hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap text-xs"
                     >
                       LOGIN
                     </button>
                     <button
                       onClick={() => onNavigateToSignup()}
-                      className="bg-[#b90e0a] hover:bg-[#b90e0a]/80 transition-colors duration-300 px-3 lg:px-4 py-2 rounded-lg ml-1 whitespace-nowrap text-xs lg:text-sm"
+                      className="bg-[#b90e0a] hover:bg-[#b90e0a]/80 transition-colors duration-300 px-2 lg:px-3 py-2 rounded-lg ml-1 whitespace-nowrap text-xs"
                     >
                       SIGN UP
                     </button>

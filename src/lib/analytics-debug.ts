@@ -45,8 +45,8 @@ export const checkGAStatus = () => {
   };
 };
 
-// Make it available globally for debugging
-if (typeof window !== 'undefined') {
+// Make it available globally for debugging (only in development)
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
   (window as any).checkGAStatus = checkGAStatus;
   console.log('💡 Debug: Run checkGAStatus() in console to check GA status');
 }

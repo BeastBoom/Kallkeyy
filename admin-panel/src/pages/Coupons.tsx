@@ -23,6 +23,7 @@ export default function Coupons() {
     isActive: true,
     validFrom: new Date().toISOString().split('T')[0],
     validUntil: '',
+    isGeneralPurpose: true,
     rules: {
       firstTimePurchaseOnly: false,
       oncePerAccount: false,
@@ -61,6 +62,7 @@ export default function Coupons() {
       isActive: true,
       validFrom: new Date().toISOString().split('T')[0],
       validUntil: '',
+      isGeneralPurpose: true,
       rules: {
         firstTimePurchaseOnly: false,
         oncePerAccount: false,
@@ -84,6 +86,7 @@ export default function Coupons() {
       isActive: coupon.isActive,
       validFrom: coupon.validFrom ? new Date(coupon.validFrom).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       validUntil: coupon.validUntil ? new Date(coupon.validUntil).toISOString().split('T')[0] : '',
+      isGeneralPurpose: coupon.isGeneralPurpose !== undefined ? coupon.isGeneralPurpose : true,
       rules: {
         firstTimePurchaseOnly: coupon.rules?.firstTimePurchaseOnly || false,
         oncePerAccount: coupon.rules?.oncePerAccount || false,
@@ -504,6 +507,19 @@ export default function Coupons() {
                       <span className="text-sm text-gray-700">Apply to shipping charges</span>
                     </label>
                   </div>
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="isGeneralPurpose"
+                    checked={couponForm.isGeneralPurpose}
+                    onChange={(e) => setCouponForm({ ...couponForm, isGeneralPurpose: e.target.checked })}
+                    className="mr-2"
+                  />
+                  <label htmlFor="isGeneralPurpose" className="text-sm font-medium text-gray-700">
+                    General Purpose (visible to all users in checkout)
+                  </label>
                 </div>
 
                 <div className="flex items-center">

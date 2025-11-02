@@ -35,22 +35,25 @@ export const initGA = () => {
   }
 
   if (!GA4_MEASUREMENT_ID) {
-    console.warn('⚠️ Google Analytics Measurement ID not found. Set VITE_GA4_MEASUREMENT_ID environment variable.');
-    console.warn('   Format: VITE_GA4_MEASUREMENT_ID=G-XXXXXXXXXX');
+    // Only warn in development
+    if (import.meta.env.DEV) {
+      console.warn('⚠️ Google Analytics Measurement ID not found. Set VITE_GA4_MEASUREMENT_ID environment variable.');
+    }
     return;
   }
 
   // Validate Measurement ID format (should start with G-)
   if (!GA4_MEASUREMENT_ID.startsWith('G-')) {
-    console.error('❌ Invalid GA4 Measurement ID format. Should start with "G-" (e.g., G-XXXXXXXXXX)');
-    console.error('   Current value:', GA4_MEASUREMENT_ID);
+    // Only log error in development
+    if (import.meta.env.DEV) {
+      console.error('❌ Invalid GA4 Measurement ID format. Should start with "G-"');
+    }
     return;
   }
 
   // Prevent double initialization - check if script already exists
   const existingScript = document.querySelector(`script[src*="googletagmanager.com/gtag/js"]`);
   if (existingScript) {
-    console.log('✅ Google Analytics script already loaded');
     // Ensure gtag function exists (it should already be defined in index.html)
     if (!window.gtag) {
       window.dataLayer = window.dataLayer || [];
@@ -80,40 +83,26 @@ export const initGA = () => {
   script.async = true;
   script.src = `https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`;
   
-  // Add error handling for script load
+  // Add error handling for script load (only log in development)
   script.onerror = () => {
-    console.error('❌ Failed to load Google Analytics script');
+    if (import.meta.env.DEV) {
+      console.error('❌ Failed to load Google Analytics script');
+    }
   };
   
   script.onload = () => {
-    console.log('✅ Google Analytics script loaded successfully:', GA4_MEASUREMENT_ID);
-    console.log('✅ You should see data in GA Real-time reports within 1-2 minutes');
-    
     // Verify gtag is now properly available
     if (typeof window.gtag === 'function') {
-      console.log('✅ gtag function is ready');
-      
       // Send initial page view after script loads
       window.gtag('config', GA4_MEASUREMENT_ID, {
         page_path: window.location.pathname,
         page_location: window.location.href,
         page_title: document.title,
       });
-      
-      // Test event to verify everything works
-      window.gtag('event', 'analytics_initialized', {
-        event_category: 'system',
-        event_label: 'GA4_loaded',
-      });
-      console.log('✅ Test event sent - check GA Real-time reports');
-    } else {
-      console.error('❌ gtag function not available after script load');
     }
   };
   
   document.head.appendChild(script);
-
-  console.log('🚀 Google Analytics initialization started:', GA4_MEASUREMENT_ID);
 };
 
 /**
@@ -121,7 +110,9 @@ export const initGA = () => {
  */
 export const trackPageView = (path: string, title?: string) => {
   if (!GA4_MEASUREMENT_ID) {
-    console.warn('⚠️ GA4 Measurement ID not found for page view tracking');
+    if (import.meta.env.DEV) {
+      console.warn('⚠️ GA4 Measurement ID not found for page view tracking');
+    }
     return;
   }
 
@@ -142,8 +133,6 @@ export const trackPageView = (path: string, title?: string) => {
       page_title: title || document.title,
       page_location: window.location.href,
     });
-
-    console.log('📊 Page view tracked:', { path, title: title || document.title });
   }
 };
 
@@ -157,7 +146,9 @@ export const trackEvent = (
   }
 ) => {
   if (!GA4_MEASUREMENT_ID) {
-    console.warn('⚠️ GA4 Measurement ID not found for event tracking:', eventName);
+    if (import.meta.env.DEV) {
+      console.warn('⚠️ GA4 Measurement ID not found for event tracking:', eventName);
+    }
     return;
   }
 
@@ -168,10 +159,10 @@ export const trackEvent = (
   // Initialize dataLayer if not already done
   window.dataLayer = window.dataLayer || [];
   
-  // Define gtag if not exists (fallback)
+  // Define gtag if not exists (fallback) - matches Google's official pattern
   if (!window.gtag) {
-    window.gtag = function(...args: any[]) {
-      window.dataLayer.push(args);
+    window.gtag = function() {
+      window.dataLayer.push(arguments);
     };
   }
 
@@ -181,7 +172,6 @@ export const trackEvent = (
   };
 
   window.gtag('event', eventName, eventParams);
-  console.log('📈 Event tracked:', eventName, eventParams);
 };
 
 /**

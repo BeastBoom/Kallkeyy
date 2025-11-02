@@ -138,6 +138,8 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
   } | null>(null);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
   const [couponError, setCouponError] = useState("");
+  const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
+  const [showMoreCoupons, setShowMoreCoupons] = useState(false);
 
   // Payment method state
   const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "cod">("razorpay");
@@ -229,6 +231,14 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phoneVerified, selectedAddress, checkoutTracked]);
+
+  // Fetch available coupons when user is verified and cart is ready
+  useEffect(() => {
+    if (phoneVerified && user && totalPrice > 0) {
+      fetchAvailableCoupons();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phoneVerified, user, totalPrice]);
 
   const fetchAddresses = async () => {
     try {
@@ -465,6 +475,68 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
       script.onerror = () => resolve(false);
       document.body.appendChild(script);
     });
+  };
+
+  const fetchAvailableCoupons = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const response = await fetch(`${API_BASE_URL}/api/coupons/available?cartTotal=${totalPrice}`, {
+        credentials: 'include',
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setAvailableCoupons(data.coupons || []);
+      }
+    } catch (error) {
+      console.error("Error fetching available coupons:", error);
+    }
+  };
+
+  const applyCouponDirectly = async (code: string) => {
+    setCouponError("");
+    setValidatingCoupon(true);
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${API_BASE_URL}/api/coupons/validate`, {
+        method: "POST",
+        credentials: 'include',
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          code: code.trim().toUpperCase(),
+          cartTotal: totalPrice,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setCouponApplied({
+          code: data.coupon.code,
+          discountAmount: data.coupon.discountAmount,
+          finalAmount: data.coupon.finalAmount,
+        });
+        setCouponError("");
+      } else {
+        setCouponError(data.message || "Invalid coupon code");
+        setCouponApplied(null);
+      }
+    } catch (error) {
+      setCouponError("Failed to validate coupon. Please try again.");
+      setCouponApplied(null);
+    } finally {
+      setValidatingCoupon(false);
+    }
   };
 
   const validateCoupon = async () => {
@@ -1555,6 +1627,59 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                 <p className="mt-2 text-sm" style={{ color: "var(--color-error)" }}>
                   {couponError}
                 </p>
+              )}
+
+              {/* Available Coupons Section */}
+              {!couponApplied && availableCoupons.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-xs mb-2" style={{ color: "var(--color-text-secondary)" }}>
+                    Available Coupons:
+                  </p>
+                  <div 
+                    className="flex gap-2 overflow-x-auto pb-2"
+                    style={{ scrollbarWidth: 'thin' }}
+                  >
+                    {(showMoreCoupons ? availableCoupons : availableCoupons.slice(0, 3)).map((coupon, index) => (
+                      <button
+                        key={coupon.code}
+                        onClick={() => applyCouponDirectly(coupon.code)}
+                        className="flex-shrink-0 px-3 py-2 rounded-lg border transition-all hover:shadow-md"
+                        style={{
+                          background: "var(--color-surface)",
+                          borderColor: "var(--color-primary)",
+                          borderWidth: "1.5px",
+                          minWidth: "fit-content",
+                          cursor: "pointer"
+                        }}
+                      >
+                        <div className="flex items-center gap-1 mb-1">
+                          <span className="font-bold text-sm" style={{ color: "var(--color-primary)" }}>
+                            {coupon.code}
+                          </span>
+                          <span className="text-xs font-semibold" style={{ color: "var(--color-success)" }}>
+                            {coupon.discountType === 'percentage' 
+                              ? `-${coupon.discountValue}%` 
+                              : `-₹${coupon.discountValue}`}
+                          </span>
+                        </div>
+                        {coupon.name && (
+                          <p className="text-xs truncate max-w-[150px]" style={{ color: "var(--color-text-secondary)" }}>
+                            {coupon.name}
+                          </p>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  {availableCoupons.length > 3 && (
+                    <button
+                      onClick={() => setShowMoreCoupons(!showMoreCoupons)}
+                      className="mt-2 text-xs font-medium hover:underline"
+                      style={{ color: "var(--color-primary)" }}
+                    >
+                      {showMoreCoupons ? "Show Less" : `+${availableCoupons.length - 3} More Coupons`}
+                    </button>
+                  )}
+                </div>
               )}
             </div>
 

@@ -4,7 +4,10 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import App from "./App.tsx";
 import "./index.css";
 import { initGA } from "./lib/analytics";
-import "./lib/analytics-debug"; // Load debug utilities
+// Debug utilities only loaded in development
+if (import.meta.env.DEV) {
+  import("./lib/analytics-debug");
+}
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
