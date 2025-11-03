@@ -21,7 +21,7 @@ const MRITYO_BADDHA_DATA = {
   salePrice: "₹1,299",
   tag: "TRENDING",
   description:
-    '"MRITYO-BADDHA — BOUND BY DEATH" A graphic tee that embodies the struggle against mortality. 280 GSM premium cotton with oversized boxy fit.',
+    '"MRITYO-BADDHA — BOUND BY DEATH" A graphic tee that embodies the struggle against mortality. 240 GSM premium cotton with oversized boxy fit.',
   images: [
     "/Mrityobaddha-1.png",
     "/Mrityobaddha.mp4",
