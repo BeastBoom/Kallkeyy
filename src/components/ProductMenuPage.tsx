@@ -87,7 +87,7 @@ const heroSlides: HeroSlide[] = [
     title: "🔥 LAUNCH SALE 🔥",
     subtitle: "EXCLUSIVE LAUNCH PRICES!",
     description:
-      "Premium hoodies starting at ₹2,499 | T-Shirts starting at ₹1,299. FREE SHIPPING on all orders! Use code KALLKEYY10 at checkout for an additional 10% discount. Don't Miss Out! 💥",
+      "Premium hoodies starting at ₹2,499 | T-Shirts starting at ₹1,299. FREE SHIPPING on all orders! Use code KALLKEYY100 at checkout for an additional 10% discount. Don't Miss Out! 💥",
     tag: "LIVE NOW",
     price: "HOODIES ₹2,499 | T-SHIRTS ₹1,299",
     isUpcoming: false,
@@ -344,7 +344,7 @@ export default function ProductMenuPage({
     <div className={`min-h-screen bg-[#f8f8f8] text-[#0a0a0a] font-grotesk selection:bg-[#b90e0a] selection:text-white ${skipAnimations ? '[&_*]:!animate-none' : ''}`}>
       {/* Announcement Bar */}
       <div className="bg-[#333333] text-white text-center py-1.5 px-4 text-[10px] sm:text-xs font-bold tracking-widest uppercase z-[60] relative">
-        Free Shipping on all pan-India orders · Code <span className="text-[#4CAF50]">KALLKEYY10</span> for 10% Off
+        Free Shipping on all pan-India orders · Code <span className="text-[#4CAF50]">KALLKEYY100</span> for ₹100 Off on your first order only
       </div>
 
       {/* Navigation */}

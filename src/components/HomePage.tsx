@@ -243,7 +243,7 @@ export default function HomePage({
     <div className="min-h-screen bg-[#f5f5f5] text-neutral-900 font-sans selection:bg-[#b90e0a] selection:text-white">
       {/* Coupon Code Block */}
       <div className="bg-[#333333] text-white text-center py-1.5 px-4 text-[10px] sm:text-xs font-bold tracking-widest uppercase z-[60] relative">
-        Free Shipping on all pan-India orders · Code <span className="text-[#4CAF50]">KALLKEYY10</span> for 10% Off
+        Free Shipping on all pan-India orders · Code <span className="text-[#4CAF50]">KALLKEYY100</span> for ₹100 Off on your first order only
       </div>
 
       {/* Navigation - Shopify Style with Centered Links */}

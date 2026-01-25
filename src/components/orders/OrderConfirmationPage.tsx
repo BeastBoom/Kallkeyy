@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircle2, Package, Truck, Sparkles } from "lucide-react";
+import { CheckCircle2, Package, Truck, PartyPopper, Heart, Star, Gift } from "lucide-react";
 
 const OrderConfirmationPage = () => {
   // Get orderId from URL query parameters
@@ -14,7 +14,7 @@ const OrderConfirmationPage = () => {
   const [countdown, setCountdown] = useState(5);
   const [showContent, setShowContent] = useState(false);
   const [showCheckmark, setShowCheckmark] = useState(false);
-  const [showSparkles, setShowSparkles] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
     // Get orderId from URL
@@ -24,7 +24,7 @@ const OrderConfirmationPage = () => {
     // Animate content entrance
     setTimeout(() => setShowContent(true), 100);
     setTimeout(() => setShowCheckmark(true), 300);
-    setTimeout(() => setShowSparkles(true), 500);
+    setTimeout(() => setShowConfetti(true), 500);
   }, []);
 
   // Listen for URL changes (in case navigation happens without full reload)
@@ -55,32 +55,52 @@ const OrderConfirmationPage = () => {
     }
   }, [countdown]);
 
+  // Generate confetti particles
+  const confettiColors = ['#b90e0a', '#ff6b6b', '#feca57', '#1dd1a1', '#54a0ff', '#ff9ff3', '#5f27cd'];
+  const confettiParticles = Array.from({ length: 50 }, (_, i) => ({
+    id: i,
+    color: confettiColors[i % confettiColors.length],
+    left: Math.random() * 100,
+    delay: Math.random() * 2,
+    duration: 2 + Math.random() * 3,
+    size: 6 + Math.random() * 8,
+    type: Math.random() > 0.5 ? 'circle' : 'square',
+  }));
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-[#0a0a0a] to-[#1a0a0a] flex items-center justify-center relative overflow-hidden py-8 px-4">
-      {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 md:w-96 md:h-96 bg-[#b90e0a] opacity-20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 md:w-96 md:h-96 bg-[#b90e0a] opacity-10 rounded-full blur-3xl animate-pulse delay-1000" />
+    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-white flex items-center justify-center relative overflow-hidden py-8 px-4">
+      {/* Coupon Code Block */}
+      <div className="absolute top-0 left-0 right-0 bg-[#333333] text-white text-center py-1.5 px-4 text-[10px] sm:text-xs font-bold tracking-widest uppercase z-[60]">
+        Free Shipping on all pan-India orders · Code <span className="text-[#4CAF50]">KALLKEYY100</span> for ₹100 Off on your first order only
       </div>
 
-      {/* Sparkles Animation - Reduced on mobile */}
-      {showSparkles && (
-        <div className="absolute inset-0 pointer-events-none">
-          {[...Array(15)].map((_, i) => (
-            <Sparkles
-              key={i}
-              className="absolute text-[#b90e0a] animate-ping sparkle-icon"
+      {/* Confetti Animation */}
+      {showConfetti && (
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          {confettiParticles.map((particle) => (
+            <div
+              key={particle.id}
+              className="absolute animate-confetti"
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 2}s`,
-                animationDuration: `${2 + Math.random() * 2}s`,
-                opacity: 0.2,
+                left: `${particle.left}%`,
+                top: '-20px',
+                animationDelay: `${particle.delay}s`,
+                animationDuration: `${particle.duration}s`,
               }}
-            />
+            >
+              <div
+                className={particle.type === 'circle' ? 'rounded-full' : 'rounded-sm'}
+                style={{
+                  width: particle.size,
+                  height: particle.size,
+                  backgroundColor: particle.color,
+                }}
+              />
+            </div>
           ))}
         </div>
       )}
+
 
       <div className="relative z-10 w-full max-w-2xl mx-auto text-center">
         {/* Success Checkmark */}
@@ -92,10 +112,18 @@ const OrderConfirmationPage = () => {
           }`}
         >
           <div className="relative inline-block">
-            <div className="absolute inset-0 bg-[#b90e0a] rounded-full blur-2xl opacity-50 animate-ping" />
-            <div className="absolute inset-0 bg-[#b90e0a] rounded-full blur-xl opacity-30 animate-pulse" />
-            <div className="relative bg-gradient-to-br from-[#b90e0a] via-[#d90f0c] to-[#8a0a08] rounded-full p-4 md:p-8 shadow-2xl transform transition-transform hover:scale-105">
-              <CheckCircle2 className="w-16 h-16 md:w-28 md:h-28 text-white animate-scale-in drop-shadow-lg" strokeWidth={3} />
+            {/* Pulsing ring */}
+            <div className="absolute inset-0 bg-emerald-400 rounded-full blur-2xl opacity-30 animate-ping" style={{ animationDuration: '2s' }} />
+            <div className="absolute inset-0 bg-emerald-400 rounded-full blur-xl opacity-20 animate-pulse" />
+            
+            {/* Main checkmark circle */}
+            <div className="relative bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 rounded-full p-5 md:p-8 shadow-2xl shadow-emerald-500/30 transform transition-transform hover:scale-105">
+              <CheckCircle2 className="w-14 h-14 md:w-24 md:h-24 text-white animate-scale-in drop-shadow-lg" strokeWidth={2.5} />
+            </div>
+            
+            {/* Decorative elements */}
+            <div className="absolute -top-2 -right-2 w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center shadow-lg animate-bounce-slow">
+              <PartyPopper className="w-4 h-4 text-white" />
             </div>
           </div>
         </div>
@@ -108,23 +136,27 @@ const OrderConfirmationPage = () => {
               : "translate-y-10 opacity-0"
           }`}
         >
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 md:mb-4 animate-fade-in bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-transparent px-2">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 mb-3 md:mb-4 animate-fade-in px-2">
             Order Confirmed! 🎉
           </h1>
-          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 mb-6 md:mb-8 animate-fade-in-delay leading-relaxed px-2">
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-6 md:mb-8 animate-fade-in-delay leading-relaxed px-2">
             Your payment was successful and your order has been placed
           </p>
 
           {/* Order Info Card */}
           {orderId && (
-            <div className="bg-gradient-to-br from-[#1a1a1a] via-[#151515] to-[#0a0a0a] border border-[#b90e0a]/30 rounded-xl md:rounded-2xl p-4 md:p-6 lg:p-8 mb-6 md:mb-8 shadow-2xl backdrop-blur-sm relative overflow-hidden mx-2 md:mx-0">
-              <div className="absolute inset-0 bg-gradient-to-r from-[#b90e0a]/5 via-transparent to-[#b90e0a]/5" />
+            <div className="bg-white/80 backdrop-blur-xl border border-gray-200/50 rounded-2xl p-5 md:p-6 lg:p-8 mb-6 md:mb-8 shadow-xl relative overflow-hidden mx-2 md:mx-0">
+              {/* Gradient accent */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#b90e0a] via-emerald-500 to-[#b90e0a]" />
+              
               <div className="relative">
-                <div className="flex items-center justify-center gap-2 md:gap-3 text-gray-300 mb-2 md:mb-3">
-                  <Package className="w-5 h-5 md:w-6 md:h-6 text-[#b90e0a] animate-pulse" />
-                  <span className="text-xs md:text-sm uppercase tracking-wider font-semibold">Order ID</span>
+                <div className="flex items-center justify-center gap-2 md:gap-3 text-gray-500 mb-2 md:mb-3">
+                  <div className="w-8 h-8 md:w-10 md:h-10 bg-[#b90e0a]/10 rounded-lg flex items-center justify-center">
+                    <Package className="w-4 h-4 md:w-5 md:h-5 text-[#b90e0a]" />
+                  </div>
+                  <span className="text-xs md:text-sm uppercase tracking-wider font-bold text-gray-600">Order ID</span>
                 </div>
-                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-mono font-bold text-white tracking-wider bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent break-all px-2">
+                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-mono font-black text-gray-900 tracking-wider break-all px-2">
                   {orderId}
                 </p>
               </div>
@@ -135,61 +167,64 @@ const OrderConfirmationPage = () => {
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 mb-6 md:mb-8 px-2">
             {/* Payment Step */}
             <div className="flex flex-col items-center gap-2 md:gap-3 transform transition-all hover:scale-105 md:hover:scale-110">
-              <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-[#b90e0a] to-[#8a0a08] flex items-center justify-center shadow-lg shadow-[#b90e0a]/50 animate-bounce-delay">
-                <CheckCircle2 className="w-6 h-6 md:w-8 md:h-8 text-white" />
+              <div className="w-14 h-14 md:w-18 md:h-18 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-400/30 animate-bounce-delay">
+                <CheckCircle2 className="w-7 h-7 md:w-9 md:h-9 text-white" />
               </div>
-              <span className="text-xs md:text-sm text-gray-300 font-medium">Payment</span>
-              <span className="text-xs text-[#b90e0a] font-semibold">✓ Complete</span>
-            </div>
-            
-            {/* Connector Line - Hidden on mobile, shown on tablet+ */}
-            <div className="hidden md:block w-8 lg:w-12 h-1 bg-gradient-to-r from-[#b90e0a] via-[#b90e0a] to-[#4a4a4a] animate-expand relative">
-              <div className="absolute inset-0 bg-[#b90e0a] animate-pulse" style={{ width: '100%' }} />
-            </div>
-            
-            {/* Processing Step */}
-            <div className="flex flex-col items-center gap-2 md:gap-3 transform transition-all hover:scale-105 md:hover:scale-110">
-              <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-[#2a2a2a] flex items-center justify-center border-2 border-[#b90e0a] shadow-lg shadow-[#b90e0a]/30 relative">
-                <Package className="w-6 h-6 md:w-8 md:h-8 text-[#b90e0a] animate-pulse-slow" />
-                <div className="absolute inset-0 rounded-full border-2 border-[#b90e0a] animate-ping opacity-20" />
-              </div>
-              <span className="text-xs md:text-sm text-gray-300 font-medium">Processing</span>
-              <span className="text-xs text-[#b90e0a] font-semibold animate-pulse">In Progress</span>
+              <span className="text-sm md:text-base text-gray-700 font-semibold">Payment</span>
+              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">✓ Complete</span>
             </div>
             
             {/* Connector Line */}
-            <div className="hidden md:block w-8 lg:w-12 h-1 bg-[#4a4a4a]" />
+            <div className="hidden md:block w-12 lg:w-16 h-1 bg-gradient-to-r from-emerald-400 to-amber-400 rounded-full relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-amber-400 animate-pulse rounded-full" />
+            </div>
+            <div className="md:hidden w-1 h-8 bg-gradient-to-b from-emerald-400 to-amber-400 rounded-full" />
+            
+            {/* Processing Step */}
+            <div className="flex flex-col items-center gap-2 md:gap-3 transform transition-all hover:scale-105 md:hover:scale-110">
+              <div className="w-14 h-14 md:w-18 md:h-18 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center shadow-lg shadow-amber-400/30 relative">
+                <Gift className="w-7 h-7 md:w-9 md:h-9 text-white animate-pulse-slow" />
+                <div className="absolute inset-0 rounded-2xl border-2 border-amber-400 animate-ping opacity-30" />
+              </div>
+              <span className="text-sm md:text-base text-gray-700 font-semibold">Processing</span>
+              <span className="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full animate-pulse">In Progress</span>
+            </div>
+            
+            {/* Connector Line */}
+            <div className="hidden md:block w-12 lg:w-16 h-1 bg-gray-200 rounded-full" />
+            <div className="md:hidden w-1 h-8 bg-gray-200 rounded-full" />
             
             {/* Shipping Step */}
             <div className="flex flex-col items-center gap-2 md:gap-3">
-              <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-[#2a2a2a] flex items-center justify-center border-2 border-[#4a4a4a]">
-                <Truck className="w-6 h-6 md:w-8 md:h-8 text-gray-600" />
+              <div className="w-14 h-14 md:w-18 md:h-18 rounded-2xl bg-gray-100 border-2 border-gray-200 flex items-center justify-center">
+                <Truck className="w-7 h-7 md:w-9 md:h-9 text-gray-400" />
               </div>
-              <span className="text-xs md:text-sm text-gray-400 font-medium">Shipping</span>
-              <span className="text-xs text-gray-500">Pending</span>
+              <span className="text-sm md:text-base text-gray-500 font-semibold">Shipping</span>
+              <span className="text-xs font-medium text-gray-400 bg-gray-100 px-3 py-1 rounded-full">Pending</span>
             </div>
           </div>
 
-          {/* Message */}
-          <div className="bg-gradient-to-br from-[#1a1a1a]/80 to-[#0a0a0a]/80 backdrop-blur-sm border border-[#b90e0a]/20 rounded-xl md:rounded-2xl p-5 md:p-6 lg:p-8 mb-6 md:mb-8 shadow-xl relative overflow-hidden mx-2 md:mx-0">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#b90e0a] via-[#d90f0c] to-[#b90e0a] animate-shimmer" />
-            <p className="text-gray-200 leading-relaxed text-sm sm:text-base md:text-lg relative z-10">
-              🎊 <strong className="text-white">Thank you for your purchase!</strong> 🎊
-              <br className="hidden sm:block" />
-              <span className="sm:hidden"> </span>
+          {/* Message Card */}
+          <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-2xl p-5 md:p-6 lg:p-8 mb-6 md:mb-8 shadow-lg relative overflow-hidden mx-2 md:mx-0">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#b90e0a] via-amber-400 to-emerald-400 animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
+            <p className="text-gray-700 leading-relaxed text-sm sm:text-base md:text-lg relative z-10">
+              <span className="text-xl md:text-2xl">🎊</span>{" "}
+              <strong className="text-gray-900">Thank you for your purchase!</strong>{" "}
+              <span className="text-xl md:text-2xl">🎊</span>
               <br className="hidden sm:block" />
               <br />
-              You will receive a confirmation email shortly with all the details.
-              <br className="hidden sm:block" />
-              <span className="sm:hidden"> </span>
-              Our team will start processing your order right away!
+              <span className="text-gray-600">
+                You will receive a confirmation email shortly with all the details.
+                <br className="hidden sm:block" />
+                Our team will start processing your order right away!
+              </span>
             </p>
           </div>
 
           {/* Auto-redirect Countdown */}
-          <div className="text-gray-400 text-xs sm:text-sm flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2">
+          <div className="text-gray-500 text-sm flex flex-col sm:flex-row items-center justify-center gap-2 px-2">
             <span>Redirecting to orders page in</span>
-            <span className="text-[#b90e0a] font-bold text-lg sm:text-xl bg-[#1a1a1a] px-2 sm:px-3 py-1 rounded-lg border border-[#b90e0a]/30 animate-pulse">
+            <span className="text-[#b90e0a] font-black text-2xl bg-white px-4 py-2 rounded-xl border-2 border-[#b90e0a]/20 shadow-lg shadow-[#b90e0a]/10 min-w-[48px] inline-block">
               {countdown}
             </span>
             <span>{countdown === 1 ? "second" : "seconds"}</span>
@@ -224,32 +259,34 @@ const OrderConfirmationPage = () => {
         }
 
         @keyframes bounce-delay {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-8px); }
         }
 
-        @keyframes expand {
+        @keyframes bounce-slow {
+          0%, 100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-5px) scale(1.1); }
+        }
+
+        @keyframes confetti {
           0% {
-            width: 0;
+            transform: translateY(-20px) rotate(0deg);
+            opacity: 1;
           }
           100% {
-            width: 2rem;
+            transform: translateY(100vh) rotate(720deg);
+            opacity: 0;
           }
         }
 
-        @media (min-width: 1024px) {
-          @keyframes expand {
-            0% {
-              width: 0;
-            }
-            100% {
-              width: 3rem;
-            }
-          }
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.7; transform: scale(0.95); }
+        }
+
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
         }
 
         .animate-scale-in {
@@ -268,26 +305,12 @@ const OrderConfirmationPage = () => {
           animation: bounce-delay 2s ease-in-out infinite;
         }
 
-        .animate-expand {
-          animation: expand 1s ease-out 0.5s both;
+        .animate-bounce-slow {
+          animation: bounce-slow 2s ease-in-out infinite;
         }
 
-        @keyframes pulse-slow {
-          0%, 100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.6;
-          }
-        }
-
-        @keyframes shimmer {
-          0% {
-            background-position: -100% 0;
-          }
-          100% {
-            background-position: 200% 0;
-          }
+        .animate-confetti {
+          animation: confetti linear forwards;
         }
 
         .animate-pulse-slow {
@@ -295,24 +318,7 @@ const OrderConfirmationPage = () => {
         }
 
         .animate-shimmer {
-          background-size: 200% 100%;
-          animation: shimmer 2s linear infinite;
-        }
-
-        .delay-1000 {
-          animation-delay: 1s;
-        }
-
-        .sparkle-icon {
-          width: 12px;
-          height: 12px;
-        }
-
-        @media (min-width: 768px) {
-          .sparkle-icon {
-            width: 16px;
-            height: 16px;
-          }
+          animation: shimmer 3s linear infinite;
         }
       `}</style>
     </div>
@@ -320,4 +326,3 @@ const OrderConfirmationPage = () => {
 };
 
 export default OrderConfirmationPage;
-

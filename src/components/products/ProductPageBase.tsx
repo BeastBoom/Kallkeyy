@@ -600,7 +600,7 @@ export default function ProductPageBase({
     <div className={`min-h-screen bg-gradient-to-b from-[#f8f8f8] via-[#f0f0f0] to-[#e8e8e8] text-black relative ${skipAnimations ? '[&_*]:!animate-none' : ''}`}>
       {/* Announcement Bar */}
       <div className="bg-[#333333] text-white text-center py-1.5 px-4 text-[10px] sm:text-xs font-bold tracking-widest uppercase z-[60] relative">
-        Free Shipping on all pan-India orders · Code <span className="text-[#4CAF50]">KALLKEYY10</span> for 10% Off
+        Free Shipping on all pan-India orders · Code <span className="text-[#4CAF50]">KALLKEYY100</span> for ₹100 Off on your first order only
       </div>
 
       {/* Navigation - Matching HomePage Style */}
@@ -1045,10 +1045,10 @@ export default function ProductPageBase({
                   <button
                     onClick={async () => {
                       try {
-                        await navigator.clipboard.writeText("KALLKEYY10");
+                        await navigator.clipboard.writeText("KALLKEYY100");
                         toast({
                           title: "Copied! 📋",
-                          description: "Discount code KALLKEYY10 copied to clipboard",
+                          description: "Discount code KALLKEYY100 copied to clipboard",
                         });
                       } catch (error) {
                         toast({
@@ -1060,9 +1060,9 @@ export default function ProductPageBase({
                     }}
                     className="font-black text-[#b90e0a] hover:text-[#8a0a08] underline underline-offset-2 transition-colors cursor-pointer"
                   >
-                    KALLKEYY10
+                    KALLKEYY100
                   </button>{" "}
-                  for an extra <span className="font-bold">10% OFF</span>
+                  for an extra <span className="font-bold">₹100 OFF</span> on your first order only
                 </p>
               </div>
             </div>

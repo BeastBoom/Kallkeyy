@@ -144,6 +144,9 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
   // Payment method state
   const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "cod">("razorpay");
 
+  // COD charge constant
+  const COD_CHARGE = 100;
+
   const [newAddress, setNewAddress] = useState<Address>({
     fullName: "",
     phone: "",
@@ -944,27 +947,18 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
 
   if (items.length === 0) {
     return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center p-4"
-        style={{
-          background: "var(--color-background)",
-          color: "var(--color-text)",
-        }}
-      >
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-gray-50 via-white to-gray-100">
         <Package
           size={64}
-          style={{ color: "var(--color-text-secondary)", marginBottom: "24px" }}
+          className="text-gray-400 mb-6"
         />
-        <h2 className="text-hero mb-4">Your Cart is Empty</h2>
-        <p
-          className="text-body mb-8"
-          style={{ color: "var(--color-text-secondary)" }}
-        >
+        <h2 className="text-4xl font-bold text-gray-900 mb-4">Your Cart is Empty</h2>
+        <p className="text-lg text-gray-600 mb-8">
           Add some streetwear to your collection
         </p>
         <button
           onClick={() => (window.location.href = "/shop")}
-          className="street-button"
+          className="px-8 py-3 bg-[#b90e0a] hover:bg-[#8a0a08] text-white font-bold rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
         >
           Continue Shopping
         </button>
@@ -983,77 +977,54 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
   // Show loading state while checking authentication
   if (!user) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{
-          background: "var(--color-background)",
-          color: "var(--color-text)",
-        }}
-      >
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#b90e0a] mx-auto mb-4"></div>
-          <p style={{ color: "var(--color-text-secondary)" }}>Loading...</p>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div
-      className={`min-h-screen py-8 px-4 md:px-8 ${skipAnimations ? '[&_*]:!animate-none' : ''}`}
-      style={{
-        background: "var(--color-background)",
-        color: "var(--color-text)",
-      }}
-    >
-      <div className="max-w-6xl mx-auto">
+    <div className={`min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-900 ${skipAnimations ? '[&_*]:!animate-none' : ''}`}>
+      {/* Coupon Code Block */}
+      <div className="bg-[#333333] text-white text-center py-1.5 px-4 text-[10px] sm:text-xs font-bold tracking-widest uppercase z-[60] relative">
+        Free Shipping on all pan-India orders · Code <span className="text-[#4CAF50]">KALLKEYY100</span> for ₹100 Off on your first order only
+      </div>
+
+      {/* Main Content */}
+      <div className="pt-8 pb-32 px-4 md:px-8 container mx-auto max-w-6xl">
         <button
           onClick={() => window.history.back()}
-          className="flex items-center gap-2 mb-8 transition-all duration-300 hover:gap-3"
-          style={{
-            color: "var(--color-text-secondary)",
-            border: "none",
-            background: "transparent",
-            cursor: "pointer",
-            fontSize: "var(--font-size-base)",
-          }}
+          className="flex items-center gap-2 mb-8 text-gray-500 hover:text-[#b90e0a] transition-all duration-300 group"
         >
-          <ArrowLeft size={20} />
-          <span>Back</span>
+          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+          <span className="font-medium">Back</span>
         </button>
 
-        <h1
-          className="text-display mb-2"
-          style={{ color: "var(--color-text)" }}
-        >
+        <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-2">
           Checkout
         </h1>
-        <p
-          className="text-body mb-2"
-          style={{ color: "var(--color-text-secondary)" }}
-        >
+        <p className="text-lg text-gray-600 mb-2">
           Complete your order securely
         </p>
-        <p
-          className="text-sm mb-12"
-          style={{ color: "var(--color-text-secondary)" }}
-        >
+        <p className="text-sm text-gray-600 mb-12">
           Ordering as:{" "}
-          <strong style={{ color: "var(--color-primary)" }}>
+          <strong className="text-[#b90e0a]">
             {user?.email}
           </strong>
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Address Section */}
-          <div className="card-street space-y-6">
+          <div className="bg-white/80 backdrop-blur-md border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-xl transition-all duration-300 hover:shadow-2xl space-y-6">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
-                <Package size={24} style={{ color: "var(--color-primary)" }} />
-                <h2
-                  className="text-heading"
-                  style={{ color: "var(--color-text)" }}
-                >
+                <div className="p-2 bg-gradient-to-br from-[#b90e0a] to-[#8a0a08] rounded-lg">
+                  <Package size={24} className="text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">
                   Delivery Address
                 </h2>
               </div>
@@ -1071,14 +1042,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                     setIsEditingAddress(false);
                     setShowAddressForm(true);
                   }}
-                  className="flex items-center gap-2 px-4 py-2 rounded transition-all"
-                  style={{
-                    background: "var(--color-primary)",
-                    color: "white",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: "var(--font-size-sm)",
-                  }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300 bg-[#b90e0a] hover:bg-[#8a0a08] text-white font-medium transform hover:scale-105 hover:shadow-lg"
                 >
                   <Plus size={16} />
                   Add New
@@ -1090,7 +1054,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
               <div className="space-y-4">
                 {savedAddresses.length === 0 ? (
                   <div className="text-center py-8">
-                    <p style={{ color: "var(--color-text-secondary)" }}>
+                    <p className="text-gray-600">
                       No saved addresses. Add one to continue.
                     </p>
                   </div>
@@ -1099,32 +1063,19 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                     <div
                       key={address._id}
                       onClick={() => setSelectedAddress(address)}
-                      className="p-4 rounded cursor-pointer transition-all"
-                      style={{
-                        background:
-                          selectedAddress?._id === address._id
-                            ? "var(--color-primary-light)"
-                            : "var(--color-secondary)",
-                        border: `2px solid ${
-                          selectedAddress?._id === address._id
-                            ? "var(--color-primary)"
-                            : "var(--color-border)"
-                        }`,
-                      }}
+                      className={`p-4 rounded-xl cursor-pointer transition-all duration-300 border-2 ${
+                        selectedAddress?._id === address._id
+                          ? "bg-[#b90e0a]/5 border-[#b90e0a] shadow-lg"
+                          : "bg-gray-50 border-gray-200 hover:border-gray-300 hover:shadow-md"
+                      }`}
                     >
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex items-center gap-2">
-                          <strong style={{ color: "var(--color-text)" }}>
+                          <strong className="text-gray-900 font-semibold">
                             {address.fullName}
                           </strong>
                           {address.isDefault && (
-                            <span
-                              className="text-xs px-2 py-1 rounded"
-                              style={{
-                                background: "var(--color-success)",
-                                color: "white",
-                              }}
-                            >
+                            <span className="text-xs px-2 py-1 rounded-full bg-green-500 text-white font-medium">
                               Default
                             </span>
                           )}
@@ -1132,32 +1083,17 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                         {selectedAddress?._id === address._id && (
                           <CheckCircle
                             size={20}
-                            style={{ color: "var(--color-primary)" }}
+                            className="text-[#b90e0a]"
                           />
                         )}
                       </div>
-                      <p
-                        style={{
-                          color: "var(--color-text)",
-                          fontSize: "var(--font-size-sm)",
-                        }}
-                      >
+                      <p className="text-gray-700 text-sm mb-1">
                         {address.address}
                       </p>
-                      <p
-                        style={{
-                          color: "var(--color-text-secondary)",
-                          fontSize: "var(--font-size-sm)",
-                        }}
-                      >
+                      <p className="text-gray-600 text-sm mb-1">
                         {address.city}, {address.state} - {address.pincode}
                       </p>
-                      <p
-                        style={{
-                          color: "var(--color-text-secondary)",
-                          fontSize: "var(--font-size-sm)",
-                        }}
-                      >
+                      <p className="text-gray-600 text-sm">
                         Phone: {address.phone}
                       </p>
                       <div className="flex gap-2 mt-3">
@@ -1166,13 +1102,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                             e.stopPropagation();
                             handleEditAddress(address);
                           }}
-                          className="flex items-center gap-1 px-3 py-1 rounded text-sm transition-all"
-                          style={{
-                            background: "var(--color-secondary)",
-                            color: "var(--color-text)",
-                            border: "1px solid var(--color-border)",
-                            cursor: "pointer",
-                          }}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-all duration-300 bg-white border border-gray-300 text-gray-700 hover:border-gray-400 hover:shadow-md"
                         >
                           <Edit size={14} />
                           Edit
@@ -1182,13 +1112,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                             e.stopPropagation();
                             handleDeleteAddress(address._id!);
                           }}
-                          className="flex items-center gap-1 px-3 py-1 rounded text-sm transition-all"
-                          style={{
-                            background: "rgba(var(--color-error-rgb), 0.1)",
-                            color: "var(--color-error)",
-                            border: "1px solid var(--color-error)",
-                            cursor: "pointer",
-                          }}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-all duration-300 bg-red-50 border border-red-300 text-red-600 hover:bg-red-100 hover:border-red-400"
                         >
                           <Trash2 size={14} />
                           Delete
@@ -1201,10 +1125,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
             ) : (
               <div className="space-y-4">
                 <div>
-                  <label
-                    className="form-label"
-                    style={{ color: "var(--color-text)" }}
-                  >
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Full Name *
                   </label>
                   <input
@@ -1222,23 +1143,12 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                       }
                     }}
                     required
-                    className="form-control"
-                    style={{
-                      background: "var(--color-surface)",
-                      color: "var(--color-text)",
-                      border: "1px solid var(--color-border)",
-                      width: "100%",
-                      padding: "var(--space-12)",
-                      borderRadius: "var(--radius-base)",
-                    }}
+                    className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 bg-white text-gray-900 focus:border-[#b90e0a] focus:ring-2 focus:ring-[#b90e0a]/20 transition-all duration-300 outline-none"
                   />
                 </div>
 
                 <div>
-                  <label
-                    className="form-label"
-                    style={{ color: "var(--color-text)" }}
-                  >
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Phone Number *
                   </label>
                   <input
@@ -1251,41 +1161,20 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                         phone: e.target.value.replace(/\D/g, "").slice(0, 10),
                       })
                     }
-                    className="form-control"
-                    style={{
-                      background: "var(--color-surface)",
-                      color: "var(--color-text)",
-                      border: "1px solid var(--color-border)",
-                      width: "100%",
-                      padding: "var(--space-12)",
-                      borderRadius: "var(--radius-base)",
-                    }}
+                    className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 bg-white text-gray-900 focus:border-[#b90e0a] focus:ring-2 focus:ring-[#b90e0a]/20 transition-all duration-300 outline-none"
                     maxLength={10}
                   />
-                  <p
-                    className="text-xs mt-2"
-                    style={{
-                      color: "var(--color-text-secondary)",
-                      fontSize: "11px",
-                      lineHeight: "1.4",
-                    }}
-                  >
+                  <p className="text-xs mt-2 text-gray-500 leading-snug">
                     You might get a call to confirm your order on this number after 1-2 days of order placement
                   </p>
                 </div>
 
                 <div>
-                  <label
-                    className="form-label flex items-center gap-2"
-                    style={{ color: "var(--color-text)" }}
-                  >
-                    <MapPin size={16} />
+                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-2">
+                    <MapPin size={16} className="text-[#b90e0a]" />
                     Pincode *
                     {fetchingPincode && (
-                      <span
-                        className="text-xs"
-                        style={{ color: "var(--color-primary)" }}
-                      >
+                      <span className="text-xs text-[#b90e0a] font-normal">
                         Fetching location...
                       </span>
                     )}
@@ -1300,29 +1189,16 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                         pincode: e.target.value.replace(/\D/g, "").slice(0, 6),
                       })
                     }
-                    className="form-control"
-                    style={{
-                      background: "var(--color-surface)",
-                      color: "var(--color-text)",
-                      border: `2px solid ${
-                        fetchingPincode
-                          ? "var(--color-primary)"
-                          : "var(--color-border)"
-                      }`,
-                      width: "100%",
-                      padding: "var(--space-12)",
-                      borderRadius: "var(--radius-base)",
-                    }}
+                    className={`w-full px-4 py-3 rounded-lg border-2 ${
+                      fetchingPincode ? "border-[#b90e0a]" : "border-gray-300"
+                    } bg-white text-gray-900 focus:border-[#b90e0a] focus:ring-2 focus:ring-[#b90e0a]/20 transition-all duration-300 outline-none`}
                     maxLength={6}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label
-                      className="form-label"
-                      style={{ color: "var(--color-text)" }}
-                    >
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">
                       City *
                     </label>
                     <input
@@ -1332,24 +1208,13 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                       onChange={(e) =>
                         setNewAddress({ ...newAddress, city: e.target.value })
                       }
-                      className="form-control"
-                      style={{
-                        background: "var(--color-surface)",
-                        color: "var(--color-text)",
-                        border: "1px solid var(--color-border)",
-                        width: "100%",
-                        padding: "var(--space-12)",
-                        borderRadius: "var(--radius-base)",
-                      }}
+                      className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 bg-white text-gray-900 focus:border-[#b90e0a] focus:ring-2 focus:ring-[#b90e0a]/20 transition-all duration-300 outline-none"
                       disabled={fetchingPincode}
                     />
                   </div>
 
                   <div>
-                    <label
-                      className="form-label"
-                      style={{ color: "var(--color-text)" }}
-                    >
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">
                       State *
                     </label>
                     <select
@@ -1357,16 +1222,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                       onChange={(e) =>
                         setNewAddress({ ...newAddress, state: e.target.value })
                       }
-                      className="form-control"
-                      style={{
-                        background: "var(--color-surface)",
-                        color: "var(--color-text)",
-                        border: "1px solid var(--color-border)",
-                        width: "100%",
-                        padding: "var(--space-12)",
-                        borderRadius: "var(--radius-base)",
-                        cursor: "pointer",
-                      }}
+                      className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 bg-white text-gray-900 focus:border-[#b90e0a] focus:ring-2 focus:ring-[#b90e0a]/20 transition-all duration-300 outline-none cursor-pointer"
                       disabled={fetchingPincode}
                     >
                       <option value="">Select State</option>
@@ -1380,10 +1236,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                 </div>
 
                 <div>
-                  <label
-                    className="form-label"
-                    style={{ color: "var(--color-text)" }}
-                  >
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
                     Complete Address *
                   </label>
                   <textarea
@@ -1400,30 +1253,14 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                       }
                     }}
                     required
-                    className="form-control"
-                    style={{
-                      background: "var(--color-surface)",
-                      color: "var(--color-text)",
-                      border: "1px solid var(--color-border)",
-                      minHeight: "100px",
-                      width: "100%",
-                      padding: "var(--space-12)",
-                      borderRadius: "var(--radius-base)",
-                      resize: "vertical",
-                    }}
+                    className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 bg-white text-gray-900 focus:border-[#b90e0a] focus:ring-2 focus:ring-[#b90e0a]/20 transition-all duration-300 outline-none min-h-[100px] resize-vertical"
                   />
                 </div>
 
                 <div className="flex gap-2">
                   <button
                     onClick={handleSaveAddress}
-                    className="flex-1 py-3 rounded-lg font-medium transition-all"
-                    style={{
-                      background: "var(--color-primary)",
-                      color: "white",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
+                    className="flex-1 py-3 rounded-lg font-semibold transition-all duration-300 bg-[#b90e0a] hover:bg-[#8a0a08] text-white transform hover:scale-105 hover:shadow-lg"
                   >
                     {isEditingAddress ? "Update Address" : "Save Address"}
                   </button>
@@ -1440,13 +1277,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                         address: "",
                       });
                     }}
-                    className="px-6 py-3 rounded-lg font-medium transition-all"
-                    style={{
-                      background: "var(--color-secondary)",
-                      color: "var(--color-text)",
-                      border: "1px solid var(--color-border)",
-                      cursor: "pointer",
-                    }}
+                    className="px-6 py-3 rounded-lg font-semibold transition-all duration-300 bg-gray-200 hover:bg-gray-300 text-gray-700 border-2 border-gray-300"
                   >
                     Cancel
                   </button>
@@ -1456,43 +1287,30 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
           </div>
 
           {/* Order Summary */}
-          <div className="card-street h-fit sticky top-8">
+          <div className="bg-white/80 backdrop-blur-md border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-xl transition-all duration-300 hover:shadow-2xl h-fit sticky top-8">
             <div className="flex items-center gap-3 mb-6">
-              <CreditCard size={24} style={{ color: "var(--color-primary)" }} />
-              <h2
-                className="text-heading"
-                style={{ color: "var(--color-text)" }}
-              >
+              <div className="p-2 bg-gradient-to-br from-[#b90e0a] to-[#8a0a08] rounded-lg">
+                <CreditCard size={24} className="text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">
                 Order Summary
               </h2>
             </div>
 
-            <div
-              className="space-y-4 mb-6 max-h-96 overflow-y-auto"
-              style={{
-                borderBottom: "1px solid var(--color-border)",
-                paddingBottom: "var(--space-16)",
-              }}
-            >
+            <div className="space-y-4 mb-6 max-h-96 overflow-y-auto border-b border-gray-200 pb-6">
               {items.map((item, index) => (
                 <div
                   key={`${item.productId}-${item.size}-${index}`}
-                  className="p-3 rounded"
-                  style={{
-                    background: "var(--color-secondary)",
-                    border: item.inStock === false ? "2px solid #ef4444" : "1px solid var(--color-card-border)",
-                  }}
+                  className={`p-3 rounded-xl transition-all duration-300 ${
+                    item.inStock === false
+                      ? "bg-red-50 border-2 border-red-300"
+                      : "bg-gray-50 border border-gray-200"
+                  }`}
                 >
                   {/* Stock Warning Badge */}
                   {item.inStock === false && (
-                    <div 
-                      className="flex items-center gap-2 mb-2 p-2 rounded"
-                      style={{
-                        background: "rgba(239, 68, 68, 0.1)",
-                        border: "1px solid rgba(239, 68, 68, 0.3)"
-                      }}
-                    >
-                      <span style={{ color: "#ef4444", fontSize: "0.875rem", fontWeight: 600 }}>
+                    <div className="flex items-center gap-2 mb-2 p-2 rounded-lg bg-red-100 border border-red-300">
+                      <span className="text-red-600 text-sm font-semibold">
                         ⚠️ {item.reason || 'Out of Stock'}
                       </span>
                     </div>
@@ -1503,33 +1321,17 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                       <img
                         src={item.image}
                         alt={item.productName}
-                        className="w-20 h-20 object-cover rounded"
-                        style={{ border: "1px solid var(--color-border)" }}
+                        className="w-20 h-20 object-cover rounded-lg border border-gray-200"
                       />
                     )}
                     <div className="flex-1">
-                      <h3
-                        className="font-medium mb-1"
-                        style={{
-                          color: "var(--color-text)",
-                          fontSize: "var(--font-size-base)",
-                        }}
-                      >
+                      <h3 className="font-semibold text-gray-900 mb-1">
                         {item.productName}
                       </h3>
-                      <p
-                        className="text-sm"
-                        style={{ color: "var(--color-text-secondary)" }}
-                      >
+                      <p className="text-sm text-gray-600">
                         Size: {item.size} • Qty: {item.quantity}
                       </p>
-                      <p
-                        className="font-semibold mt-2"
-                        style={{
-                          color: "var(--color-primary)",
-                          fontSize: "var(--font-size-base)",
-                        }}
-                      >
+                      <p className="font-bold text-[#b90e0a] mt-2">
                         ₹{(item.price * item.quantity).toFixed(2)}
                       </p>
 
@@ -1539,8 +1341,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                           await saveForLater(item.productId, item.size);
                           await fetchCart(); // Refresh cart to update stock status
                         }}
-                        className="mt-2 text-xs hover:underline flex items-center gap-1"
-                        style={{ color: "#3b82f6" }}
+                        className="mt-2 text-xs hover:underline flex items-center gap-1 text-blue-600 hover:text-blue-700 font-medium"
                       >
                         <span>📌</span> Save for Later
                       </button>
@@ -1551,11 +1352,8 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
             </div>
 
             {/* Coupon Code Section */}
-            <div className="mb-4 py-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
-              <label
-                className="block mb-2 text-sm font-medium"
-                style={{ color: "var(--color-text)" }}
-              >
+            <div className="mb-4 py-4 border-b border-gray-200">
+              <label className="block mb-2 text-sm font-semibold text-gray-900">
                 Coupon Code
               </label>
               {!couponApplied ? (
@@ -1573,58 +1371,40 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                         validateCoupon();
                       }
                     }}
-                    className="flex-1 px-4 py-2 rounded"
-                    style={{
-                      background: "var(--color-surface)",
-                      color: "var(--color-text)",
-                      border: couponError
-                        ? "1px solid var(--color-error)"
-                        : "1px solid var(--color-border)",
-                    }}
+                    className={`flex-1 px-4 py-2.5 rounded-lg border-2 ${
+                      couponError ? "border-red-300" : "border-gray-300"
+                    } bg-white text-gray-900 focus:border-[#b90e0a] focus:ring-2 focus:ring-[#b90e0a]/20 transition-all duration-300 outline-none`}
                   />
                   <button
                     onClick={validateCoupon}
                     disabled={validatingCoupon || !couponCode.trim()}
-                    className="px-4 py-2 rounded font-medium transition-all"
-                    style={{
-                      background: validatingCoupon || !couponCode.trim()
-                        ? "var(--color-secondary)"
-                        : "var(--color-primary)",
-                      color: "white",
-                      cursor: validatingCoupon || !couponCode.trim()
-                        ? "not-allowed"
-                        : "pointer",
-                      opacity: validatingCoupon || !couponCode.trim() ? 0.6 : 1,
-                    }}
+                    className={`px-4 py-2.5 rounded-lg font-semibold transition-all duration-300 ${
+                      validatingCoupon || !couponCode.trim()
+                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        : "bg-[#b90e0a] hover:bg-[#8a0a08] text-white transform hover:scale-105"
+                    }`}
                   >
                     {validatingCoupon ? "Applying..." : "Apply"}
                   </button>
                 </div>
               ) : (
-                <div
-                  className="flex items-center justify-between p-3 rounded"
-                  style={{
-                    background: "rgba(185, 14, 10, 0.1)",
-                    border: "1px solid var(--color-primary)",
-                  }}
-                >
+                <div className="flex items-center justify-between p-3 rounded-lg bg-green-50 border-2 border-green-300">
                   <div className="flex items-center gap-2">
-                    <CheckCircle size={16} style={{ color: "var(--color-success)" }} />
-                    <span style={{ color: "var(--color-text)", fontWeight: "500" }}>
+                    <CheckCircle size={16} className="text-green-600" />
+                    <span className="text-gray-900 font-semibold">
                       {couponApplied.code} applied! Saved ₹{couponApplied.discountAmount.toFixed(2)}
                     </span>
                   </div>
                   <button
                     onClick={removeCoupon}
-                    className="text-sm hover:underline"
-                    style={{ color: "var(--color-error)" }}
+                    className="text-sm hover:underline text-red-600 font-medium"
                   >
                     Remove
                   </button>
                 </div>
               )}
               {couponError && (
-                <p className="mt-2 text-sm" style={{ color: "var(--color-error)" }}>
+                <p className="mt-2 text-sm text-red-600 font-medium">
                   {couponError}
                 </p>
               )}
@@ -1632,7 +1412,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
               {/* Available Coupons Section */}
               {!couponApplied && availableCoupons.length > 0 && (
                 <div className="mt-4">
-                  <p className="text-xs mb-2" style={{ color: "var(--color-text-secondary)" }}>
+                  <p className="text-xs mb-2 text-gray-600 font-medium">
                     Available Coupons:
                   </p>
                   <div 
@@ -1643,27 +1423,20 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                       <button
                         key={coupon.code}
                         onClick={() => applyCouponDirectly(coupon.code)}
-                        className="flex-shrink-0 px-3 py-2 rounded-lg border transition-all hover:shadow-md"
-                        style={{
-                          background: "var(--color-surface)",
-                          borderColor: "var(--color-primary)",
-                          borderWidth: "1.5px",
-                          minWidth: "fit-content",
-                          cursor: "pointer"
-                        }}
+                        className="flex-shrink-0 px-3 py-2 rounded-lg border-2 transition-all hover:shadow-lg bg-white border-[#b90e0a] hover:bg-[#b90e0a]/5 min-w-fit cursor-pointer transform hover:scale-105"
                       >
                         <div className="flex items-center gap-1 mb-1">
-                          <span className="font-bold text-sm" style={{ color: "var(--color-primary)" }}>
+                          <span className="font-bold text-sm text-[#b90e0a]">
                             {coupon.code}
                           </span>
-                          <span className="text-xs font-semibold" style={{ color: "var(--color-success)" }}>
+                          <span className="text-xs font-semibold text-green-600">
                             {coupon.discountType === 'percentage' 
                               ? `-${coupon.discountValue}%` 
                               : `-₹${coupon.discountValue}`}
                           </span>
                         </div>
                         {coupon.name && (
-                          <p className="text-xs truncate max-w-[150px]" style={{ color: "var(--color-text-secondary)" }}>
+                          <p className="text-xs truncate max-w-[150px] text-gray-600">
                             {coupon.name}
                           </p>
                         )}
@@ -1673,8 +1446,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                   {availableCoupons.length > 3 && (
                     <button
                       onClick={() => setShowMoreCoupons(!showMoreCoupons)}
-                      className="mt-2 text-xs font-medium hover:underline"
-                      style={{ color: "var(--color-primary)" }}
+                      className="mt-2 text-xs font-semibold hover:underline text-[#b90e0a]"
                     >
                       {showMoreCoupons ? "Show Less" : `+${availableCoupons.length - 3} More Coupons`}
                     </button>
@@ -1686,56 +1458,52 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
             {/* Order Summary */}
             <div className="mb-4 space-y-2">
               <div className="flex justify-between items-center">
-                <span style={{ color: "var(--color-text-secondary)" }}>Subtotal</span>
-                <span style={{ color: "var(--color-text)" }}>₹{totalPrice.toFixed(2)}</span>
+                <span className="text-gray-600">Subtotal</span>
+                <span className="text-gray-900 font-semibold">₹{totalPrice.toFixed(2)}</span>
               </div>
               {couponApplied && (
                 <div className="flex justify-between items-center">
-                  <span style={{ color: "var(--color-success)" }}>Discount ({couponApplied.code})</span>
-                  <span style={{ color: "var(--color-success)", fontWeight: "500" }}>
+                  <span className="text-green-600 font-medium">Discount ({couponApplied.code})</span>
+                  <span className="text-green-600 font-semibold">
                     -₹{couponApplied.discountAmount.toFixed(2)}
+                  </span>
+                </div>
+              )}
+              {paymentMethod === "cod" && (
+                <div className="flex justify-between items-center">
+                  <span className="text-orange-600 font-medium">COD Charge</span>
+                  <span className="text-orange-600 font-semibold">
+                    +₹{COD_CHARGE.toFixed(2)}
                   </span>
                 </div>
               )}
             </div>
 
-            <div
-              className="flex justify-between items-center mb-4 py-4"
-              style={{ borderTop: "1px solid var(--color-border)", borderBottom: "1px solid var(--color-border)" }}
-            >
-              <span
-                className="text-heading"
-                style={{ color: "var(--color-text)" }}
-              >
+            <div className="flex justify-between items-center mb-4 py-4 border-t-2 border-b-2 border-gray-300">
+              <span className="text-xl font-bold text-gray-900">
                 Total
               </span>
-              <span
-                className="text-heading"
-                style={{
-                  color: "var(--color-primary)",
-                  fontWeight: "var(--font-weight-bold)",
-                }}
-              >
-                ₹{(couponApplied ? couponApplied.finalAmount : totalPrice).toFixed(2)}
+              <span className="text-xl font-bold text-[#b90e0a]">
+                ₹{(
+                  (couponApplied ? couponApplied.finalAmount : totalPrice) +
+                  (paymentMethod === "cod" ? COD_CHARGE : 0)
+                ).toFixed(2)}
               </span>
             </div>
 
             {/* Payment Method Selection */}
-            <div className="mb-6 py-4" style={{ borderBottom: "1px solid var(--color-border)" }}>
-              <label
-                className="block mb-3 text-sm font-medium"
-                style={{ color: "var(--color-text)" }}
-              >
+            <div className="mb-6 py-4 border-b border-gray-200">
+              <label className="block mb-3 text-sm font-semibold text-gray-900">
                 Payment Method
               </label>
               <div className="space-y-3">
                 {/* Razorpay Option */}
                 <label
-                  className="flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all"
-                  style={{
-                    borderColor: paymentMethod === "razorpay" ? "var(--color-primary)" : "var(--color-border)",
-                    background: paymentMethod === "razorpay" ? "rgba(185, 14, 10, 0.05)" : "var(--color-surface)",
-                  }}
+                  className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+                    paymentMethod === "razorpay"
+                      ? "border-[#b90e0a] bg-[#b90e0a]/5 shadow-lg"
+                      : "border-gray-300 bg-white hover:border-gray-400 hover:shadow-md"
+                  }`}
                 >
                   <input
                     type="radio"
@@ -1743,17 +1511,16 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                     value="razorpay"
                     checked={paymentMethod === "razorpay"}
                     onChange={(e) => setPaymentMethod(e.target.value as "razorpay" | "cod")}
-                    className="mt-1"
-                    style={{ accentColor: "var(--color-primary)" }}
+                    className="mt-1 w-5 h-5 accent-[#b90e0a]"
                   />
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <CreditCard size={18} style={{ color: "var(--color-primary)" }} />
-                      <span className="font-medium" style={{ color: "var(--color-text)" }}>
+                      <CreditCard size={18} className="text-[#b90e0a]" />
+                      <span className="font-semibold text-gray-900">
                         Online Payment (Razorpay)
                       </span>
                     </div>
-                    <p className="text-xs" style={{ color: "var(--color-text-secondary)" }}>
+                    <p className="text-xs text-gray-600">
                       Pay securely with UPI, Cards, or Netbanking
                     </p>
                   </div>
@@ -1761,11 +1528,11 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
 
                 {/* COD Option */}
                 <label
-                  className="flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all"
-                  style={{
-                    borderColor: paymentMethod === "cod" ? "var(--color-primary)" : "var(--color-border)",
-                    background: paymentMethod === "cod" ? "rgba(185, 14, 10, 0.05)" : "var(--color-surface)",
-                  }}
+                  className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+                    paymentMethod === "cod"
+                      ? "border-[#b90e0a] bg-[#b90e0a]/5 shadow-lg"
+                      : "border-gray-300 bg-white hover:border-gray-400 hover:shadow-md"
+                  }`}
                 >
                   <input
                     type="radio"
@@ -1773,18 +1540,23 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
                     value="cod"
                     checked={paymentMethod === "cod"}
                     onChange={(e) => setPaymentMethod(e.target.value as "razorpay" | "cod")}
-                    className="mt-1"
-                    style={{ accentColor: "var(--color-primary)" }}
+                    className="mt-1 w-5 h-5 accent-[#b90e0a]"
                   />
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <Package size={18} style={{ color: "var(--color-primary)" }} />
-                      <span className="font-medium" style={{ color: "var(--color-text)" }}>
+                      <Package size={18} className="text-[#b90e0a]" />
+                      <span className="font-semibold text-gray-900">
                         Cash on Delivery (COD)
                       </span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 font-bold">
+                        +₹{COD_CHARGE}
+                      </span>
                     </div>
-                    <p className="text-xs" style={{ color: "var(--color-error)" }}>
-                      ⚠️ Returns are not available for COD orders. Only replacements will be provided.
+                    <p className="text-xs text-orange-600 font-medium mb-2">
+                      ⚠️ Additional ₹{COD_CHARGE} order confirmation charge applies
+                    </p>
+                    <p className="text-xs text-red-600 font-medium">
+                      Note: Returns are not available for COD orders. Only replacements will be provided.
                     </p>
                   </div>
                 </label>
@@ -1796,27 +1568,11 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
               <button
                 onClick={handlePayment}
                 disabled={loading || !selectedAddress}
-                className="w-full py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300"
-                style={{
-                  background: "var(--color-error)",
-                  color: "white",
-                  opacity: loading || !selectedAddress ? 0.6 : 1,
-                  cursor: loading || !selectedAddress ? "not-allowed" : "pointer",
-                  border: "none",
-                  boxShadow: "var(--shadow-md)",
-                }}
-                onMouseEnter={(e) => {
-                  if (!loading && selectedAddress) {
-                    e.currentTarget.style.background = "var(--color-red-500)";
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "var(--shadow-lg)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "var(--color-error)";
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "var(--shadow-md)";
-                }}
+                className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300 ${
+                  loading || !selectedAddress
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-gradient-to-r from-[#b90e0a] to-[#8a0a08] hover:from-[#8a0a08] hover:to-[#b90e0a] text-white transform hover:scale-105 shadow-lg hover:shadow-2xl"
+                }`}
               >
                 <CreditCard size={20} />
                 {loading
@@ -1829,27 +1585,11 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
               <button
                 onClick={handleCODOrder}
                 disabled={loading || !selectedAddress}
-                className="w-full py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300"
-                style={{
-                  background: "var(--color-primary)",
-                  color: "white",
-                  opacity: loading || !selectedAddress ? 0.6 : 1,
-                  cursor: loading || !selectedAddress ? "not-allowed" : "pointer",
-                  border: "none",
-                  boxShadow: "var(--shadow-md)",
-                }}
-                onMouseEnter={(e) => {
-                  if (!loading && selectedAddress) {
-                    e.currentTarget.style.background = "#990c08";
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "var(--shadow-lg)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "var(--color-primary)";
-                  e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow = "var(--shadow-md)";
-                }}
+                className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all duration-300 ${
+                  loading || !selectedAddress
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-gradient-to-r from-[#b90e0a] to-[#8a0a08] hover:from-[#8a0a08] hover:to-[#b90e0a] text-white transform hover:scale-105 shadow-lg hover:shadow-2xl"
+                }`}
               >
                 <Package size={20} />
                 {loading
@@ -1861,20 +1601,9 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
             )}
 
             {paymentMethod === "razorpay" && (
-              <div
-                className="flex items-center justify-center gap-2 mt-4 p-3 rounded"
-                style={{
-                  background: "var(--color-secondary)",
-                  border: "1px solid var(--color-border)",
-                }}
-              >
-                <Lock size={16} style={{ color: "var(--color-success)" }} />
-                <span
-                  style={{
-                    color: "var(--color-text-secondary)",
-                    fontSize: "var(--font-size-sm)",
-                  }}
-                >
+              <div className="flex items-center justify-center gap-2 mt-4 p-3 rounded-lg bg-green-50 border border-green-300">
+                <Lock size={16} className="text-green-600" />
+                <span className="text-gray-700 text-sm font-medium">
                   Secure payment powered by Razorpay
                 </span>
               </div>

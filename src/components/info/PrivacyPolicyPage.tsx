@@ -57,7 +57,7 @@ export default function PrivacyPolicyPage({
     <div className={`min-h-screen bg-gradient-to-b from-[#f8f8f8] via-[#f0f0f0] to-[#e8e8e8] ${skipAnimations ? '[&_*]:!animate-none' : ''}`}>
       {/* Announcement Bar */}
       <div className="bg-[#333333] text-white text-center py-1.5 px-4 text-[10px] sm:text-xs font-bold tracking-widest uppercase z-[60] relative">
-        Free Shipping on all pan-India orders · Code <span className="text-[#4CAF50]">KALLKEYY10</span> for 10% Off
+        Free Shipping on all pan-India orders · Code <span className="text-[#4CAF50]">KALLKEYY100</span> for 10% Off
       </div>
       <nav className="sticky top-0 left-0 right-0 z-50 border-b border-white/10 bg-black/95 backdrop-blur-md text-white">
         <div className="w-full px-5 sm:px-8 lg:px-24 py-3 lg:py-4">

@@ -163,37 +163,26 @@ export default function PhoneVerificationModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(0, 0, 0, 0.8)" }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
     >
-      <div
-        className="card-street max-w-md w-full"
-        style={{ maxHeight: "90vh", overflow: "auto" }}
-      >
+      <div className="bg-white/95 backdrop-blur-md border border-gray-200 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-auto p-6 sm:p-8">
         <div className="flex items-center gap-3 mb-6">
-          <Shield size={24} style={{ color: "var(--color-primary)" }} />
-          <h2 className="text-heading" style={{ color: "var(--color-text)" }}>
+          <div className="p-2 bg-gradient-to-br from-[#b90e0a] to-[#8a0a08] rounded-lg">
+            <Shield size={24} className="text-white" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900">
             Verify Your Phone Number
           </h2>
         </div>
 
-        <p
-          className="mb-6"
-          style={{
-            color: "var(--color-text-secondary)",
-            fontSize: "var(--font-size-sm)",
-          }}
-        >
+        <p className="mb-6 text-gray-600 text-sm leading-relaxed">
           We need your phone number for order confirmations and delivery updates.
         </p>
 
         {/* TEMPORARY: Simplified phone input without OTP */}
         <div className="space-y-4">
           <div>
-            <label
-              className="form-label"
-              style={{ color: "var(--color-text)" }}
-            >
+            <label className="block text-sm font-semibold text-gray-900 mb-2">
               Phone Number *
             </label>
             <input
@@ -204,47 +193,29 @@ export default function PhoneVerificationModal({
                 setPhone(e.target.value.replace(/\D/g, "").slice(0, 10));
                 setError("");
               }}
-              className="form-control"
-              style={{
-                background: "var(--color-surface)",
-                color: "var(--color-text)",
-                border: "1px solid var(--color-border)",
-                width: "100%",
-                padding: "var(--space-12)",
-                borderRadius: "var(--radius-base)",
-              }}
+              className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 bg-white text-gray-900 focus:border-[#b90e0a] focus:ring-2 focus:ring-[#b90e0a]/20 transition-all duration-300 outline-none text-base"
               maxLength={10}
               autoFocus
             />
-            <p
-              className="text-xs mt-2"
-              style={{
-                color: "var(--color-text-secondary)",
-                fontSize: "11px",
-                lineHeight: "1.4",
-              }}
-            >
+            <p className="text-xs mt-2 text-gray-500 leading-snug">
               You might get a call to confirm your order on this number after 1-2 days of order placement
             </p>
           </div>
 
           {error && (
-            <p className="text-sm" style={{ color: "var(--color-error)" }}>
-              {error}
-            </p>
+            <div className="p-3 rounded-lg bg-red-50 border border-red-300">
+              <p className="text-sm text-red-600 font-medium">{error}</p>
+            </div>
           )}
 
           <button
             onClick={handleSendOTP}
             disabled={phone.length !== 10}
-            className="w-full py-3 rounded-lg font-medium transition-all duration-300"
-            style={{
-              background: "var(--color-primary)",
-              color: "white",
-              opacity: phone.length !== 10 ? 0.6 : 1,
-              cursor: phone.length !== 10 ? "not-allowed" : "pointer",
-              border: "none",
-            }}
+            className={`w-full py-3 rounded-lg font-bold transition-all duration-300 ${
+              phone.length !== 10
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-gradient-to-r from-[#b90e0a] to-[#8a0a08] hover:from-[#8a0a08] hover:to-[#b90e0a] text-white transform hover:scale-105 shadow-lg hover:shadow-2xl"
+            }`}
           >
             Continue to Checkout
           </button>
