@@ -14,7 +14,7 @@ interface Props {
   skipAnimations?: boolean;
 }
 
-const SMARA_JIVITAM_DATA = {
+export const SMARA_JIVITAM_DATA = {
   name: "SMARA-JIVITAM",
   price: "₹1,299",
   originalPrice: "₹2,499",

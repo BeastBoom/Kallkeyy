@@ -14,7 +14,7 @@ interface Props {
   skipAnimations?: boolean;
 }
 
-const MRITYO_BADDHA_DATA = {
+export const MRITYO_BADDHA_DATA = {
   name: "MRITYO-BADDHA",
   price: "₹1,299",
   originalPrice: "₹2,499",

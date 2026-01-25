@@ -597,16 +597,17 @@ export default function ProductPageBase({
     product.productType === "hoodie" ? HOODIE_SIZE_CHART : TSHIRT_SIZE_CHART;
 
   return (
-    <div className={`min-h-screen bg-black text-white relative overflow-hidden ${skipAnimations ? '[&_*]:!animate-none' : ''}`}>
-      {/* Background Effects */}
-      <div className="fixed inset-0 bg-gradient-to-br from-[#b90e0a]/5 via-transparent to-transparent pointer-events-none" />
-      <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-[#b90e0a]/10 rounded-full blur-3xl pointer-events-none opacity-20" />
+    <div className={`min-h-screen bg-gradient-to-b from-[#f8f8f8] via-[#f0f0f0] to-[#e8e8e8] text-black relative ${skipAnimations ? '[&_*]:!animate-none' : ''}`}>
+      {/* Announcement Bar */}
+      <div className="bg-[#333333] text-white text-center py-1.5 px-4 text-[10px] sm:text-xs font-bold tracking-widest uppercase z-[60] relative">
+        Free Shipping on all pan-India orders · Code <span className="text-[#4CAF50]">KALLKEYY10</span> for 10% Off
+      </div>
 
-      {/* NAVBAR */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-black/90 backdrop-blur-md">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-3 lg:py-4">
-          <div className="flex items-center justify-between relative">
-            {/* LEFT: Text Logo (Responsive sizing) */}
+      {/* Navigation - Matching HomePage Style */}
+      <nav className="sticky top-0 left-0 right-0 z-50 border-b border-white/10 bg-black/95 backdrop-blur-md text-white">
+        <div className="w-full px-5 sm:px-8 lg:px-24 py-3 lg:py-4">
+          <div className="flex items-center justify-between max-w-[1600px] mx-auto">
+            {/* LEFT: Text Logo */}
             <div className="flex-shrink-0 z-10">
               <h1
                 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-wider hover:text-[#b90e0a] transition-colors duration-300 cursor-pointer font-akira"
@@ -616,105 +617,75 @@ export default function ProductPageBase({
               </h1>
             </div>
 
-            {/* CENTER: Brand Logo Image (Hidden on mobile/tablet, visible on large desktop only to prevent overlap) */}
-            <div className="hidden xl:block absolute left-1/2 transform -translate-x-1/2 z-10">
-              <img
-                src="/navbar-logo.png"
-                alt="KALLKEYY Logo"
-                onClick={onBackToMain}
-                className="h-10 w-auto sm:h-12 lg:h-14 object-contain opacity-90 hover:opacity-100 transition-opacity cursor-pointer"
-              />
+            {/* CENTER: Navigation Links (Shopify Style) */}
+            <div className="hidden lg:flex items-center gap-8 absolute left-1/2 transform -translate-x-1/2">
+              <button
+                onClick={() => onBackToMain?.()}
+                className="text-sm font-bold tracking-wide hover:text-[#b90e0a] transition-colors duration-300 whitespace-nowrap uppercase"
+              >
+                Home
+              </button>
+              <button
+                onClick={() => onNavigateToShop ? onNavigateToShop() : handleUnavailablePage("Shop")}
+                className="text-sm font-bold tracking-wide text-[#b90e0a] transition-colors duration-300 whitespace-nowrap uppercase"
+              >
+                Shop
+              </button>
+              {user && (
+                <button
+                  onClick={() => onNavigateToOrders ? onNavigateToOrders() : handleUnavailablePage("Orders")}
+                  className="text-sm font-bold tracking-wide hover:text-[#b90e0a] transition-colors duration-300 whitespace-nowrap uppercase"
+                >
+                  Orders
+                </button>
+              )}
+              <button
+                onClick={() => onNavigateToAbout ? onNavigateToAbout() : handleUnavailablePage("About")}
+                className="text-sm font-bold tracking-wide hover:text-[#b90e0a] transition-colors duration-300 whitespace-nowrap uppercase"
+              >
+                About
+              </button>
+              <button
+                onClick={() => onNavigateToContact ? onNavigateToContact() : handleUnavailablePage("Contact")}
+                className="text-sm font-bold tracking-wide hover:text-[#b90e0a] transition-colors duration-300 whitespace-nowrap uppercase"
+              >
+                Contact
+              </button>
             </div>
 
-            {/* RIGHT: Navigation + Auth */}
-            <div className="flex items-center z-10">
-              {/* Desktop Navigation Links */}
-              <div className="hidden lg:flex gap-0.5 text-sm font-bold">
-                <button
-                  onClick={() => onBackToMain()}
-                  className={isHomeActive 
-                    ? "text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 bg-white/5 rounded-lg whitespace-nowrap"
-                    : "hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
-                  }
-                >
-                  HOME
-                </button>
-                <button
-                  onClick={() =>
-                    onNavigateToShop
-                      ? onNavigateToShop()
-                      : handleUnavailablePage("Shop")
-                  }
-                  className={isShopActive
-                    ? "text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 bg-white/5 rounded-lg whitespace-nowrap"
-                    : "hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
-                  }
-                >
-                  SHOP
-                </button>
-                {user && (
-                  <button
-                    onClick={() =>
-                      onNavigateToOrders
-                        ? onNavigateToOrders()
-                        : handleUnavailablePage("Orders")
-                    }
-                    className="hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
-                  >
-                    ORDERS
-                  </button>
-                )}
-                <button
-                  onClick={() =>
-                    onNavigateToAbout
-                      ? onNavigateToAbout()
-                      : handleUnavailablePage("About")
-                  }
-                  className="hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
-                >
-                  ABOUT
-                </button>
-                <button
-                  onClick={() =>
-                    onNavigateToContact
-                      ? onNavigateToContact()
-                      : handleUnavailablePage("Contact")
-                  }
-                  className="hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
-                >
-                  CONTACT
-                </button>
-
-                {/* AUTH BUTTONS - Desktop */}
+            {/* RIGHT: Auth */}
+            <div className="flex items-center gap-3 z-10">
+              {/* Desktop Auth Buttons */}
+              <div className="hidden lg:flex items-center gap-6">
                 {user ? (
                   <>
-                    <span className="text-white px-1 lg:px-2 py-2 flex items-center text-xs whitespace-nowrap">
-                      HEY,{" "}
-                      <span className="text-[#b90e0a] ml-1">
+                    <span className="text-white text-base font-medium flex items-center">
+                      Hey,{" "}
+                      <span className="text-[#b90e0a] ml-1 font-bold">
                         {formatDisplayName(user.name)}
                       </span>
                     </span>
                     <button
                       onClick={logout}
-                      className="hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg flex items-center gap-1 whitespace-nowrap"
+                      className="text-white hover:text-[#b90e0a] transition-colors duration-300 flex items-center gap-2 text-base font-medium"
                     >
-                      <LogOut size={14} className="lg:w-4 lg:h-4" />
-                      <span className="text-xs">LOGOUT</span>
+                      <LogOut size={18} />
+                      <span>Logout</span>
                     </button>
                   </>
                 ) : (
                   <>
                     <button
                       onClick={() => onNavigateToLogin()}
-                      className="hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap text-xs"
+                      className="text-white hover:text-[#b90e0a] transition-colors duration-300 text-base font-bold"
                     >
-                      LOGIN
+                      Login
                     </button>
                     <button
                       onClick={() => onNavigateToSignup()}
-                      className="bg-[#b90e0a] hover:bg-[#b90e0a]/80 transition-colors duration-300 px-2 lg:px-3 py-2 rounded-lg ml-1 whitespace-nowrap text-xs"
+                      className="bg-[#b90e0a] hover:bg-[#8a0a08] transition-colors duration-300 px-5 py-2.5 rounded-full text-base font-bold text-white"
                     >
-                      SIGN UP
+                      Sign Up
                     </button>
                   </>
                 )}
@@ -722,153 +693,176 @@ export default function ProductPageBase({
 
               {/* Hamburger Menu Button (Mobile/Tablet) */}
               <button
-                className="lg:hidden text-white hover:text-[#b90e0a] transition-colors p-2 -mr-2"
+                className="lg:hidden text-white hover:text-[#b90e0a] transition-colors p-1.5"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label="Toggle menu"
               >
                 {mobileMenuOpen ? (
-                  <X size={24} className="sm:w-7 sm:h-7" />
+                  <X size={20} className="sm:w-6 sm:h-6" />
                 ) : (
-                  <Menu size={24} className="sm:w-7 sm:h-7" />
+                  <Menu size={20} className="sm:w-6 sm:h-6" />
                 )}
               </button>
             </div>
           </div>
+        </div>
+      </nav>
 
-          {/* Mobile Menu (Animated) */}
-          {mobileMenuOpen && (
-            <div className="lg:hidden mt-4 pb-4 space-y-2 border-t border-white/10 pt-4 animate-fadeIn">
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-[100] animate-fadeIn">
+          {/* Dark overlay background */}
+          <div 
+            className="absolute inset-0 bg-black/90 backdrop-blur-md"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          
+          {/* Menu content */}
+          <div className="relative h-full flex flex-col pt-16 px-5 pb-6 overflow-y-auto">
+            {/* Close button */}
+            <button
+              className="absolute top-4 right-4 text-white hover:text-[#b90e0a] transition-colors p-1.5"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-label="Close menu"
+            >
+              <X size={24} />
+            </button>
+
+            {/* Navigation Links */}
+            <div className="space-y-1">
               <button
                 onClick={() => {
-                  onBackToMain();
+                  onBackToMain?.();
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold"
               >
-                HOME
+                Home
               </button>
               <button
                 onClick={() => {
-                  if (onNavigateToShop) {
-                    onNavigateToShop();
-                  } else {
-                    handleUnavailablePage("Shop");
-                  }
+                  if (onNavigateToShop) onNavigateToShop();
+                  else handleUnavailablePage("Shop");
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold"
               >
-                SHOP
+                Shop
               </button>
               {user && (
                 <button
                   onClick={() => {
-                    if (onNavigateToOrders) {
-                      onNavigateToOrders();
-                    } else {
-                      handleUnavailablePage("Orders");
-                    }
+                    if (onNavigateToOrders) onNavigateToOrders();
+                    else handleUnavailablePage("Orders");
                     setMobileMenuOpen(false);
                   }}
-                  className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                  className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold"
                 >
-                  ORDERS
+                  Orders
                 </button>
               )}
               <button
                 onClick={() => {
-                  if (onNavigateToAbout) {
-                    onNavigateToAbout();
-                  } else {
-                    handleUnavailablePage("About");
-                  }
+                  if (onNavigateToAbout) onNavigateToAbout();
+                  else handleUnavailablePage("About");
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold"
               >
-                ABOUT
+                About
               </button>
               <button
                 onClick={() => {
-                  if (onNavigateToContact) {
-                    onNavigateToContact();
-                  } else {
-                    handleUnavailablePage("Contact");
-                  }
+                  if (onNavigateToContact) onNavigateToContact();
+                  else handleUnavailablePage("Contact");
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold"
               >
-                CONTACT
+                Contact
               </button>
-
-              {/* AUTH SECTION - Mobile */}
-              <div className="border-t border-white/10 pt-3 mt-3">
-                {user ? (
-                  <>
-                    <div className="text-white px-4 py-2 mb-2 text-sm">
-                      HEY,{" "}
-                      <span className="text-[#b90e0a]">
-                        {formatDisplayName(user.name)}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => {
-                        logout();
-                        setMobileMenuOpen(false);
-                      }}
-                      className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg flex items-center gap-2 text-base font-semibold"
-                    >
-                      <LogOut size={18} />
-                      LOGOUT
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => {
-                        onNavigateToLogin();
-                        setMobileMenuOpen(false);
-                      }}
-                      className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
-                    >
-                      LOGIN
-                    </button>
-                    <button
-                      onClick={() => {
-                        onNavigateToSignup();
-                        setMobileMenuOpen(false);
-                      }}
-                      className="w-full bg-[#b90e0a] hover:bg-[#b90e0a]/80 transition-colors duration-300 px-4 py-2.5 rounded-lg text-center mt-2 text-base font-semibold"
-                    >
-                      SIGN UP
-                    </button>
-                  </>
-                )}
-              </div>
             </div>
-          )}
+
+            {/* AUTH SECTION - Mobile */}
+            <div className="border-t border-white/20 pt-4 mt-4">
+              {user ? (
+                <>
+                  <div className="text-white px-3 py-2 mb-1 text-sm font-medium">
+                    Hey, <span className="text-[#b90e0a] font-bold">{formatDisplayName(user.name)}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      logout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg flex items-center gap-2 text-base font-bold"
+                  >
+                    <LogOut size={18} />
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <div className="space-y-2 px-3">
+                  <button
+                    onClick={() => {
+                      onNavigateToLogin();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="block w-full text-center text-white hover:text-[#b90e0a] transition-colors duration-300 py-3 border border-white/20 rounded-full text-sm font-bold"
+                  >
+                    Login
+                  </button>
+                  <button
+                    onClick={() => {
+                      onNavigateToSignup();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full bg-[#b90e0a] hover:bg-[#8a0a08] transition-colors duration-300 py-3 rounded-full text-center text-sm font-bold text-white"
+                  >
+                    Sign Up
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </nav>
+      )}
 
-      <div className="container mx-auto px-4 py-12 relative z-10">
-        <button
-          onClick={() => window.history.back()}
-          className="group flex items-center gap-2 text-[#808088] hover:text-white transition-all duration-300 mb-8 hover:translate-x-1"
-        >
-          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-300" />
-          Back
-        </button>
+      {/* Main Content */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 relative z-10">
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+          <button
+            onClick={onBackToMain}
+            className="hover:text-[#b90e0a] transition-colors"
+          >
+            Home
+          </button>
+          <span>/</span>
+          <button
+            onClick={() => onNavigateToShop?.()}
+            className="hover:text-[#b90e0a] transition-colors"
+          >
+            Shop
+          </button>
+          <span>/</span>
+          <span className="text-[#b90e0a] font-medium">{product.name}</span>
+        </div>
 
-        {/* TWO-COLUMN LAYOUT: Images & Product Info Only */}
-        <div className="grid lg:grid-cols-2 gap-12 items-start mb-16">
+        {/* TWO-COLUMN LAYOUT: Images & Product Info */}
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start mb-16">
           {/* Left: Product Images/Videos */}
-          <div className="space-y-6 sticky top-24">
-            <div className="relative aspect-square rounded-2xl overflow-hidden border border-white/10 bg-black group">
+          <div className="space-y-4 lg:sticky lg:top-20">
+            {/* Main Image Container */}
+            <div className="relative aspect-square rounded-2xl overflow-hidden bg-white shadow-xl group">
+              {/* Decorative corner accents */}
+              <div className="absolute top-0 left-0 w-20 h-20 border-t-4 border-l-4 border-[#b90e0a] z-10 rounded-tl-2xl" />
+              <div className="absolute bottom-0 right-0 w-20 h-20 border-b-4 border-r-4 border-[#b90e0a] z-10 rounded-br-2xl" />
+              
               {product.images[activeIdx]?.endsWith(".mp4") ? (
                 <video
                   src={product.images[activeIdx]}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-contain bg-[#fafafa]"
                   autoPlay
                   loop
                   muted
@@ -878,214 +872,249 @@ export default function ProductPageBase({
                 <img
                   src={product.images[activeIdx]}
                   alt={product.name}
-                  className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-110"
+                  className="w-full h-full object-contain bg-[#fafafa] transition-transform duration-700 group-hover:scale-105"
                   onError={(e) => {
                     (e.currentTarget as HTMLImageElement).style.opacity = "0";
                   }}
                   draggable={false}
                 />
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-              <div className="absolute bottom-6 left-6 right-6">
-                <div className="flex items-center justify-between">
-                  <Badge className="bg-[#b90e0a] text-white border-none px-4 py-2 text-sm font-bold">
-                    KALLKEYY
+              
+              {/* Floating Badges */}
+              <div className="absolute top-4 left-4 flex flex-col gap-2 z-20">
+                <Badge className="bg-[#b90e0a] text-white border-none px-3 py-1.5 text-xs font-bold shadow-lg">
+                  ASTITVA ACT-I
+                </Badge>
+                {product.originalPrice && product.salePrice && (
+                  <Badge className="bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] text-white border-none px-3 py-1.5 text-xs font-bold shadow-lg">
+                    {Math.round(
+                      ((parseFloat(product.originalPrice.replace(/[₹,]/g, "")) -
+                        parseFloat(product.salePrice.replace(/[₹,]/g, ""))) /
+                        parseFloat(product.originalPrice.replace(/[₹,]/g, ""))) *
+                        100
+                    )}% OFF
                   </Badge>
-                  <Badge className="bg-white/10 backdrop-blur-sm text-white border-white/20 px-4 py-2 text-sm font-bold">
-                    {product.tag}
-                  </Badge>
-                </div>
+                )}
               </div>
-              <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-[#b90e0a]/50" />
-              <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-[#b90e0a]/50" />
+              
+              {/* Product Tag Badge */}
+              <div className="absolute top-4 right-4 z-20">
+                <Badge className="bg-black/80 backdrop-blur-sm text-white border-none px-3 py-1.5 text-xs font-bold shadow-lg">
+                  {product.tag}
+                </Badge>
+              </div>
+              
+              {/* Image Counter */}
+              <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-bold z-20">
+                {activeIdx + 1} / {product.images.length}
+              </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-4">
+            {/* Thumbnail Gallery */}
+            <div className="grid grid-cols-4 gap-3">
               {product.images.map((src, i) => (
                 <button
                   key={i}
                   onClick={() => setActiveIdx(i)}
-                  aria-label={`View ${
-                    src.endsWith(".mp4") ? "video" : "image"
-                  } ${i + 1}`}
-                  className={`aspect-square rounded-lg overflow-hidden border bg-black transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#b90e0a] ${
+                  aria-label={`View ${src.endsWith(".mp4") ? "video" : "image"} ${i + 1}`}
+                  className={`relative aspect-square rounded-xl overflow-hidden bg-white transition-all duration-300 hover:scale-105 focus:outline-none ${
                     activeIdx === i
-                      ? "border-[#b90e0a] ring-1 ring-[#b90e0a]"
-                      : "border-[#808088]/30 hover:border-white"
+                      ? "ring-2 ring-[#b90e0a] shadow-lg shadow-[#b90e0a]/20"
+                      : "ring-1 ring-black/10 hover:ring-black/30"
                   }`}
                 >
                   {src.endsWith(".mp4") ? (
-                    <video
-                      src={src}
-                      className="w-full h-full object-contain"
-                      muted
-                      playsInline
-                    />
+                    <>
+                      <video
+                        src={src}
+                        className="w-full h-full object-contain bg-[#fafafa]"
+                        muted
+                        playsInline
+                      />
+                      {/* Video indicator */}
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                        <div className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center">
+                          <div className="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-[#b90e0a] border-b-[6px] border-b-transparent ml-1" />
+                        </div>
+                      </div>
+                    </>
                   ) : (
                     <img
                       src={src}
                       alt={`${product.name} view ${i + 1}`}
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-contain bg-[#fafafa]"
                       onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).style.opacity =
-                          "0";
+                        (e.currentTarget as HTMLImageElement).style.opacity = "0";
                       }}
                       draggable={false}
                     />
+                  )}
+                  {activeIdx === i && (
+                    <div className="absolute inset-0 border-2 border-[#b90e0a] rounded-xl pointer-events-none" />
                   )}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Right: Product Details (Title, Price, Description, Size, Add to Cart) */}
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-3">
-                {isLoadingStock ? (
-                  <Badge className="bg-gray-500 text-white px-4 py-1.5 rounded-full">
-                    Checking Stock...
-                  </Badge>
-                ) : isAllSizesOutOfStock() ? (
-                  <Badge className="bg-red-500 text-white px-4 py-1.5 rounded-full font-bold">
-                    OUT OF STOCK
-                  </Badge>
-                ) : (
-                  <Badge className="bg-green-500 text-white px-4 py-1.5 rounded-full">
-                    In Stock
-                  </Badge>
-                )}
-                <Badge className="bg-white/10 text-white border border-white/20 px-3 py-1 text-xs font-bold">
-                  ASTITVA ACT-I
-                </Badge>
-              </div>
+          {/* Right: Product Details */}
+          <div className="space-y-6">
+            {/* Stock Status */}
+            <div className="flex flex-wrap items-center gap-3">
+              {isLoadingStock ? (
+                <div className="flex items-center gap-2 text-gray-500">
+                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-pulse" />
+                  <span className="text-sm font-medium">Checking availability...</span>
+                </div>
+              ) : isAllSizesOutOfStock() ? (
+                <div className="flex items-center gap-2 text-red-600">
+                  <div className="w-2 h-2 rounded-full bg-red-500" />
+                  <span className="text-sm font-bold uppercase">Out of Stock</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-green-600">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-sm font-bold uppercase">In Stock</span>
+                </div>
+              )}
+            </div>
 
-              <h1 className="text-4xl md:text-5xl font-black text-white leading-tight">
+            {/* Product Title */}
+            <div>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#0a0a0a] leading-tight font-akira mb-2">
                 {product.name}
               </h1>
+              <p className="text-sm text-gray-500 font-medium uppercase tracking-wider">
+                {product.productType === "hoodie" ? "Premium Heavyweight Hoodie" : "Oversized Graphic Tee"}
+              </p>
+            </div>
 
-              <div className="flex items-center gap-4">
-                <div className="flex gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-5 h-5 ${
-                        i < Math.round(reviewStats.averageRating)
-                          ? "fill-[#b90e0a] text-[#b90e0a]"
-                          : "text-[#808088]"
-                      }`}
-                    />
-                  ))}
-                </div>
-                <span className="text-[#808088] text-sm">
-                  ({reviewStats.totalReviews} review
-                  {reviewStats.totalReviews !== 1 ? "s" : ""})
-                </span>
+            {/* Rating */}
+            <div className="flex items-center gap-3 pb-4 border-b border-black/10">
+              <div className="flex gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`w-5 h-5 ${
+                      i < Math.round(reviewStats.averageRating)
+                        ? "fill-[#b90e0a] text-[#b90e0a]"
+                        : "text-gray-300"
+                    }`}
+                  />
+                ))}
               </div>
+              <span className="text-sm text-gray-600">
+                {reviewStats.averageRating.toFixed(1)} ({reviewStats.totalReviews} review{reviewStats.totalReviews !== 1 ? "s" : ""})
+              </span>
+            </div>
 
+            {/* Price Section */}
+            <div className="bg-gradient-to-r from-[#fafafa] to-white p-5 rounded-xl border border-black/5">
               {product.originalPrice && product.salePrice ? (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-4">
-                    <p className="text-2xl font-bold text-[#b90e0a]">
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-3xl sm:text-4xl font-black text-[#b90e0a]">
                       {product.salePrice}
-                    </p>
-                    <p className="text-xl text-[#808088] line-through">
+                    </span>
+                    <span className="text-xl text-gray-400 line-through">
                       {product.originalPrice}
-                    </p>
-                    <Badge className="bg-green-500 text-white px-3 py-1 text-sm font-bold">
-                      {Math.round(
-                        ((parseFloat(
-                          product.originalPrice.replace(/[₹,]/g, "")
-                        ) -
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] text-white border-none px-3 py-1 text-xs font-bold">
+                      SAVE {Math.round(
+                        ((parseFloat(product.originalPrice.replace(/[₹,]/g, "")) -
                           parseFloat(product.salePrice.replace(/[₹,]/g, ""))) /
-                          parseFloat(
-                            product.originalPrice.replace(/[₹,]/g, "")
-                          )) *
+                          parseFloat(product.originalPrice.replace(/[₹,]/g, ""))) *
                           100
-                      )}
-                      % OFF
+                      )}%
                     </Badge>
+                    <span className="text-xs text-gray-500">Limited time offer</span>
                   </div>
                 </div>
               ) : (
-                <p className="text-2xl font-bold text-[#b90e0a]">
+                <span className="text-3xl sm:text-4xl font-black text-[#b90e0a]">
                   {product.price}
-                </p>
+                </span>
               )}
-
-              {/* Discount Code Message */}
-              <p className="text-xs text-[#808088] leading-relaxed mt-2">
-                Use{" "}
-                <button
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText("KALLKEYY10");
-                      toast({
-                        title: "Copied! 📋",
-                        description: "Discount code KALLKEYY10 copied to clipboard",
-                      });
-                    } catch (error) {
-                      toast({
-                        variant: "destructive",
-                        title: "Copy Failed",
-                        description: "Could not copy code. Please try again.",
-                      });
-                    }
-                  }}
-                  className="text-[#b90e0a] font-bold hover:text-[#FF0000] underline transition-colors duration-200 cursor-pointer"
-                  style={{ background: "none", border: "none", padding: 0 }}
-                >
-                  KALLKEYY10
-                </button>{" "}
-                on checkout to get 10% discount on overall bill!!
-              </p>
-
-              <p className="text-[#CCCCCC] leading-relaxed mt-4">
-                {product.description}
-              </p>
-
-              <div className="border-t border-white/10 pt-6">
-                <h3 className="text-sm font-bold text-white mb-4 tracking-wider">
-                  PRODUCT DETAILS
-                </h3>
-                <div className="grid grid-cols-3 gap-4">
-                  {[
-                    { icon: Ruler, text: "Premium Fit" },
-                    { icon: Truck, text: "Fast Shipping" },
-                    { icon: RotateCcw, text: "Easy Returns" },
-                  ].map((item, i) => (
-                    <div
-                      key={i}
-                      className="flex flex-col items-center gap-2 p-4 bg-[#28282B] rounded-lg border border-white/10"
-                    >
-                      <item.icon className="w-6 h-6 text-[#b90e0a]" />
-                      <span className="text-xs text-center text-[#CCCCCC]">
-                        {item.text}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+              
+              {/* Discount Code */}
+              <div className="mt-4 p-3 bg-[#b90e0a]/5 rounded-lg border border-[#b90e0a]/20">
+                <p className="text-sm text-gray-700">
+                  Use code{" "}
+                  <button
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText("KALLKEYY10");
+                        toast({
+                          title: "Copied! 📋",
+                          description: "Discount code KALLKEYY10 copied to clipboard",
+                        });
+                      } catch (error) {
+                        toast({
+                          variant: "destructive",
+                          title: "Copy Failed",
+                          description: "Could not copy code. Please try again.",
+                        });
+                      }
+                    }}
+                    className="font-black text-[#b90e0a] hover:text-[#8a0a08] underline underline-offset-2 transition-colors cursor-pointer"
+                  >
+                    KALLKEYY10
+                  </button>{" "}
+                  for an extra <span className="font-bold">10% OFF</span>
+                </p>
               </div>
             </div>
 
+            {/* Description */}
+            <p className="text-[#444444] leading-relaxed text-sm sm:text-base">
+              {product.description}
+            </p>
+
+            {/* Product Features */}
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { icon: Ruler, text: "Premium Fit", subtext: "Oversized" },
+                { icon: Truck, text: "Free Shipping", subtext: "Pan-India" },
+                { icon: RotateCcw, text: "Easy Returns", subtext: "3 Days" },
+              ].map((item, i) => (
+                <div
+                  key={i}
+                  className="group flex flex-col items-center gap-1.5 p-3 bg-white rounded-xl border border-black/5 hover:border-[#b90e0a]/30 hover:shadow-md transition-all duration-300"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#b90e0a]/10 flex items-center justify-center group-hover:bg-[#b90e0a] transition-colors duration-300">
+                    <item.icon className="w-5 h-5 text-[#b90e0a] group-hover:text-white transition-colors duration-300" />
+                  </div>
+                  <span className="text-xs font-bold text-[#0a0a0a] text-center">{item.text}</span>
+                  <span className="text-[10px] text-gray-500">{item.subtext}</span>
+                </div>
+              ))}
+            </div>
+
             {/* Size Selection */}
-            <div className="space-y-4">
+            <div className="space-y-4 p-5 bg-white rounded-xl border border-black/5">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-white tracking-wider">
-                  SIZE
-                </h3>
+                <div>
+                  <h3 className="text-sm font-bold text-[#0a0a0a] tracking-wider uppercase">
+                    Select Size
+                  </h3>
+                  {selectedSize && (
+                    <p className="text-xs text-gray-500 mt-0.5">Selected: {selectedSize}</p>
+                  )}
+                </div>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowSizeChart(!showSizeChart)}
-                  className="border border-[#b90e0a] text-[#b90e0a] hover:bg-[#b90e0a] hover:text-white transition-all duration-300 hover:scale-105"
+                  className="text-[#b90e0a] hover:bg-[#b90e0a]/10 transition-all duration-300 text-xs font-bold"
                 >
-                  <Ruler className="w-4 h-4 mr-2" />
-                  Size Chart{" "}
+                  <Ruler className="w-4 h-4 mr-1.5" />
+                  Size Guide
                   {showSizeChart ? (
-                    <ChevronUp className="ml-2 w-4 h-4" />
+                    <ChevronUp className="ml-1 w-3 h-3" />
                   ) : (
-                    <ChevronDown className="ml-2 w-4 h-4" />
+                    <ChevronDown className="ml-1 w-3 h-3" />
                   )}
                 </Button>
               </div>
@@ -1093,48 +1122,44 @@ export default function ProductPageBase({
               {/* Animated Size Chart */}
               <div
                 className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                  showSizeChart
-                    ? "max-h-[600px] opacity-100 mt-4"
-                    : "max-h-0 opacity-0 mt-0"
+                  showSizeChart ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
                 }`}
               >
-                <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-                  <h4 className="font-bold text-sm mb-3">
-                    {product.productType === "hoodie" ? "Hoodie" : "T-Shirt"}{" "}
-                    Size Chart (inches)
+                <div className="bg-[#fafafa] rounded-lg p-4 border border-black/5 mt-3">
+                  <h4 className="font-bold text-sm mb-3 text-[#0a0a0a]">
+                    {product.productType === "hoodie" ? "Hoodie" : "T-Shirt"} Size Chart (inches)
                   </h4>
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs">
                       <thead>
-                        <tr className="border-b border-white/20">
-                          <th className="text-left p-2">Size</th>
-                          <th className="text-left p-2">Body Chest</th>
-                          <th className="text-left p-2">Garment Chest</th>
-                          <th className="text-left p-2">Length</th>
-                          <th className="text-left p-2">Shoulder</th>
+                        <tr className="border-b border-black/10 bg-black/5">
+                          <th className="text-left p-2.5 font-bold">Size</th>
+                          <th className="text-left p-2.5 font-bold">Chest</th>
+                          <th className="text-left p-2.5 font-bold">Garment</th>
+                          <th className="text-left p-2.5 font-bold">Length</th>
+                          <th className="text-left p-2.5 font-bold">Shoulder</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {Object.entries(SIZE_CHART).map(
-                          ([size, measurements]) => (
-                            <tr key={size} className="border-b border-white/10">
-                              <td className="p-2 font-semibold">{size}</td>
-                              <td className="p-2">{measurements.chest}"</td>
-                              <td className="p-2">
-                                {measurements.garmentChest}"
-                              </td>
-                              <td className="p-2">{measurements.length}"</td>
-                              <td className="p-2">{measurements.shoulder}"</td>
-                            </tr>
-                          )
-                        )}
+                        {Object.entries(SIZE_CHART).map(([size, measurements], idx) => (
+                          <tr 
+                            key={size} 
+                            className={`border-b border-black/5 ${idx % 2 === 0 ? 'bg-white' : 'bg-[#fafafa]'} ${selectedSize === size ? 'bg-[#b90e0a]/10' : ''}`}
+                          >
+                            <td className="p-2.5 font-bold text-[#b90e0a]">{size}</td>
+                            <td className="p-2.5">{measurements.chest}"</td>
+                            <td className="p-2.5">{measurements.garmentChest}"</td>
+                            <td className="p-2.5">{measurements.length}"</td>
+                            <td className="p-2.5">{measurements.shoulder}"</td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
                 </div>
               </div>
 
-              {/* Size buttons with minimal stock indicators */}
+              {/* Size Buttons */}
               <div className="grid grid-cols-4 gap-3">
                 {Object.keys(SIZE_CHART).map((size) => {
                   const isInStock = isSizeInStock(size);
@@ -1142,29 +1167,29 @@ export default function ProductPageBase({
                   const stockQty = getStockQuantity(size);
                   
                   return (
-                    <div key={size} className="relative pb-4">
+                    <div key={size} className="relative">
                       <button
                         onClick={() => handleSizeSelect(size)}
                         disabled={!isInStock}
-                        className={`w-full py-3 px-4 border rounded-lg font-bold transition-all duration-300 relative overflow-hidden ${
+                        className={`w-full py-3.5 px-4 rounded-xl font-bold text-sm transition-all duration-300 relative overflow-hidden ${
                           !isInStock
-                            ? "border-gray-600 bg-gray-800 text-gray-500 cursor-not-allowed opacity-50"
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                             : isSelected
-                            ? "border-[#b90e0a] bg-[#b90e0a] text-white shadow-lg shadow-[#b90e0a]/20 hover:scale-105"
-                            : "border-[#808088]/30 hover:border-white hover:shadow-lg hover:scale-105"
+                            ? "bg-[#b90e0a] text-white shadow-lg shadow-[#b90e0a]/30 scale-105"
+                            : "bg-[#fafafa] text-[#0a0a0a] hover:bg-[#b90e0a]/10 hover:scale-105 border border-black/10"
                         }`}
                       >
                         {size}
                         {!isInStock && (
                           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div className="w-[140%] h-[1.5px] bg-red-500 rotate-45" />
+                            <div className="w-[150%] h-[2px] bg-gray-400 rotate-45" />
                           </div>
                         )}
                       </button>
-                      {/* Only show stock when it's critically low (≤5) */}
+                      {/* Low stock warning */}
                       {isInStock && !isLoadingStock && stockQty <= 5 && (
-                        <div className="absolute -bottom-5 left-0 right-0 text-center">
-                          <span className="text-[10px] text-orange-400 font-bold animate-pulse">
+                        <div className="absolute -bottom-4 left-0 right-0 text-center">
+                          <span className="text-[9px] text-orange-500 font-bold">
                             Only {stockQty} left!
                           </span>
                         </div>
@@ -1176,11 +1201,11 @@ export default function ProductPageBase({
             </div>
 
             {/* Action Buttons */}
-            <div className="space-y-4">
+            <div className="space-y-3 pt-2">
               {isAllSizesOutOfStock() ? (
                 <Button
                   disabled
-                  className="w-full bg-gray-400 text-white cursor-not-allowed opacity-60 py-4 font-bold"
+                  className="w-full bg-gray-300 text-gray-600 cursor-not-allowed py-6 font-bold text-base rounded-xl"
                 >
                   OUT OF STOCK
                 </Button>
@@ -1188,9 +1213,9 @@ export default function ProductPageBase({
                 <Button
                   onClick={handleAddToCart}
                   disabled={!selectedSize || isLoadingStock}
-                  className="w-full bg-gradient-to-r from-[#b90e0a] to-[#FF0000] hover:from-[#FF0000] hover:to-[#b90e0a] text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] py-4"
+                  className="w-full bg-[#b90e0a] hover:bg-[#8a0a08] text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:shadow-xl hover:shadow-[#b90e0a]/20 py-6 text-base rounded-xl group"
                 >
-                  <ShoppingBag className="mr-2 h-4 w-4" />
+                  <ShoppingBag className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
                   {isLoadingStock 
                     ? "CHECKING STOCK..." 
                     : !selectedSize 
@@ -1200,360 +1225,373 @@ export default function ProductPageBase({
                 </Button>
               )}
 
-              <div className="grid grid-cols-1 gap-3">
-                <Button
-                  onClick={handleShare}
-                  variant="outline"
-                  className="border-white/20 hover:border-[#b90e0a] transition-all duration-300 hover:scale-105"
-                >
-                  <Share2 className="w-5 h-5 mr-2" />
-                  Share
-                </Button>
-              </div>
+              <Button
+                onClick={handleShare}
+                variant="outline"
+                className="w-full border-2 border-black/10 hover:border-[#b90e0a] hover:text-[#b90e0a] transition-all duration-300 py-5 rounded-xl font-bold"
+              >
+                <Share2 className="w-5 h-5 mr-2" />
+                Share Product
+              </Button>
             </div>
           </div>
         </div>
 
-        {/* FULL-WIDTH SECTIONS BELOW (Material, Reviews, Browse Products) */}
-        <div className="space-y-16">
-          {/* Material & Care - Full Width */}
-          <div className="border-t border-white/10 pt-8 space-y-4">
-            <h3 className="text-sm font-bold text-white tracking-wider flex items-center gap-3">
-              <TrendingUp className="w-5 h-5 text-[#b90e0a]" />
-              MATERIAL & CARE
-            </h3>
-            <div className="bg-[#28282B] rounded-lg p-6 border border-white/10">
-              <div className="space-y-2">
-                {product.material.map((item, i) => (
-                  <p
-                    key={i}
-                    className="text-sm text-[#CCCCCC] flex items-start gap-2"
-                  >
-                    <span className="text-[#b90e0a] mt-1">•</span>
-                    <span>{item}</span>
-                  </p>
-                ))}
+        {/* FULL-WIDTH SECTIONS BELOW */}
+        <div className="space-y-12">
+          {/* Material & Care Section */}
+          <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-black/5">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-full bg-[#b90e0a]/10 flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-[#b90e0a]" />
               </div>
-            </div>
-          </div>
-
-          {/* Reviews Section - Full Width */}
-          <div className="border-t border-white/10 pt-8 space-y-6">
-            {/* Header with Review Stats */}
-            <div className="space-y-4">
-              <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white font-akira">
-                Customer Reviews
+              <h3 className="text-lg sm:text-xl font-black text-[#0a0a0a] font-akira">
+                MATERIAL & CARE
               </h3>
-
-              {isLoadingReviews ? (
-                <div className="text-center py-8 text-[#808088]">
-                  Loading reviews...
-                </div>
-              ) : reviewStats.totalReviews === 0 ? (
-                <div className="bg-[#28282B] rounded-lg p-8 border border-white/10 text-center">
-                  <Star className="w-12 h-12 mx-auto mb-4 text-[#808088]" />
-                  <p className="text-lg text-white mb-2">No reviews yet</p>
-                  <p className="text-sm text-[#808088] mb-6">
-                    Be the first to review this product!
-                  </p>
-                  {user && (
-                    <Button
-                      onClick={() => {
-                        setIsEditingReview(false);
-                        setUserRating(0);
-                        setUserReview("");
-                        setShowReviewForm(true);
-                      }}
-                      className="bg-[#b90e0a] hover:bg-[#b90e0a]/90 text-white font-bold transition-all duration-300 hover:scale-105"
-                    >
-                      <Star className="w-4 h-4 mr-2" />
-                      Write First Review
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                <>
-                  {/* Review Statistics */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 bg-[#28282B] rounded-lg p-6 border border-white/10">
-                    {/* Average Rating */}
-                    <div className="flex flex-col items-center justify-center border-r border-white/10 lg:border-r-0">
-                      <div className="text-5xl font-black text-white mb-2">
-                        {reviewStats.averageRating.toFixed(1)}
-                      </div>
-                      <div className="flex gap-1 mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-5 h-5 ${
-                              i < Math.round(reviewStats.averageRating)
-                                ? "fill-[#b90e0a] text-[#b90e0a]"
-                                : "text-[#808088]"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <p className="text-sm text-[#808088]">
-                        Based on {reviewStats.totalReviews} review
-                        {reviewStats.totalReviews !== 1 ? "s" : ""}
-                      </p>
-                    </div>
-
-                    {/* Rating Distribution */}
-                    <div className="lg:col-span-2 space-y-2">
-                      {[5, 4, 3, 2, 1].map((stars) => {
-                        const count =
-                          reviewStats.ratingDistribution[
-                            stars as keyof typeof reviewStats.ratingDistribution
-                          ];
-                        const percentage =
-                          reviewStats.totalReviews > 0
-                            ? (count / reviewStats.totalReviews) * 100
-                            : 0;
-
-                        return (
-                          <div key={stars} className="flex items-center gap-3">
-                            <span className="text-sm text-white w-12">
-                              {stars} star
-                            </span>
-                            <div className="flex-1 bg-[#1C1C21] rounded-full h-3 overflow-hidden">
-                              <div
-                                className="bg-[#b90e0a] h-full transition-all duration-500"
-                                style={{ width: `${percentage}%` }}
-                              />
-                            </div>
-                            <span className="text-sm text-[#808088] w-12 text-right">
-                              {Math.round(percentage)}%
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Write/Edit Review Button */}
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-[#808088]">
-                      {reviewStats.totalReviews} review
-                      {reviewStats.totalReviews !== 1 ? "s" : ""}
-                    </p>
-                    {user &&
-                      (userReviewData ? (
-                        <Button
-                          onClick={handleEditReview}
-                          variant="outline"
-                          size="sm"
-                          className="border-[#b90e0a] text-[#b90e0a] hover:bg-[#b90e0a] hover:text-white transition-all duration-300 hover:scale-105"
-                        >
-                          <Star className="w-4 h-4 mr-2" />
-                          Edit Your Review
-                        </Button>
-                      ) : (
-                        <Button
-                          onClick={() => {
-                            setIsEditingReview(false);
-                            setUserRating(0);
-                            setUserReview("");
-                            setShowReviewForm(true);
-                          }}
-                          variant="outline"
-                          size="sm"
-                          className="border-[#b90e0a] text-[#b90e0a] hover:bg-[#b90e0a] hover:text-white transition-all duration-300 hover:scale-105"
-                        >
-                          <Star className="w-4 h-4 mr-2" />
-                          Write Review
-                        </Button>
-                      ))}
-                  </div>
-
-                  {/* Display Reviews */}
-                  <div className="space-y-4">
-                    {(() => {
-                      // Separate user's review and other reviews
-                      const userReview = reviews.find(
-                        (r) => r.userId === user?.id || r.userId === user?._id
-                      );
-                      const otherReviews = reviews.filter(
-                        (r) => r.userId !== user?.id && r.userId !== user?._id
-                      );
-
-                      // Combine: user's review first, then others
-                      const orderedReviews = userReview
-                        ? [userReview, ...otherReviews]
-                        : otherReviews;
-
-                      // Show only first 4 if not expanded
-                      const displayReviews = showAllReviews
-                        ? orderedReviews
-                        : orderedReviews.slice(0, 4);
-
-                      return displayReviews.map((review) => {
-                        const isUserReview =
-                          review.userId === user?.id ||
-                          review.userId === user?._id;
-
-                        return (
-                          <div
-                            key={review._id}
-                            className={`p-4 rounded-lg border ${
-                              isUserReview
-                                ? "bg-[#b90e0a]/10 border-[#b90e0a]/30"
-                                : "bg-[#28282B] border-white/10"
-                            }`}
-                          >
-                            <div className="flex items-start gap-4">
-                              <div className="w-10 h-10 rounded-full bg-[#b90e0a] flex items-center justify-center text-white font-bold flex-shrink-0">
-                                {review.name.charAt(0).toUpperCase()}
-                              </div>
-                              <div className="flex-1 space-y-2">
-                                <div className="flex items-center justify-between">
-                                  <div>
-                                    <h4 className="font-bold text-white flex items-center gap-2">
-                                      {review.name}
-                                      {isUserReview && (
-                                        <Badge className="bg-[#b90e0a] text-white text-xs px-2 py-0.5">
-                                          Your Review
-                                        </Badge>
-                                      )}
-                                    </h4>
-                                  </div>
-                                  <span className="text-xs text-[#808088]">
-                                    {getDaysAgo(review.createdAt)}d ago
-                                  </span>
-                                </div>
-                                <div className="flex gap-1">
-                                  {[...Array(5)].map((_, j) => (
-                                    <Star
-                                      key={j}
-                                      className={`w-4 h-4 ${
-                                        j < review.rating
-                                          ? "fill-[#b90e0a] text-[#b90e0a]"
-                                          : "text-[#808088]"
-                                      }`}
-                                    />
-                                  ))}
-                                </div>
-                                {review.description && (
-                                  <p className="text-sm text-[#CCCCCC]">
-                                    {review.description}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      });
-                    })()}
-                  </div>
-
-                  {/* View All Reviews Button */}
-                  {reviews.length > 4 && (
-                    <div className="text-center">
-                      <Button
-                        onClick={() => setShowAllReviews(!showAllReviews)}
-                        variant="outline"
-                        className="border-white/20 hover:border-[#b90e0a] transition-all duration-300 hover:scale-105"
-                      >
-                        {showAllReviews ? (
-                          <>
-                            <ChevronUp className="w-4 h-4 mr-2" />
-                            Show Less Reviews
-                          </>
-                        ) : (
-                          <>
-                            <ChevronDown className="w-4 h-4 mr-2" />
-                            View All {reviews.length} Reviews
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* Review Form */}
-              {showReviewForm && (
-                <form
-                  onSubmit={submitReview}
-                  className="space-y-4 p-4 bg-[#28282B]/50 rounded-lg border border-white/10"
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {product.material.map((item, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-3 p-4 bg-[#fafafa] rounded-xl border border-black/5 hover:border-[#b90e0a]/20 transition-colors"
                 >
-                  {!user && (
-                    <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-400">
-                      Please login to write a review
-                    </div>
-                  )}
-
-                  <div>
-                    <label className="text-sm font-semibold text-[#CCCCCC] mb-2 block">
-                      Rating <span className="text-[#b90e0a]">*</span>
-                    </label>
-                    <div className="flex gap-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() => setUserRating(star)}
-                          className="p-1 hover:scale-110 transition-transform duration-300"
-                          disabled={!user}
-                        >
-                          <Star
-                            className={`w-6 h-6 ${
-                              star <= userRating
-                                ? "fill-[#b90e0a] text-[#b90e0a]"
-                                : "text-[#808088]"
-                            }`}
-                          />
-                        </button>
-                      ))}
-                    </div>
+                  <div className="w-6 h-6 rounded-full bg-[#b90e0a] flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-white text-xs font-bold">{i + 1}</span>
                   </div>
-
-                  <div>
-                    <label className="text-sm font-semibold text-[#CCCCCC] mb-2 block">
-                      Your Review{" "}
-                      <span className="text-[#808088]">(Optional)</span>
-                    </label>
-                    <textarea
-                      value={userReview}
-                      onChange={(e) => setUserReview(e.target.value)}
-                      placeholder={`Share your experience with the ${product.name.toLowerCase()}...`}
-                      rows={4}
-                      disabled={!user}
-                      className="w-full bg-[#1C1C21] border border-[#808088]/30 rounded-lg p-3 text-white focus:border-[#b90e0a] focus:ring-2 focus:ring-[#b90e0a]/20 transition-all duration-300 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
-                    />
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button
-                      type="submit"
-                      disabled={!user || userRating === 0 || isSubmittingReview}
-                      className="flex-1 bg-[#b90e0a] hover:bg-[#b90e0a]/90 text-white font-bold transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isSubmittingReview
-                        ? "Submitting..."
-                        : isEditingReview
-                        ? "Update Review"
-                        : "Submit Review"}
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={handleCancelEdit}
-                      variant="outline"
-                      className="border-white/20 hover:border-[#b90e0a] transition-all duration-300"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </form>
-              )}
+                  <p className="text-sm text-[#444444] leading-relaxed">{item}</p>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Browse Other Products - Full Width */}
-          <div className="border-t border-white/10 pt-8 space-y-6">
-            <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white font-akira">
-              BROWSE OTHER PRODUCTS
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          {/* Reviews Section */}
+          <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-black/5">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#b90e0a]/10 flex items-center justify-center">
+                  <Star className="w-5 h-5 text-[#b90e0a]" />
+                </div>
+                <h3 className="text-lg sm:text-xl font-black text-[#0a0a0a] font-akira">
+                  CUSTOMER REVIEWS
+                </h3>
+              </div>
+              {user && !userReviewData && reviewStats.totalReviews > 0 && (
+                <Button
+                  onClick={() => {
+                    setIsEditingReview(false);
+                    setUserRating(0);
+                    setUserReview("");
+                    setShowReviewForm(true);
+                  }}
+                  className="bg-[#b90e0a] hover:bg-[#8a0a08] text-white font-bold transition-all duration-300 text-sm"
+                >
+                  <Star className="w-4 h-4 mr-1.5" />
+                  Write Review
+                </Button>
+              )}
+            </div>
+
+            {isLoadingReviews ? (
+              <div className="text-center py-12 text-gray-500">
+                <div className="w-8 h-8 border-2 border-[#b90e0a] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                Loading reviews...
+              </div>
+            ) : reviewStats.totalReviews === 0 ? (
+              <div className="text-center py-12 bg-[#fafafa] rounded-xl border border-black/5">
+                <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-4">
+                  <Star className="w-8 h-8 text-gray-400" />
+                </div>
+                <p className="text-lg font-bold text-[#0a0a0a] mb-2">No reviews yet</p>
+                <p className="text-sm text-gray-500 mb-6 max-w-md mx-auto">
+                  Be the first to share your experience with this product!
+                </p>
+                {user && (
+                  <Button
+                    onClick={() => {
+                      setIsEditingReview(false);
+                      setUserRating(0);
+                      setUserReview("");
+                      setShowReviewForm(true);
+                    }}
+                    className="bg-[#b90e0a] hover:bg-[#8a0a08] text-white font-bold transition-all duration-300"
+                  >
+                    <Star className="w-4 h-4 mr-2" />
+                    Write First Review
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <>
+                {/* Review Statistics */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 bg-gradient-to-r from-[#fafafa] to-white rounded-xl p-6 border border-black/5 mb-6">
+                  {/* Average Rating */}
+                  <div className="flex flex-col items-center justify-center lg:border-r border-black/10">
+                    <div className="text-5xl sm:text-6xl font-black text-[#b90e0a] mb-2">
+                      {reviewStats.averageRating.toFixed(1)}
+                    </div>
+                    <div className="flex gap-1 mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-5 h-5 ${
+                            i < Math.round(reviewStats.averageRating)
+                              ? "fill-[#b90e0a] text-[#b90e0a]"
+                              : "text-gray-300"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-sm text-gray-500">
+                      Based on {reviewStats.totalReviews} review{reviewStats.totalReviews !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+
+                  {/* Rating Distribution */}
+                  <div className="lg:col-span-2 space-y-2.5 lg:pl-6">
+                    {[5, 4, 3, 2, 1].map((stars) => {
+                      const count = reviewStats.ratingDistribution[stars as keyof typeof reviewStats.ratingDistribution];
+                      const percentage = reviewStats.totalReviews > 0 ? (count / reviewStats.totalReviews) * 100 : 0;
+
+                      return (
+                        <div key={stars} className="flex items-center gap-3">
+                          <div className="flex items-center gap-1 w-16">
+                            <span className="text-sm font-medium text-[#0a0a0a]">{stars}</span>
+                            <Star className="w-3.5 h-3.5 fill-[#b90e0a] text-[#b90e0a]" />
+                          </div>
+                          <div className="flex-1 bg-black/10 rounded-full h-2.5 overflow-hidden">
+                            <div
+                              className="bg-gradient-to-r from-[#b90e0a] to-[#ff4444] h-full transition-all duration-700 rounded-full"
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                          <span className="text-sm text-gray-500 w-10 text-right">
+                            {count}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Edit Review Button (if user has review) */}
+                {user && userReviewData && (
+                  <div className="flex justify-end mb-4">
+                    <Button
+                      onClick={handleEditReview}
+                      variant="outline"
+                      size="sm"
+                      className="border-[#b90e0a] text-[#b90e0a] hover:bg-[#b90e0a] hover:text-white transition-all duration-300"
+                    >
+                      <Star className="w-4 h-4 mr-1.5" />
+                      Edit Your Review
+                    </Button>
+                  </div>
+                )}
+
+                {/* Display Reviews */}
+                <div className="space-y-4">
+                  {(() => {
+                    const userReview = reviews.find(
+                      (r) => r.userId === user?.id || r.userId === user?._id
+                    );
+                    const otherReviews = reviews.filter(
+                      (r) => r.userId !== user?.id && r.userId !== user?._id
+                    );
+                    const orderedReviews = userReview ? [userReview, ...otherReviews] : otherReviews;
+                    const displayReviews = showAllReviews ? orderedReviews : orderedReviews.slice(0, 4);
+
+                    return displayReviews.map((review) => {
+                      const isUserReview = review.userId === user?.id || review.userId === user?._id;
+
+                      return (
+                        <div
+                          key={review._id}
+                          className={`p-5 rounded-xl border transition-all duration-300 hover:shadow-md ${
+                            isUserReview
+                              ? "bg-gradient-to-r from-[#b90e0a]/5 to-[#b90e0a]/10 border-[#b90e0a]/20"
+                              : "bg-[#fafafa] border-black/5 hover:border-black/10"
+                          }`}
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#b90e0a] to-[#8a0a08] flex items-center justify-center text-white font-bold flex-shrink-0 shadow-md">
+                              {review.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-1 space-y-2">
+                              <div className="flex items-center justify-between flex-wrap gap-2">
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-bold text-[#0a0a0a]">{review.name}</h4>
+                                  {isUserReview && (
+                                    <Badge className="bg-[#b90e0a] text-white text-[10px] px-2 py-0.5 font-bold">
+                                      You
+                                    </Badge>
+                                  )}
+                                </div>
+                                <span className="text-xs text-gray-400">
+                                  {getDaysAgo(review.createdAt) === 0 
+                                    ? "Today" 
+                                    : getDaysAgo(review.createdAt) === 1 
+                                    ? "Yesterday" 
+                                    : `${getDaysAgo(review.createdAt)} days ago`}
+                                </span>
+                              </div>
+                              <div className="flex gap-0.5">
+                                {[...Array(5)].map((_, j) => (
+                                  <Star
+                                    key={j}
+                                    className={`w-4 h-4 ${
+                                      j < review.rating
+                                        ? "fill-[#b90e0a] text-[#b90e0a]"
+                                        : "text-gray-300"
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                              {review.description && (
+                                <p className="text-sm text-[#444444] leading-relaxed">
+                                  {review.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+
+                {/* View All Reviews Button */}
+                {reviews.length > 4 && (
+                  <div className="text-center pt-4">
+                    <Button
+                      onClick={() => setShowAllReviews(!showAllReviews)}
+                      variant="outline"
+                      className="border-black/10 hover:border-[#b90e0a] hover:text-[#b90e0a] transition-all duration-300"
+                    >
+                      {showAllReviews ? (
+                        <>
+                          <ChevronUp className="w-4 h-4 mr-2" />
+                          Show Less
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="w-4 h-4 mr-2" />
+                          View All {reviews.length} Reviews
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Review Form */}
+            {showReviewForm && (
+              <form
+                onSubmit={submitReview}
+                className="space-y-5 p-6 bg-gradient-to-r from-[#fafafa] to-white rounded-xl border border-black/5 mt-6"
+              >
+                <h4 className="font-bold text-[#0a0a0a]">
+                  {isEditingReview ? "Edit Your Review" : "Write a Review"}
+                </h4>
+                
+                {!user && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-600 flex items-center gap-2">
+                    <span>⚠️</span>
+                    Please login to write a review
+                  </div>
+                )}
+
+                <div>
+                  <label className="text-sm font-bold text-[#0a0a0a] mb-3 block">
+                    Your Rating <span className="text-[#b90e0a]">*</span>
+                  </label>
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setUserRating(star)}
+                        className="p-1.5 hover:scale-125 transition-all duration-300"
+                        disabled={!user}
+                      >
+                        <Star
+                          className={`w-8 h-8 ${
+                            star <= userRating
+                              ? "fill-[#b90e0a] text-[#b90e0a]"
+                              : "text-gray-300 hover:text-[#b90e0a]/50"
+                          } transition-colors`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-bold text-[#0a0a0a] mb-2 block">
+                    Your Review <span className="text-gray-400 font-normal">(Optional)</span>
+                  </label>
+                  <textarea
+                    value={userReview}
+                    onChange={(e) => setUserReview(e.target.value)}
+                    placeholder={`Share your experience with the ${product.name}...`}
+                    rows={4}
+                    disabled={!user}
+                    className="w-full bg-white border border-black/10 rounded-xl p-4 text-[#0a0a0a] focus:border-[#b90e0a] focus:ring-2 focus:ring-[#b90e0a]/10 transition-all duration-300 resize-none disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    type="submit"
+                    disabled={!user || userRating === 0 || isSubmittingReview}
+                    className="flex-1 bg-[#b90e0a] hover:bg-[#8a0a08] text-white font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed py-5 rounded-xl"
+                  >
+                    {isSubmittingReview ? (
+                      <span className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Submitting...
+                      </span>
+                    ) : isEditingReview ? (
+                      "Update Review"
+                    ) : (
+                      "Submit Review"
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    variant="outline"
+                    className="border-black/10 hover:border-[#b90e0a] hover:text-[#b90e0a] transition-all duration-300 py-5 rounded-xl"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            )}
+          </div>
+
+          {/* Browse Other Products */}
+          <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-black/5">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#b90e0a]/10 flex items-center justify-center">
+                  <ShoppingBag className="w-5 h-5 text-[#b90e0a]" />
+                </div>
+                <h3 className="text-lg sm:text-xl font-black text-[#0a0a0a] font-akira">
+                  YOU MAY ALSO LIKE
+                </h3>
+              </div>
+              <Button
+                onClick={() => onNavigateToShop?.()}
+                variant="outline"
+                size="sm"
+                className="border-black/10 text-[#0a0a0a] hover:bg-[#b90e0a] hover:text-white hover:border-[#b90e0a] transition-all duration-300 text-xs"
+              >
+                View All
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
               {otherProducts.map((otherProduct) => (
                 <div
                   key={otherProduct.id}
@@ -1561,41 +1599,35 @@ export default function ProductPageBase({
                     window.scrollTo({ top: 0, behavior: 'instant' });
                     onNavigateToProduct?.(otherProduct.id);
                   }}
-                  className="group bg-black rounded-lg border border-white/10 overflow-hidden hover:border-[#b90e0a] transition-all duration-300 cursor-pointer hover:scale-105"
+                  className="group bg-[#fafafa] rounded-xl overflow-hidden transition-all duration-300 cursor-pointer hover:shadow-lg border border-black/5 hover:border-[#b90e0a]/30"
                 >
-                  <div className="aspect-square overflow-hidden bg-black">
+                  <div className="relative aspect-square overflow-hidden bg-[#f5f5f5]">
                     <img
                       src={otherProduct.image}
                       alt={otherProduct.name}
                       className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
                       onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src =
-                          "/placeholder-product.jpg";
+                        (e.currentTarget as HTMLImageElement).src = "/placeholder-product.jpg";
                       }}
                     />
-                  </div>
-                  <div className="p-3 md:p-4 space-y-1 md:space-y-2">
-                    <Badge className="bg-white/10 text-white border-none px-2 py-0.5 text-xs">
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
+                      <span className="text-white font-bold text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[#b90e0a] px-4 py-2 rounded-full transform scale-90 group-hover:scale-100">
+                        Quick View
+                      </span>
+                    </div>
+                    {/* Product Tag */}
+                    <Badge className="absolute top-3 left-3 bg-[#b90e0a] text-white border-none px-2.5 py-1 text-[10px] font-bold">
                       {otherProduct.tag}
                     </Badge>
-                    <h4 className="font-bold text-white text-xs md:text-sm line-clamp-2">
+                  </div>
+                  <div className="p-4 space-y-2">
+                    <h4 className="font-bold text-[#0a0a0a] text-sm group-hover:text-[#b90e0a] transition-colors line-clamp-1">
                       {otherProduct.name}
                     </h4>
-                    <p className="text-[#b90e0a] font-bold text-sm md:text-base">
+                    <p className="text-[#b90e0a] font-black text-lg">
                       {otherProduct.price}
                     </p>
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        window.scrollTo({ top: 0, behavior: 'instant' });
-                        onNavigateToProduct?.(otherProduct.id);
-                      }}
-                      variant="outline"
-                      size="sm"
-                      className="w-full border-[#b90e0a] text-[#b90e0a] hover:bg-[#b90e0a] hover:text-white transition-all duration-300 text-xs py-1.5"
-                    >
-                      View Product
-                    </Button>
                   </div>
                 </div>
               ))}
@@ -1603,6 +1635,7 @@ export default function ProductPageBase({
           </div>
         </div>
       </div>
+
     </div>
   );
 }

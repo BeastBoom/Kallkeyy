@@ -14,7 +14,7 @@ interface Props {
   skipAnimations?: boolean;
 }
 
-const KAAL_DRISHTA_DATA = {
+export const KAAL_DRISHTA_DATA = {
   name: "KAAL-DRISHTA",
   price: "₹2,499",
   originalPrice: "₹4,499",

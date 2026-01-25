@@ -1,4 +1,6 @@
 @import url('https://fonts.cdnfonts.com/css/akira-expanded');
+@import url('https://fonts.cdnfonts.com/css/neue-haas-grotesk-display-pro');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -821,6 +823,19 @@ body {
   letter-spacing: 0.02em;
 }
 
+/* Grotesk Font Classes - Body Text */
+.font-grotesk {
+  font-family: 'Neue Haas Grotesk Display Pro', 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+  letter-spacing: -0.01em;
+  font-feature-settings: 'ss01' on, 'ss02' on;
+}
+
+/* Apply Grotesk as default body font */
+body {
+  font-family: 'Neue Haas Grotesk Display Pro', 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
 /* Shadow utilities using design system */
 .orange-shadow {
@@ -1152,3 +1167,35 @@ body {
 .animate-float-slow { animation: float-slow 8s ease-in-out infinite; }
 .animate-twinkle { animation: twinkle 2s ease-in-out infinite; }
 .animate-bounce-in { animation: bounce-in 1s ease-out forwards; }
+
+/* Discount badge shimmer animation - bottom to top gradient sweep */
+@keyframes shimmer-up {
+  0% {
+    background-position: 0% 100%;
+  }
+  50% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 0% 100%;
+  }
+}
+
+.animate-shimmer-up {
+  background-size: 100% 200%;
+  animation: shimmer-up 2s ease-in-out infinite;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}

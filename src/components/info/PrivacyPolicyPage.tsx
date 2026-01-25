@@ -54,11 +54,14 @@ export default function PrivacyPolicyPage({
   const isShopActive = currentPath === '/shop' || currentPath.startsWith('/product/');
 
   return (
-    <>
-      {/* NAVBAR */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-black/90 backdrop-blur-md">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-3 lg:py-4">
-          <div className="flex items-center justify-between relative">
+    <div className={`min-h-screen bg-gradient-to-b from-[#f8f8f8] via-[#f0f0f0] to-[#e8e8e8] ${skipAnimations ? '[&_*]:!animate-none' : ''}`}>
+      {/* Announcement Bar */}
+      <div className="bg-[#333333] text-white text-center py-1.5 px-4 text-[10px] sm:text-xs font-bold tracking-widest uppercase z-[60] relative">
+        Free Shipping on all pan-India orders · Code <span className="text-[#4CAF50]">KALLKEYY10</span> for 10% Off
+      </div>
+      <nav className="sticky top-0 left-0 right-0 z-50 border-b border-white/10 bg-black/95 backdrop-blur-md text-white">
+        <div className="w-full px-5 sm:px-8 lg:px-24 py-3 lg:py-4">
+          <div className="flex items-center justify-between max-w-[1600px] mx-auto relative">
             {/* LEFT: Text Logo (Responsive sizing) */}
             <div className="flex-shrink-0 z-10">
               <h1
@@ -312,11 +315,19 @@ export default function PrivacyPolicyPage({
         </div>
       </nav>
     
-      <div className={`min-h-screen bg-black text-white px-4 py-12 pt-24 ${skipAnimations ? '[&_*]:!animate-none' : ''}`}>
-        <div className="max-w-4xl mx-auto leading-relaxed">
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+          <button onClick={onBackToMain} className="hover:text-[#b90e0a] transition-colors">Home</button>
+          <span>/</span>
+          <span className="text-[#b90e0a] font-medium">Privacy Policy</span>
+        </div>
+
+        <div className="bg-white rounded-2xl p-6 md:p-10 shadow-sm border border-black/5 text-[#333]">
           {/* Header */}
           <div className="mb-12">
-            <h1 className="text-3xl md:text-5xl font-black mb-4">KALLKEYY PRIVACY POLICY</h1>
+            <h1 className="text-3xl md:text-5xl font-black mb-4 text-[#0a0a0a] font-akira">KALLKEYY <span className="text-[#b90e0a]">PRIVACY POLICY</span></h1>
             <div className="space-y-2 mb-8">
               <p><strong>Effective Date:</strong> November 1, 2025</p>
               <p><strong>Last Updated:</strong> October 31, 2025</p>
@@ -3248,14 +3259,9 @@ export default function PrivacyPolicyPage({
 
         </section>
 
-        {/* Footer */}
-        <div className="mt-12 pt-8 border-t border-white/10 text-center">
-          <p className="mb-2"><strong>EFFECTIVE DATE: November 1, 2025</strong></p>
-          <p className="mb-4"><strong>Last Updated: October 31, 2025</strong></p>
-          <p className="text-gray-400">© 2025 KALLKEYY. All Rights Reserved.</p>
         </div>
       </div>
+
     </div>
-    </>
   );
 }

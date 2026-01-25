@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -10,15 +10,11 @@ import {
   Star,
   Shield,
   Zap,
-  Heart,
-  TrendingUp,
   Instagram,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { toast as sonnerToast } from "sonner";
-import { subscribeToNewsletter } from "@/services/subscriptionService";
 import { InstagramEmbed } from "react-social-media-embed";
 import { useAuth } from "../contexts/AuthContext";
 import { LogOut } from "lucide-react";
@@ -54,12 +50,6 @@ interface Product {
   category: string;
 }
 
-interface FeatureCard {
-  icon: JSX.Element;
-  title: string;
-  description: string;
-  highlight: string;
-}
 
 const heroSlides: HeroSlide[] = [
   // Slide 1: Astitva Act I Collection - SCROLLS TO PRODUCTS
@@ -214,36 +204,6 @@ const products: Product[] = [
   },
 ];
 
-const featureCards: FeatureCard[] = [
-  {
-    icon: <Shield className="w-8 h-8" />,
-    title: "PREMIUM QUALITY",
-    description:
-      "We don’t chase trends — we craft longevity. Every Kallkeyy piece is built to feel heavy, last longer, and age better with time. From reinforced stitching to custom fabrics, quality isn’t a feature — it’s our foundation.",
-    highlight: "Heavyweight fabrics & reinforced stitching",
-  },
-  {
-    icon: <Zap className="w-8 h-8" />,
-    title: "LIMITED DROPS",
-    description:
-      "We believe exclusivity builds identity. Each drop is limited, deliberate, and designed to sell out, ensuring that what you wear stays rare and personal — not mass-produced noise.",
-    highlight: "Small batches, high demand",
-  },
-  {
-    icon: <Star className="w-8 h-8" />,
-    title: "AUTHENTIC DESIGN",
-    description:
-      "No fake hype. No borrowed ideas. Kallkeyy represents real street culture, blending raw energy with clean design. Every silhouette, print, and stitch carries intent, attitude, and originality.",
-    highlight: "Born from the streets",
-  },
-  {
-    icon: <Heart className="w-8 h-8" />,
-    title: "COMMUNITY FIRST",
-    description:
-      "Kallkeyy isn’t a brand — it’s a movement. We grow with the culture, not above it. From feedback to collabs, your voice defines the direction — because the streets decide what’s real.",
-    highlight: "Your voice shapes our brand",
-  },
-];
 
 interface Props {
   onSelectProduct: (productId: string) => void;
@@ -282,18 +242,13 @@ export default function ProductMenuPage({
 }: Props) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
-  const [emailInput, setEmailInput] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
+  
+  // Refs for scroll animations
+  const sectionRefs = useRef<{ [key: string]: HTMLElement | null }>({});
 
   const { user, logout } = useAuth();
-  
-  // Get current route to determine active nav item
-  const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
-  const isHomeActive = currentPath === '/';
-  const isShopActive = currentPath === '/shop' || currentPath.startsWith('/product/');
 
   // Get unique categories
   const categories = [
@@ -313,6 +268,39 @@ export default function ProductMenuPage({
     }, 8000); // Increased to 8 seconds for better readability
     return () => clearInterval(interval);
   }, []);
+
+  // Intersection Observer for scroll animations
+  useEffect(() => {
+    if (skipAnimations) {
+      const allSections = Object.keys(sectionRefs.current);
+      setVisibleSections(new Set(allSections));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setVisibleSections((prev) => new Set(prev).add(entry.target.id));
+          }
+        });
+      },
+      {
+        threshold: 0.1,
+        rootMargin: "0px 0px -50px 0px",
+      }
+    );
+
+    Object.values(sectionRefs.current).forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+
+    return () => {
+      Object.values(sectionRefs.current).forEach((ref) => {
+        if (ref) observer.unobserve(ref);
+      });
+    };
+  }, [skipAnimations]);
 
   const handleSlideClick = (slide: HeroSlide) => {
     if (slide.isUpcoming) {
@@ -336,49 +324,6 @@ export default function ProductMenuPage({
     });
   };
 
-  const handleNewsletterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!emailInput) {
-      sonnerToast.error("Please enter your email address");
-      return;
-    }
-
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(emailInput)) {
-      sonnerToast.error("Please enter a valid email address");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const response = await subscribeToNewsletter(emailInput);
-
-      if (response.success) {
-        toast({
-          title: "Welcome to the family! 🎉",
-          description:
-            response.message || "You'll be the first to know about new drops.",
-          duration: 3000,
-        });
-        setEmailInput(""); // Clear the input
-      } else {
-        sonnerToast.error(response.message || "Subscription failed");
-      }
-    } catch (error) {
-      console.error("Subscription error:", error);
-      sonnerToast.error(
-        error instanceof Error
-          ? error.message
-          : "Something went wrong. Please try again."
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const formatDisplayName = (fullName: string): string => {
     if (!fullName) return "";
     const nameParts = fullName.trim().split(/\s+/);
@@ -396,57 +341,17 @@ export default function ProductMenuPage({
   };
 
   return (
-    <div className={`min-h-screen bg-black text-white relative overflow-x-hidden ${skipAnimations ? '[&_*]:!animate-none' : ''}`}>
-      {/* BACKGROUND DECORATIONS */}
-      <div className="fixed inset-0 pointer-events-none opacity-10 z-0">
-        {/* Chain links pattern */}
-        {[...Array(8)].map((_, i) => (
-          <div
-            key={`chain-${i}`}
-            className="absolute animate-float-chain"
-            style={{
-              top: `${(i * 15) % 100}%`,
-              left: `${(i * 20) % 100}%`,
-              animationDelay: `${i * 0.3}s`,
-            }}
-          >
-            <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-              <circle cx="15" cy="30" r="12" stroke="white" strokeWidth="2" />
-              <circle cx="45" cy="30" r="12" stroke="white" strokeWidth="2" />
-              <line
-                x1="27"
-                y1="30"
-                x2="33"
-                y2="30"
-                stroke="white"
-                strokeWidth="2"
-              />
-            </svg>
-          </div>
-        ))}
-
-        {/* Diagonal lines */}
-        <div className="absolute top-0 left-0 w-full h-full">
-          {[...Array(12)].map((_, i) => (
-            <div
-              key={`line-${i}`}
-              className="absolute h-px bg-white/5"
-              style={{
-                top: `${i * 8}%`,
-                left: 0,
-                right: 0,
-                transform: `rotate(${i * 3}deg)`,
-              }}
-            />
-          ))}
-        </div>
+    <div className={`min-h-screen bg-[#f8f8f8] text-[#0a0a0a] font-grotesk selection:bg-[#b90e0a] selection:text-white ${skipAnimations ? '[&_*]:!animate-none' : ''}`}>
+      {/* Announcement Bar */}
+      <div className="bg-[#333333] text-white text-center py-1.5 px-4 text-[10px] sm:text-xs font-bold tracking-widest uppercase z-[60] relative">
+        Free Shipping on all pan-India orders · Code <span className="text-[#4CAF50]">KALLKEYY10</span> for 10% Off
       </div>
 
-      {/* NAVBAR - UNCHANGED */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-black/90 backdrop-blur-md">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-3 lg:py-4">
-          <div className="flex items-center justify-between relative">
-            {/* LEFT: Text Logo (Responsive sizing) */}
+      {/* Navigation */}
+      <nav className="sticky top-0 left-0 right-0 z-50 border-b border-white/10 bg-black/95 backdrop-blur-md text-white">
+        <div className="w-full px-5 sm:px-8 lg:px-24 py-3 lg:py-4">
+          <div className="flex items-center justify-between max-w-[1600px] mx-auto">
+            {/* LEFT: Text Logo */}
             <div className="flex-shrink-0 z-10">
               <h1
                 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-wider hover:text-[#b90e0a] transition-colors duration-300 cursor-pointer font-akira"
@@ -456,105 +361,91 @@ export default function ProductMenuPage({
               </h1>
             </div>
 
-            {/* CENTER: Brand Logo Image (Hidden on mobile/tablet, visible on large desktop only to prevent overlap) */}
-            <div className="hidden xl:block absolute left-1/2 transform -translate-x-1/2 z-10">
-              <img
-                src="/navbar-logo.png"
-                alt="KALLKEYY Logo"
+            {/* CENTER: Navigation Links */}
+            <div className="hidden lg:flex items-center gap-8 absolute left-1/2 transform -translate-x-1/2">
+              <button
                 onClick={onBackToMain}
-                className="h-10 w-auto sm:h-12 lg:h-14 object-contain opacity-90 hover:opacity-100 transition-opacity cursor-pointer"
-              />
+                className="text-sm font-bold tracking-wide hover:text-[#b90e0a] transition-colors duration-300 whitespace-nowrap uppercase"
+              >
+                Home
+              </button>
+              <button
+                onClick={() =>
+                  onNavigateToShop
+                    ? onNavigateToShop()
+                    : handleUnavailablePage("Shop")
+                }
+                className="text-sm font-bold tracking-wide text-[#b90e0a] transition-colors duration-300 whitespace-nowrap uppercase"
+              >
+                Shop
+              </button>
+              {user && (
+                <button
+                  onClick={() =>
+                    onNavigateToOrders
+                      ? onNavigateToOrders()
+                      : handleUnavailablePage("Orders")
+                  }
+                  className="text-sm font-bold tracking-wide hover:text-[#b90e0a] transition-colors duration-300 whitespace-nowrap uppercase"
+                >
+                  Orders
+                </button>
+              )}
+              <button
+                onClick={() =>
+                  onNavigateToAbout
+                    ? onNavigateToAbout()
+                    : handleUnavailablePage("About")
+                }
+                className="text-sm font-bold tracking-wide hover:text-[#b90e0a] transition-colors duration-300 whitespace-nowrap uppercase"
+              >
+                About
+              </button>
+              <button
+                onClick={() =>
+                  onNavigateToContact
+                    ? onNavigateToContact()
+                    : handleUnavailablePage("Contact")
+                }
+                className="text-sm font-bold tracking-wide hover:text-[#b90e0a] transition-colors duration-300 whitespace-nowrap uppercase"
+              >
+                Contact
+              </button>
             </div>
 
-            {/* RIGHT: Navigation + Auth */}
-            <div className="flex items-center z-10">
-              {/* Desktop Navigation Links */}
-              <div className="hidden lg:flex gap-0.5 text-sm font-bold">
-                <button
-                  onClick={() => onBackToMain()}
-                  className={isHomeActive 
-                    ? "text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 bg-white/5 rounded-lg whitespace-nowrap"
-                    : "hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
-                  }
-                >
-                  HOME
-                </button>
-                <button
-                  onClick={() =>
-                    onNavigateToShop
-                      ? onNavigateToShop()
-                      : handleUnavailablePage("Shop")
-                  }
-                  className={isShopActive
-                    ? "text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 bg-white/5 rounded-lg whitespace-nowrap"
-                    : "hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
-                  }
-                >
-                  SHOP
-                </button>
-                {user && (
-                  <button
-                    onClick={() =>
-                      onNavigateToOrders
-                        ? onNavigateToOrders()
-                        : handleUnavailablePage("Orders")
-                    }
-                    className="hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
-                  >
-                    ORDERS
-                  </button>
-                )}
-                <button
-                  onClick={() =>
-                    onNavigateToAbout
-                      ? onNavigateToAbout()
-                      : handleUnavailablePage("About")
-                  }
-                  className="hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
-                >
-                  ABOUT
-                </button>
-                <button
-                  onClick={() =>
-                    onNavigateToContact
-                      ? onNavigateToContact()
-                      : handleUnavailablePage("Contact")
-                  }
-                  className="hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
-                >
-                  CONTACT
-                </button>
-
-                {/* AUTH BUTTONS - Desktop */}
+            {/* RIGHT: Auth + Cart */}
+            <div className="flex items-center gap-3 z-10">
+              {/* Desktop Auth Buttons */}
+              <div className="hidden lg:flex items-center gap-6">
                 {user ? (
                   <>
-                    <span className="text-white px-1 lg:px-2 py-2 flex items-center text-xs whitespace-nowrap">
-                      HEY,{" "}
-                      <span className="text-[#b90e0a] ml-1">
+                    <span className="text-white text-base font-medium flex items-center">
+                      Hey,{" "}
+                      <span className="text-[#b90e0a] ml-1 font-bold">
                         {formatDisplayName(user.name)}
                       </span>
                     </span>
                     <button
                       onClick={logout}
-                      className="hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg flex items-center gap-1 whitespace-nowrap"
+                      className="text-white hover:text-[#b90e0a] transition-colors duration-300 flex items-center gap-2 text-base font-medium"
                     >
-                      <LogOut size={14} className="lg:w-4 lg:h-4" />
-                      <span className="text-xs">LOGOUT</span>
+                      <LogOut size={18} />
+                      <span>Logout</span>
                     </button>
                   </>
                 ) : (
                   <>
                     <button
                       onClick={() => onNavigateToLogin()}
-                      className="hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap text-xs"
+                      className="text-white hover:text-[#b90e0a] transition-colors duration-300 text-base font-bold"
                     >
-                      LOGIN
+                      Login
                     </button>
                     <button
                       onClick={() => onNavigateToSignup()}
-                      className="bg-[#b90e0a] hover:bg-[#b90e0a]/80 transition-colors duration-300 px-2 lg:px-3 py-2 rounded-lg ml-1 whitespace-nowrap text-xs"
+                      className="bg-[#b90e0a] hover:bg-[#8a0a08] transition-colors duration-300 px-5 py-2.5 rounded-full text-base font-bold text-white"
                     >
-                      SIGN UP
+                      Sign Up
                     </button>
                   </>
                 )}
@@ -562,137 +453,138 @@ export default function ProductMenuPage({
 
               {/* Hamburger Menu Button (Mobile/Tablet) */}
               <button
-                className="lg:hidden text-white hover:text-[#b90e0a] transition-colors p-2 -mr-2"
+                className="lg:hidden text-white hover:text-[#b90e0a] transition-colors p-1.5"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label="Toggle menu"
               >
                 {mobileMenuOpen ? (
-                  <X size={24} className="sm:w-7 sm:h-7" />
+                  <X size={20} className="sm:w-6 sm:h-6" />
                 ) : (
-                  <Menu size={24} className="sm:w-7 sm:h-7" />
+                  <Menu size={20} className="sm:w-6 sm:h-6" />
                 )}
               </button>
             </div>
           </div>
+        </div>
+      </nav>
 
-          {/* Mobile Menu (Animated) */}
-          {mobileMenuOpen && (
-            <div className="lg:hidden mt-4 pb-4 space-y-2 border-t border-white/10 pt-4 animate-fadeIn">
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-[100] animate-fadeIn">
+          <div 
+            className="absolute inset-0 bg-black/90 backdrop-blur-md"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          
+          <div className="relative h-full flex flex-col pt-16 px-5 pb-6 overflow-y-auto">
+            <button
+              className="absolute top-4 right-4 text-white hover:text-[#b90e0a] transition-colors p-1.5"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-label="Close menu"
+            >
+              <X size={24} />
+            </button>
+
+            <div className="space-y-1">
               <button
                 onClick={() => {
                   onBackToMain();
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold"
               >
-                HOME
+                Home
               </button>
               <button
                 onClick={() => {
-                  if (onNavigateToShop) {
-                    onNavigateToShop();
-                  } else {
-                    handleUnavailablePage("Shop");
-                  }
+                  if (onNavigateToShop) onNavigateToShop();
+                  else handleUnavailablePage("Shop");
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold"
               >
-                SHOP
+                Shop
               </button>
               {user && (
                 <button
                   onClick={() => {
-                    if (onNavigateToOrders) {
-                      onNavigateToOrders();
-                    } else {
-                      handleUnavailablePage("Orders");
-                    }
+                    if (onNavigateToOrders) onNavigateToOrders();
+                    else handleUnavailablePage("Orders");
                     setMobileMenuOpen(false);
                   }}
-                  className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                  className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold"
                 >
-                  ORDERS
+                  Orders
                 </button>
               )}
               <button
                 onClick={() => {
-                  if (onNavigateToAbout) {
-                    onNavigateToAbout();
-                  } else {
-                    handleUnavailablePage("About");
-                  }
+                  if (onNavigateToAbout) onNavigateToAbout();
+                  else handleUnavailablePage("About");
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold"
               >
-                ABOUT
+                About
               </button>
               <button
                 onClick={() => {
-                  if (onNavigateToContact) {
-                    onNavigateToContact();
-                  } else {
-                    handleUnavailablePage("Contact");
-                  }
+                  if (onNavigateToContact) onNavigateToContact();
+                  else handleUnavailablePage("Contact");
                   setMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold"
               >
-                CONTACT
+                Contact
               </button>
-
-              {/* AUTH SECTION - Mobile */}
-              <div className="border-t border-white/10 pt-3 mt-3">
-                {user ? (
-                  <>
-                    <div className="text-white px-4 py-2 mb-2 text-sm">
-                      HEY,{" "}
-                      <span className="text-[#b90e0a]">
-                        {formatDisplayName(user.name)}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => {
-                        logout();
-                        setMobileMenuOpen(false);
-                      }}
-                      className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg flex items-center gap-2 text-base font-semibold"
-                    >
-                      <LogOut size={18} />
-                      LOGOUT
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => {
-                        onNavigateToLogin();
-                        setMobileMenuOpen(false);
-                      }}
-                      className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
-                    >
-                      LOGIN
-                    </button>
-                    <button
-                      onClick={() => {
-                        onNavigateToSignup();
-                        setMobileMenuOpen(false);
-                      }}
-                      className="w-full bg-[#b90e0a] hover:bg-[#b90e0a]/80 transition-colors duration-300 px-4 py-2.5 rounded-lg text-center mt-2 text-base font-semibold"
-                    >
-                      SIGN UP
-                    </button>
-                  </>
-                )}
-              </div>
             </div>
-          )}
-        </div>
-      </nav>
 
-      {/* FULL-WIDTH HERO SLIDESHOW */}
-      <div className="relative h-[500px] sm:h-[600px] md:h-[700px] lg:h-[750px] overflow-hidden">
+            <div className="border-t border-white/20 pt-4 mt-4">
+              {user ? (
+                <>
+                  <div className="text-white px-3 py-2 mb-1 text-sm font-medium">
+                    Hey, <span className="text-[#b90e0a] font-bold">{formatDisplayName(user.name)}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      logout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg flex items-center gap-2 text-base font-bold"
+                  >
+                    <LogOut size={18} />
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <div className="space-y-2 px-3">
+                  <button
+                    onClick={() => {
+                      onNavigateToLogin();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="block w-full text-center text-white hover:text-[#b90e0a] transition-colors duration-300 py-3 border border-white/20 rounded-full text-sm font-bold"
+                  >
+                    Login
+                  </button>
+                  <button
+                    onClick={() => {
+                      onNavigateToSignup();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full bg-[#b90e0a] hover:bg-[#8a0a08] transition-colors duration-300 py-3 rounded-full text-center text-sm font-bold text-white"
+                  >
+                    Sign Up
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hero Slideshow */}
+      <section className="relative h-[260px] sm:h-[320px] md:h-[380px] lg:h-[440px] xl:h-[480px] overflow-hidden">
         {heroSlides.map((slide, index) => (
           <div
             key={slide.id}
@@ -702,87 +594,69 @@ export default function ProductMenuPage({
                 : "opacity-0 scale-105 pointer-events-none z-0"
             }`}
           >
-            {/* Background Image */}
             <div className="absolute inset-0 pointer-events-none bg-black">
               <img
                 src={slide.image}
                 alt={slide.title}
-                className="w-full h-full object-contain"
-                style={{
-                  objectPosition: "center center",
-                }}
-                onError={(e) =>
-                  ((e.currentTarget as HTMLImageElement).style.opacity = "0")
-                }
+                className="w-full h-full object-contain sm:object-cover"
+                style={{ objectPosition: "center center" }}
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/80 to-black/40 md:from-black md:via-black/70 md:to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/50 md:from-black/85 md:via-black/60 md:to-transparent" />
             </div>
 
-            {/* Content - WITH PROPER Z-INDEX AND POINTER EVENTS */}
             <div className="relative h-full flex items-center z-10 pointer-events-none">
-              <div className="container mx-auto px-4 sm:px-6 md:px-8 max-w-7xl">
-                <div className="max-w-3xl lg:max-w-4xl space-y-3 sm:space-y-4 md:space-y-6">
-                  {/* Tag */}
-                  <span className="inline-block bg-[#b90e0a] text-white px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold rounded-full animate-pulse">
+              <div className="w-full px-4 sm:px-6 lg:px-12 max-w-[1600px] mx-auto">
+                <div className="max-w-[90%] sm:max-w-lg md:max-w-xl lg:max-w-2xl space-y-1.5 sm:space-y-2 md:space-y-3 lg:space-y-4 lg:ml-12 xl:ml-20">
+                  <span className="inline-block bg-[#b90e0a] text-white px-2 py-1 sm:px-3 sm:py-1.5 text-[8px] sm:text-[10px] md:text-xs font-bold rounded-full">
                     {slide.tag}
                   </span>
 
-                  {/* Title - Responsive with better sizing */}
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-white leading-tight animate-slide-up font-akira">
+                  <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-black text-white leading-tight font-akira whitespace-nowrap">
                     {slide.title}
                   </h1>
 
-                  {/* Subtitle - Responsive with better sizing */}
-                  <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-[#b90e0a] font-bold animate-slide-up animation-delay-200">
+                  <p className="text-xs sm:text-sm md:text-base lg:text-lg text-[#b90e0a] font-semibold leading-snug">
                     {slide.subtitle}
                   </p>
 
-                  {/* Description */}
-                  <p className="text-xs sm:text-sm md:text-base lg:text-lg text-[#CCCCCC] max-w-xl lg:max-w-3xl animate-slide-up animation-delay-400 leading-relaxed">
+                  <p className="hidden sm:block text-[10px] sm:text-xs md:text-sm lg:text-base text-white/90 max-w-sm lg:max-w-md leading-snug line-clamp-2 md:line-clamp-none font-medium">
                     {slide.description}
                   </p>
 
-                  {/* Price (if available) */}
                   {slide.price && (
-                    <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-white animate-slide-up animation-delay-600">
+                    <div className="text-sm sm:text-base md:text-lg lg:text-xl font-black text-white">
                       {slide.price}
                     </div>
                   )}
 
-                  {/* Dynamic Button - PROPERLY CONFIGURED FOR EACH SLIDE */}
-                  <div className="flex gap-3 sm:gap-4 animate-slide-up animation-delay-800 pointer-events-auto pt-2">
-                    <Button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        
-                        if (slide.buttonAction === "product") {
-                          window.scrollTo({ top: 0, behavior: 'instant' });
-                          onSelectProduct(slide.id);
-                        } else if (slide.buttonAction === "scroll") {
-                          const productsSection = document.querySelector("#products-section");
-                          if (productsSection) {
-                            productsSection.scrollIntoView({
-                              behavior: "smooth",
-                              block: "start",
-                            });
+                    <div className="flex gap-2 pointer-events-auto pt-1">
+                      <Button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (slide.buttonAction === "product") {
+                            window.scrollTo({ top: 0, behavior: 'instant' });
+                            onSelectProduct(slide.id);
+                          } else if (slide.buttonAction === "scroll") {
+                            const productsSection = document.querySelector("#products-section");
+                            if (productsSection) {
+                              productsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+                            }
                           }
-                        }
-                      }}
-                      className="bg-[#b90e0a] hover:bg-[#b90e0a]/80 text-white font-bold px-5 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-4 text-sm sm:text-base md:text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl group cursor-pointer"
-                    >
-                      {slide.buttonText}
-                      <ArrowRight className="w-4 h-4 sm:w-4 sm:h-4 md:w-5 md:h-5 ml-1.5 sm:ml-2 group-hover:translate-x-1 transition-transform inline" />
-                    </Button>
-                  </div>
+                        }}
+                        className="bg-[#b90e0a] hover:bg-[#8a0a08] text-white font-bold px-3 py-2 sm:px-4 sm:py-2.5 md:px-6 md:py-3 text-[10px] sm:text-xs md:text-sm rounded-full transition-all duration-300 hover:scale-105 group"
+                      >
+                        {slide.buttonText}
+                        <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 ml-1 sm:ml-1.5 group-hover:translate-x-1 transition-transform inline" />
+                      </Button>
+                    </div>
                 </div>
               </div>
             </div>
           </div>
         ))}
 
-        {/* Slide Indicators - MOVED OUTSIDE THE LOOP */}
-        <div className="absolute bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 sm:gap-3 z-30 pointer-events-auto">
+        <div className="absolute bottom-3 sm:bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 flex gap-1 sm:gap-1.5 z-30 pointer-events-auto">
           {heroSlides.map((_, idx) => (
             <button
               key={idx}
@@ -792,16 +666,15 @@ export default function ProductMenuPage({
                 setCurrentSlide(idx);
               }}
               aria-label={`Go to slide ${idx + 1}`}
-              className={`h-1.5 sm:h-2 rounded-full transition-all duration-500 cursor-pointer ${
+              className={`h-1 sm:h-1.5 rounded-full transition-all duration-500 cursor-pointer ${
                 idx === currentSlide
-                  ? "w-8 sm:w-12 bg-[#b90e0a] shadow-lg shadow-[#b90e0a]/50"
-                  : "w-1.5 sm:w-2 bg-white/30 hover:bg-white/50"
+                  ? "w-5 sm:w-7 bg-[#b90e0a] shadow-lg shadow-[#b90e0a]/50"
+                  : "w-1 sm:w-1.5 bg-white/30 hover:bg-white/50"
               }`}
             />
           ))}
         </div>
 
-        {/* Navigation Arrows - MOVED OUTSIDE THE LOOP */}
         <button
           onClick={(e) => {
             e.preventDefault();
@@ -809,9 +682,9 @@ export default function ProductMenuPage({
             setCurrentSlide(currentSlide === 0 ? heroSlides.length - 1 : currentSlide - 1);
           }}
           aria-label="Previous slide"
-          className="absolute left-2 sm:left-4 md:left-8 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-[#b90e0a] p-2 sm:p-3 rounded-full transition-all duration-300 hover:scale-110 z-30 cursor-pointer backdrop-blur-sm pointer-events-auto"
+          className="hidden sm:flex absolute left-2 sm:left-3 md:left-6 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-[#b90e0a] p-1.5 sm:p-2 rounded-full transition-all duration-300 hover:scale-110 z-30 cursor-pointer backdrop-blur-sm pointer-events-auto"
         >
-          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+          <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-white" />
         </button>
         <button
           onClick={(e) => {
@@ -820,658 +693,531 @@ export default function ProductMenuPage({
             setCurrentSlide(currentSlide === heroSlides.length - 1 ? 0 : currentSlide + 1);
           }}
           aria-label="Next slide"
-          className="absolute right-2 sm:right-4 md:right-8 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-[#b90e0a] p-2 sm:p-3 rounded-full transition-all duration-300 hover:scale-110 z-30 cursor-pointer backdrop-blur-sm pointer-events-auto"
+          className="hidden sm:flex absolute right-2 sm:right-3 md:right-6 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-[#b90e0a] p-1.5 sm:p-2 rounded-full transition-all duration-300 hover:scale-110 z-30 cursor-pointer backdrop-blur-sm pointer-events-auto"
         >
-          <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+          <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-white" />
         </button>
-      </div>
+      </section>
 
-      {/* HORIZONTAL SCROLLING MARQUEE */}
-      <div className="relative z-10 w-full py-6 overflow-hidden border-y border-white/10 bg-black/50">
-        <div className="flex">
-          <div className="flex whitespace-nowrap animate-scroll-seamless">
-            {[...Array(15)].map((_, i) => (
-              <div
-                key={`scroll-1-${i}`}
-                className="flex items-center flex-shrink-0"
-              >
-                <span className="text-2xl md:text-4xl font-black text-white/10 mx-6">
-                  DIVINITY IN DRIP
-                </span>
-                <span className="text-2xl md:text-4xl font-black text-[#b90e0a]/30 mx-6">
-                  ★
-                </span>
-                <span className="text-2xl md:text-4xl font-black text-white/10 mx-6">
-                  HEAVEN MISPLACED
-                </span>
-                <span className="text-2xl md:text-4xl font-black text-[#b90e0a]/30 mx-6">
-                  ★
-                </span>
-              </div>
-            ))}
-          </div>
-          <div
-            className="flex whitespace-nowrap animate-scroll-seamless"
-            aria-hidden="true"
-          >
-            {[...Array(15)].map((_, i) => (
-              <div
-                key={`scroll-2-${i}`}
-                className="flex items-center flex-shrink-0"
-              >
-                <span className="text-2xl md:text-4xl font-black text-white/10 mx-6">
-                  DIVINITY IN DRIP
-                </span>
-                <span className="text-2xl md:text-4xl font-black text-[#b90e0a]/30 mx-6">
-                  ★
-                </span>
-                <span className="text-2xl md:text-4xl font-black text-white/10 mx-6">
-                  HEAVEN MISPLACED
-                </span>
-                <span className="text-2xl md:text-4xl font-black text-[#b90e0a]/30 mx-6">
-                  ★
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* MAIN CONTENT */}
-      <div className="relative z-10 w-full px-6 md:px-12 lg:px-24 py-16">
-        {/* COLLECTION HEADER */}
-        <section id="products-section" className="py-16 px-4 bg-black">
-          <div className="max-w-7xl mx-auto text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-4 font-akira">
-              <span className="text-[#b90e0a]">ASTITVA</span> ACT-I
+      {/* Main Content */}
+      <main className="relative z-10">
+        {/* Collection Header */}
+        <section 
+          id="products-section"
+          ref={(el) => { if (el) sectionRefs.current["products-section"] = el; }}
+          className={`bg-[#fafafa] pt-10 sm:pt-12 lg:pt-16 pb-5 sm:pb-8 px-5 sm:px-8 lg:px-12 max-w-[1600px] mx-auto transition-all duration-1000 ${
+            visibleSections.has("products-section") || skipAnimations
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-8"
+          }`}
+        >
+          <div className="text-center mb-5 sm:mb-8">
+            <span className="text-[#b90e0a] font-semibold tracking-[0.12em] text-[9px] sm:text-[10px] uppercase mb-2 block">The Collection</span>
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black mb-2 sm:mb-3 font-akira text-[#0a0a0a] tracking-tight">
+              ASTITVA <span className="text-[#b90e0a]">ACT-I</span>
             </h2>
-            <div className="w-32 h-1 bg-[#b90e0a] mx-auto mb-6" />
-            <p className="text-[#808088] text-lg max-w-2xl mx-auto leading-relaxed">
-              Statement pieces crafted for those who dare to stand out. Each
-              design tells a story of divinity and existence.
+            <p className="text-[#4a4a4a] text-[10px] sm:text-xs lg:text-sm max-w-md mx-auto leading-snug font-medium">
+              Statement pieces crafted for those who dare to stand out.
             </p>
+          </div>
+
+          {/* Category Filter */}
+          <div className="flex justify-center gap-2 sm:gap-2.5 flex-wrap">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full font-bold text-[10px] sm:text-xs tracking-wide transition-all duration-300 hover:scale-105 ${
+                  selectedCategory === category
+                    ? "bg-[#0a0a0a] text-white shadow-md"
+                    : "bg-white text-[#3a3a3a] hover:bg-[#0a0a0a] hover:text-white border border-neutral-200 shadow-sm"
+                }`}
+              >
+                {category}
+              </button>
+            ))}
           </div>
         </section>
 
-        {/* CATEGORY FILTER */}
-        <div className="flex justify-center gap-3 mb-12 flex-wrap px-4">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-6 py-3 rounded-full font-bold transition-all duration-300 ${
-                selectedCategory === category
-                  ? "bg-[#b90e0a] text-white scale-105 shadow-lg"
-                  : "bg-[#28282B] text-white hover:bg-[#b90e0a]/20 hover:scale-105"
-              }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-
-        {/* PRODUCT GRID - ENHANCED */}
-        <div className="flex flex-wrap justify-center gap-3 md:gap-4 lg:gap-6 max-w-7xl mx-auto mb-24 px-4">
-          {filteredProducts.map((product, index) => (
-            <div
-              key={product.id}
-              className="w-[calc(50%-0.375rem)] md:w-[calc(33.333%-0.67rem)] lg:w-[calc(25%-1.125rem)] max-w-[240px] md:max-w-[260px] lg:max-w-[280px] group relative bg-[#28282B] rounded-xl overflow-hidden border border-[#808088]/20 hover:border-[#b90e0a] transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#b90e0a]/20"
-              onMouseEnter={() => setHoveredProduct(product.id)}
-              onMouseLeave={() => setHoveredProduct(null)}
-            >
-              {/* Product Image */}
-              <div className="aspect-square bg-[#1a1a1a] relative overflow-hidden">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
-                  onError={(e) =>
-                    ((e.currentTarget as HTMLImageElement).style.opacity = "0")
-                  }
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
-
-                {/* Tag Badge */}
-                <div className="absolute top-3 left-3">
-                  <span className="bg-[#b90e0a] text-white px-2 py-1 text-xs font-bold rounded-full">
-                    {product.tag}
-                  </span>
-                </div>
-
-                {/* Hover Overlay */}
-                <div
-                  className={`absolute inset-0 bg-black/80 flex items-center justify-center transition-opacity duration-300 ${
-                    hoveredProduct === product.id ? "opacity-100" : "opacity-0"
-                  }`}
-                >
-                  <Button
-                    onClick={() => {
-                      window.scrollTo({ top: 0, behavior: 'instant' });
-                      onSelectProduct(product.id);
-                    }}
-                    className="bg-[#b90e0a] hover:bg-[#b90e0a]/80 text-white font-bold px-4 py-2 text-sm transition-all duration-300 hover:scale-110"
-                  >
-                    VIEW DETAILS
-                  </Button>
-                </div>
-              </div>
-
-              {/* Product Info */}
-              <div className="p-3 md:p-4 space-y-1 md:space-y-2">
-                <h3 className="text-sm md:text-base lg:text-lg font-black group-hover:text-[#b90e0a] transition-colors duration-300 line-clamp-1">
-                  {product.name}
-                </h3>
-                <p className="text-[#808088] text-xs md:text-sm line-clamp-2">
-                  {product.description}
-                </p>
-                {product.originalPrice && product.salePrice ? (
-                  <div className="space-y-1 pt-1 md:pt-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
-                        <span className="text-base md:text-lg lg:text-xl font-bold text-[#b90e0a]">
-                          {product.salePrice}
-                        </span>
-                        <span className="text-xs md:text-base text-[#808088] line-through">
-                          {product.originalPrice}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => {
-                          window.scrollTo({ top: 0, behavior: 'instant' });
-                          onSelectProduct(product.id);
-                        }}
-                        className="text-[#b90e0a] hover:text-[#b90e0a]/80 transition-colors duration-300 flex-shrink-0"
-                      >
-                        <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
-                      </button>
-                    </div>
-                    <Badge className="bg-green-500 text-white px-2 py-0.5 text-[10px] md:text-xs font-bold w-fit">
-                      {Math.round(
-                        ((parseFloat(
-                          product.originalPrice.replace(/[₹,]/g, "")
-                        ) -
-                          parseFloat(product.salePrice.replace(/[₹,]/g, ""))) /
-                          parseFloat(
-                            product.originalPrice.replace(/[₹,]/g, "")
-                          )) *
-                          100
-                      )}
-                      % OFF
+        {/* Product Grid */}
+        <section 
+          id="product-grid"
+          ref={(el) => { if (el) sectionRefs.current["product-grid"] = el; }}
+          className={`bg-[#fafafa] px-5 sm:px-8 lg:px-12 max-w-[1600px] mx-auto pb-10 sm:pb-14 lg:pb-20 transition-all duration-1000 delay-100 ${
+            visibleSections.has("product-grid") || skipAnimations
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-8"
+          }`}
+        >
+          <div className="flex flex-wrap justify-center gap-3 sm:gap-4 lg:gap-5">
+            {filteredProducts.map((product, index) => (
+              <div
+                key={product.id}
+                className="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-neutral-100 w-[calc(50%-6px)] sm:w-[calc(50%-8px)] lg:w-[calc(25%-15px)] max-w-[280px]"
+                onClick={() => {
+                  window.scrollTo({ top: 0, behavior: 'instant' });
+                  onSelectProduct(product.id);
+                }}
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div className="relative bg-[#f5f5f5] aspect-square overflow-hidden">
+                  <div className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 z-10 flex flex-col gap-1 sm:gap-1.5 items-start">
+                    {product.originalPrice && product.salePrice && (
+                      <Badge className="bg-gradient-to-r from-[#4CAF50] to-[#2E7D32] text-white border-none shadow-sm font-bold rounded-full uppercase text-[7px] sm:text-[9px] px-1.5 sm:px-2 py-0.5 sm:py-1 animate-pulse">
+                        {Math.round(
+                          ((parseFloat(product.originalPrice.replace(/[₹,]/g, "")) -
+                            parseFloat(product.salePrice.replace(/[₹,]/g, ""))) /
+                            parseFloat(product.originalPrice.replace(/[₹,]/g, ""))) *
+                            100
+                        )}% OFF
+                      </Badge>
+                    )}
+                    <Badge className="bg-white/95 backdrop-blur-sm text-[#0a0a0a] hover:bg-white border-none shadow-sm font-bold tracking-wider rounded-full uppercase text-[6px] sm:text-[8px] px-1.5 sm:px-2 py-0.5">
+                      {product.tag}
                     </Badge>
                   </div>
-                ) : (
-                  <div className="flex items-center justify-between pt-1 md:pt-2">
-                    <span className="text-base md:text-lg lg:text-xl font-bold text-white">
-                      {product.price}
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
+                    <span className="text-white font-bold text-[10px] sm:text-xs tracking-wider uppercase bg-[#b90e0a] px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-lg transform translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500">
+                      View Details
                     </span>
-                    <button
-                      onClick={() => {
-                        window.scrollTo({ top: 0, behavior: 'instant' });
-                        onSelectProduct(product.id);
-                      }}
-                      className="text-[#b90e0a] hover:text-[#b90e0a]/80 transition-colors duration-300"
-                    >
-                      <ArrowRight className="w-5 h-5" />
-                    </button>
                   </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* FEATURES SECTION - ENHANCED WITH 4 CARDS */}
-        <div className="max-w-7xl mx-auto mb-24">
-          <div className="text-center mb-12">
-            <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-4 font-akira">
-              WHY <span className="text-[#b90e0a]">KALLKEYY</span> ?
-            </h3>
-            <div className="w-24 h-1 bg-[#b90e0a] mx-auto" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featureCards.map((card, i) => (
-              <div
-                key={i}
-                className="group relative bg-gradient-to-br from-[#28282B] to-[#1C1C21] rounded-xl p-8 border border-white/10 hover:border-[#b90e0a]/50 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-[#b90e0a]/10"
-              >
-                <div className="text-[#b90e0a] mb-4 group-hover:scale-110 transition-transform duration-300">
-                  {card.icon}
                 </div>
-                <h4 className="text-lg font-bold mb-2 group-hover:text-[#b90e0a] transition-colors">
-                  {card.title}
-                </h4>
-                <p className="text-[#808088] text-sm mb-3 leading-relaxed">
-                  {card.description}
-                </p>
-                <div className="text-xs text-[#b90e0a] font-semibold">
-                  {card.highlight}
+                <div className="p-2.5 sm:p-3 bg-white">
+                  <h4 className="text-[10px] sm:text-xs md:text-sm font-bold font-akira group-hover:text-[#b90e0a] transition-colors text-[#0a0a0a] truncate">
+                    {product.name}
+                  </h4>
+                  <p className="text-[8px] sm:text-[10px] md:text-xs text-[#5a5a5a] font-medium mt-0.5 mb-1 sm:mb-1.5 line-clamp-1">{product.category}</p>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-black text-xs sm:text-sm md:text-base text-[#0a0a0a]">{product.salePrice || product.price}</span>
+                    {product.originalPrice && (
+                      <span className="text-[8px] sm:text-[10px] md:text-xs text-[#8a8a8a] line-through">{product.originalPrice}</span>
+                    )}
+                  </div>
                 </div>
-
-                {/* Animated corner accent */}
-                <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-[#b90e0a]/0 group-hover:border-[#b90e0a] transition-all duration-300" />
               </div>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* BRAND STORY SECTION - ENHANCED */}
-        <div className="max-w-7xl mx-auto mb-24">
-          <div className="relative bg-gradient-to-br from-[#28282B] via-[#1C1C21] to-[#28282B] rounded-3xl p-8 md:p-16 border border-white/10 overflow-hidden">
-            {/* Decorative background pattern */}
-            <div className="absolute inset-0 opacity-5">
-              {[...Array(20)].map((_, i) => (
-                <div
-                  key={`bg-pattern-${i}`}
-                  className="absolute w-32 h-32 border border-white/20 rounded-full"
-                  style={{
-                    top: `${Math.random() * 100}%`,
-                    left: `${Math.random() * 100}%`,
-                  }}
-                />
-              ))}
+        {/* Why KALLKEYY Section */}
+        <section 
+          id="why-kallkeyy"
+          ref={(el) => { if (el) sectionRefs.current["why-kallkeyy"] = el; }}
+          className={`bg-[#f0f0f0] py-10 sm:py-14 lg:py-20 transition-all duration-1000 delay-200 ${
+            visibleSections.has("why-kallkeyy") || skipAnimations
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-8"
+          }`}
+        >
+          <div className="px-5 sm:px-8 lg:px-12 max-w-[1400px] mx-auto">
+            <div className="text-center mb-6 sm:mb-10 lg:mb-12">
+              <span className="text-[#b90e0a] font-semibold tracking-[0.12em] text-[9px] sm:text-[10px] uppercase mb-2 block">The Difference</span>
+              <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black font-akira mb-2 sm:mb-3 text-[#0a0a0a] tracking-tight">
+                WHY <span className="text-[#b90e0a]">KALLKEYY</span>?
+              </h3>
+              <p className="text-[#4a4a4a] text-[10px] sm:text-xs lg:text-sm max-w-md mx-auto leading-snug font-medium">
+                We don't chase trends — we craft identity.
+              </p>
             </div>
 
-            <div className="relative z-10">
-              <div className="text-center mb-12">
-                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-4 font-akira">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+              <div className="group bg-white rounded-xl p-4 sm:p-5 shadow-sm hover:shadow-lg transition-all duration-500 hover:-translate-y-1 border border-neutral-100">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-[#b90e0a] to-[#8a0a08] rounded-lg flex items-center justify-center mb-3 text-white group-hover:scale-110 transition-transform duration-300">
+                  <Shield className="w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
+                <h4 className="text-[11px] sm:text-xs md:text-sm font-semibold text-[#0a0a0a] mb-1 group-hover:text-[#b90e0a] transition-colors">Premium Quality</h4>
+                <p className="text-[8px] sm:text-[9px] lg:text-[10px] text-[#5a5a5a] leading-snug font-medium">
+                  350gsm French Terry cotton. Built to last.
+                </p>
+              </div>
+              <div className="group bg-white rounded-xl p-4 sm:p-5 shadow-sm hover:shadow-lg transition-all duration-500 hover:-translate-y-1 border border-neutral-100">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-[#b90e0a] to-[#8a0a08] rounded-lg flex items-center justify-center mb-3 text-white group-hover:scale-110 transition-transform duration-300">
+                  <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
+                <h4 className="text-[11px] sm:text-xs md:text-sm font-semibold text-[#0a0a0a] mb-1 group-hover:text-[#b90e0a] transition-colors">Limited Drops</h4>
+                <p className="text-[8px] sm:text-[9px] lg:text-[10px] text-[#5a5a5a] leading-snug font-medium">
+                  Small batches. Rare and exclusive.
+                </p>
+              </div>
+              <div className="group bg-white rounded-xl p-4 sm:p-5 shadow-sm hover:shadow-lg transition-all duration-500 hover:-translate-y-1 border border-neutral-100">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-[#b90e0a] to-[#8a0a08] rounded-lg flex items-center justify-center mb-3 text-white group-hover:scale-110 transition-transform duration-300">
+                  <Star className="w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
+                <h4 className="text-[11px] sm:text-xs md:text-sm font-semibold text-[#0a0a0a] mb-1 group-hover:text-[#b90e0a] transition-colors">Authentic Design</h4>
+                <p className="text-[8px] sm:text-[9px] lg:text-[10px] text-[#5a5a5a] leading-snug font-medium">
+                  Street culture meets mythology.
+                </p>
+              </div>
+              <div className="group bg-white rounded-xl p-4 sm:p-5 shadow-sm hover:shadow-lg transition-all duration-500 hover:-translate-y-1 border border-neutral-100">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-[#b90e0a] to-[#8a0a08] rounded-lg flex items-center justify-center mb-3 text-white group-hover:scale-110 transition-transform duration-300">
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
+                <h4 className="text-[11px] sm:text-xs md:text-sm font-semibold text-[#0a0a0a] mb-1 group-hover:text-[#b90e0a] transition-colors">Community First</h4>
+                <p className="text-[8px] sm:text-[9px] lg:text-[10px] text-[#5a5a5a] leading-snug font-medium">
+                  Your voice shapes our direction.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Design Process Section - Inspired by kallkeyy.com */}
+        <section 
+          id="design-process"
+          ref={(el) => { if (el) sectionRefs.current["design-process"] = el; }}
+          className={`bg-[#111111] text-white py-12 sm:py-16 lg:py-20 relative overflow-hidden transition-all duration-1000 delay-300 ${
+            visibleSections.has("design-process") || skipAnimations
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-8"
+          }`}
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(185,14,10,0.08),transparent_70%)]"></div>
+          <div className="px-5 sm:px-8 lg:px-12 max-w-[1400px] mx-auto relative z-10">
+            <div className="text-center mb-8 sm:mb-10 lg:mb-14">
+              <span className="text-[#b90e0a] font-semibold tracking-[0.12em] text-[9px] sm:text-[10px] uppercase mb-2 block">How We Create</span>
+              <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black font-akira mb-2 sm:mb-3 tracking-tight">
+                THE <span className="text-[#b90e0a]">PROCESS</span>
+              </h3>
+              <p className="text-gray-400 text-[10px] sm:text-xs lg:text-sm max-w-md mx-auto leading-snug font-medium">
+                From mythology to streetwear — every piece tells a story.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+              {/* Step 1 */}
+              <div className="group bg-white/5 backdrop-blur-sm rounded-xl p-4 sm:p-5 border border-white/10 hover:border-[#b90e0a]/30 hover:bg-white/10 transition-all duration-500 hover:-translate-y-1">
+                <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                  <span className="text-xl sm:text-2xl font-black text-[#b90e0a] font-akira">01</span>
+                  <div className="h-px flex-1 bg-gradient-to-r from-[#b90e0a]/50 to-transparent"></div>
+                </div>
+                <h4 className="text-xs sm:text-sm font-semibold mb-1.5 group-hover:text-[#b90e0a] transition-colors">Mythology Research</h4>
+                <p className="text-gray-400 text-[8px] sm:text-[9px] lg:text-[10px] leading-snug font-medium">
+                  Deep dive into ancient tales that resonate with modern rebellion.
+                </p>
+              </div>
+              {/* Step 2 */}
+              <div className="group bg-white/5 backdrop-blur-sm rounded-xl p-4 sm:p-5 border border-white/10 hover:border-[#b90e0a]/30 hover:bg-white/10 transition-all duration-500 hover:-translate-y-1">
+                <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                  <span className="text-xl sm:text-2xl font-black text-[#b90e0a] font-akira">02</span>
+                  <div className="h-px flex-1 bg-gradient-to-r from-[#b90e0a]/50 to-transparent"></div>
+                </div>
+                <h4 className="text-xs sm:text-sm font-semibold mb-1.5 group-hover:text-[#b90e0a] transition-colors">Design & Sketch</h4>
+                <p className="text-gray-400 text-[8px] sm:text-[9px] lg:text-[10px] leading-snug font-medium">
+                  Hand-drawn artwork refined digitally. Every line carries intent.
+                </p>
+              </div>
+              {/* Step 3 */}
+              <div className="group bg-white/5 backdrop-blur-sm rounded-xl p-4 sm:p-5 border border-white/10 hover:border-[#b90e0a]/30 hover:bg-white/10 transition-all duration-500 hover:-translate-y-1">
+                <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                  <span className="text-xl sm:text-2xl font-black text-[#b90e0a] font-akira">03</span>
+                  <div className="h-px flex-1 bg-gradient-to-r from-[#b90e0a]/50 to-transparent"></div>
+                </div>
+                <h4 className="text-xs sm:text-sm font-semibold mb-1.5 group-hover:text-[#b90e0a] transition-colors">Premium Production</h4>
+                <p className="text-gray-400 text-[8px] sm:text-[9px] lg:text-[10px] leading-snug font-medium">
+                  350gsm cotton, screen-printed graphics, quality checks.
+                </p>
+              </div>
+              {/* Step 4 */}
+              <div className="group bg-white/5 backdrop-blur-sm rounded-xl p-4 sm:p-5 border border-white/10 hover:border-[#b90e0a]/30 hover:bg-white/10 transition-all duration-500 hover:-translate-y-1">
+                <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                  <span className="text-xl sm:text-2xl font-black text-[#b90e0a] font-akira">04</span>
+                  <div className="h-px flex-1 bg-gradient-to-r from-[#b90e0a]/50 to-transparent"></div>
+                </div>
+                <h4 className="text-xs sm:text-sm font-semibold mb-1.5 group-hover:text-[#b90e0a] transition-colors">Limited Drop</h4>
+                <p className="text-gray-400 text-[8px] sm:text-[9px] lg:text-[10px] leading-snug font-medium">
+                  Small batches ensure exclusivity. When it's gone, it's gone.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Our Story Section - Light Theme */}
+        <section 
+          id="our-story"
+          ref={(el) => { if (el) sectionRefs.current["our-story"] = el; }}
+          className={`bg-[#f5f5f5] py-12 sm:py-16 lg:py-24 transition-all duration-1000 delay-400 ${
+            visibleSections.has("our-story") || skipAnimations
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-8"
+          }`}
+        >
+          <div className="px-5 sm:px-8 lg:px-12 max-w-[1200px] mx-auto">
+            {/* Card Container */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-10 lg:p-14 border border-neutral-200 shadow-sm">
+              {/* Centered Heading */}
+              <div className="text-center mb-8 sm:mb-10 lg:mb-12">
+                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black font-akira text-[#0a0a0a] tracking-tight">
                   OUR <span className="text-[#b90e0a]">STORY</span>
                 </h3>
-                <div className="w-24 h-1 bg-[#b90e0a] mx-auto mb-6" />
+                <div className="w-16 sm:w-20 h-0.5 bg-[#b90e0a] mx-auto mt-3 sm:mt-4"></div>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-12 items-center">
-                <div className="space-y-6">
-                  <p className="text-[#CCCCCC] text-lg leading-relaxed">
-                    Streetwear has always been loud, but it never spoke our
-                    language. Inspired by the raw energy of urban culture, we
-                    create pieces that speak to those who refuse to blend in,
-                    who wear their identity with pride.
-                    <br />
-                    <br />
-                    We created KALLKEYY to fill a void – to bring you streetwear
-                    that’s not just about fashion, but about making a statement.
+              {/* 50/50 Content Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-10 lg:gap-14 items-center">
+                {/* Left - Text Content */}
+                <div className="space-y-3 sm:space-y-4">
+                  <p className="text-[#2a2a2a] text-xs sm:text-sm lg:text-base leading-snug font-medium">
+                    Streetwear has always been loud, but it never spoke our language. Inspired by the raw energy of urban culture, we create pieces that speak to those who refuse to blend in.
                   </p>
-                  <p className="text-[#808088] text-base leading-relaxed">
-                    Every stitch, every design choice is intentional. We're not
-                    just making clothes – we're crafting statements, building a
-                    movement, and redefining what streetwear means.
+                  <p className="text-[#3a3a3a] text-xs sm:text-sm lg:text-base leading-snug font-medium">
+                    We created KALLKEYY to fill a void – streetwear that's not just fashion, but a statement.
                   </p>
-                  <div className="flex flex-wrap gap-4 pt-4">
-                    <div className="bg-black/50 px-6 py-3 rounded-full border border-[#b90e0a]/30">
-                      <span className="text-[#b90e0a] font-bold">
-                        EST. 2025
-                      </span>
-                    </div>
-                    <div className="bg-black/50 px-6 py-3 rounded-full border border-[#b90e0a]/30">
-                      <span className="text-white font-bold">
-                        100% AUTHENTIC
-                      </span>
-                    </div>
-                    <div className="bg-black/50 px-6 py-3 rounded-full border border-[#b90e0a]/30">
-                      <span className="text-white font-bold">STREETWEAR</span>
-                    </div>
+                  <p className="text-[#5a5a5a] text-[11px] sm:text-xs lg:text-sm leading-snug font-medium">
+                    Every stitch, every design choice is intentional. We're crafting statements, building a movement, and redefining streetwear.
+                  </p>
+                  
+                  {/* Tags */}
+                  <div className="flex flex-nowrap gap-1.5 sm:gap-3 pt-2 sm:pt-4">
+                    <span className="border border-[#b90e0a] text-[#b90e0a] px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-full text-[8px] sm:text-xs font-semibold tracking-wide hover:bg-[#b90e0a] hover:text-white transition-all duration-300 whitespace-nowrap">EST. 2025</span>
+                    <span className="bg-[#b90e0a] text-white px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-full text-[8px] sm:text-xs font-semibold tracking-wide hover:bg-[#8a0a08] transition-all duration-300 whitespace-nowrap">100% AUTHENTIC</span>
+                    <span className="bg-[#b90e0a] text-white px-2.5 sm:px-5 py-1.5 sm:py-2.5 rounded-full text-[8px] sm:text-xs font-semibold tracking-wide hover:bg-[#8a0a08] transition-all duration-300 whitespace-nowrap">STREETWEAR</span>
                   </div>
                 </div>
 
+                {/* Right - Dark Card with Gradient */}
                 <div className="relative">
-                  <div className="aspect-square rounded-2xl bg-gradient-to-br from-[#b90e0a]/20 to-transparent border border-[#b90e0a]/30 flex items-center justify-center">
-                    <TrendingUp className="w-24 h-24 text-[#b90e0a]/40" />
-                  </div>
-                  <div className="absolute -bottom-4 -right-4 bg-[#b90e0a] text-white px-6 py-3 rounded-xl font-bold shadow-2xl">
-                    GROWING COMMUNITY
+                  <div className="aspect-[4/3] bg-gradient-to-br from-[#1a1a1a] via-[#0f0f0f] to-[#1a1a1a] rounded-xl sm:rounded-2xl border border-neutral-300 overflow-hidden relative group shadow-lg">
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#b90e0a]/5 via-transparent to-[#b90e0a]/10"></div>
+                    
+                    {/* Arrow Icon */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <svg 
+                        className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 text-[#b90e0a]/60 group-hover:text-[#b90e0a] group-hover:scale-110 transition-all duration-500" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 17V7" />
+                      </svg>
+                    </div>
+                    
+                    {/* Growing Community Button */}
+                    <div className="absolute bottom-4 right-4">
+                      <button 
+                        onClick={onBackToMain}
+                        className="bg-[#b90e0a] hover:bg-[#8a0a08] text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg text-[10px] sm:text-xs font-bold tracking-wider uppercase transition-all duration-300 hover:scale-105 shadow-lg"
+                      >
+                        GROWING COMMUNITY
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* INSTAGRAM REELS SECTION - ALL 4 IN ONE LINE + MOBILE RESPONSIVE */}
-        {/* INSTAGRAM REELS - 320px DESKTOP, SCALED ON MOBILE */}
-        <div className="w-full mx-auto mb-24 px-4">
-          <div className="text-center mb-12">
-            <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-4 font-akira">
-              FOLLOW <span className="text-[#b90e0a]">OUR JOURNEY</span>
-            </h3>
-            <div className="w-24 h-1 bg-[#b90e0a] mx-auto mb-4" />
-            <p className="text-[#808088] text-base md:text-lg">
-              Check out our latest drops and behind-the-scenes content
-            </p>
-          </div>
+        {/* Instagram Section */}
+        <section 
+          id="instagram"
+          ref={(el) => { if (el) sectionRefs.current["instagram"] = el; }}
+          className={`bg-white py-10 sm:py-14 lg:py-18 border-t border-neutral-100 transition-all duration-1000 delay-500 ${
+            visibleSections.has("instagram") || skipAnimations
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-8"
+          }`}
+        >
+          <div className="max-w-[1400px] mx-auto">
+            <div className="text-center mb-6 sm:mb-8 lg:mb-10 px-5 sm:px-8 lg:px-12">
+              <span className="text-[#b90e0a] font-semibold tracking-[0.12em] text-[9px] sm:text-[10px] uppercase mb-2 block">Social</span>
+              <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-black mb-2 font-akira text-[#0a0a0a] tracking-tight">
+                FOLLOW OUR <span className="text-[#b90e0a]">JOURNEY</span>
+              </h3>
+              <p className="text-[#6a6a6a] text-[10px] sm:text-xs lg:text-sm font-normal">
+                @kall.keyy on Instagram
+              </p>
+            </div>
 
-          {/* Responsive with scale transform on mobile */}
-          <div className="w-full overflow-x-auto pb-4">
-            <div className="flex gap-1 lg:gap-2 justify-start lg:justify-center px-2 lg:px-0">
-              {instagramReels.map((reel) => (
-                <div
-                  key={reel.id}
-                  className="flex-shrink-0 scale-[0.88] md:scale-80 lg:scale-100 origin-left lg:origin-center"
-                  style={{
-                    width: "320px",
-                    maxWidth: "320px",
-                    minWidth: "320px",
-                    height: "450px",
-                    maxHeight: "450px",
-                    overflow: "clip",
-                    position: "relative",
-                    backgroundColor: "#000",
-                    borderRadius: "12px",
-                    border: "1px solid rgba(255, 255, 255, 0.1)",
-                    isolation: "isolate",
-                  }}
-                >
+            {/* Instagram Reels Container - Fixed width approach */}
+            <div className="instagram-scroll-container overflow-x-auto pb-3">
+              <div className="flex gap-3 sm:gap-4 px-5 sm:px-8 lg:px-12 lg:justify-center" style={{ minWidth: 'min-content' }}>
+                {instagramReels.map((reel, index) => (
                   <div
-                    style={{
-                      width: "320px",
-                      height: "600px",
-                      position: "absolute",
-                      top: "0px",
-                      left: 0,
+                    key={reel.id}
+                    className="instagram-reel-card flex-shrink-0 rounded-xl shadow-lg hover:shadow-xl transition-all duration-500 hover:-translate-y-1 border border-neutral-200 bg-white overflow-hidden"
+                    style={{ 
+                      width: '328px',
+                      height: '420px',
+                      animationDelay: `${index * 100}ms`
                     }}
                   >
-                    <InstagramEmbed
-                      url={reel.url}
-                      width={320}
-                      captioned={false}
-                      placeholderSpinner={
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            height: "450px",
-                            marginTop: "10px",
-                          }}
-                        >
-                          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#b90e0a]" />
-                        </div>
-                      }
-                    />
+                    {/* Instagram Embed Container - Properly sized */}
+                    <div 
+                      className="relative w-full h-full overflow-hidden"
+                    >
+                      <div 
+                        className="absolute top-0 left-1/2"
+                        style={{ 
+                          transform: 'translateX(-50%)',
+                          width: '328px'
+                        }}
+                      >
+                        <InstagramEmbed
+                          url={reel.url}
+                          width={328}
+                          captioned={false}
+                          placeholderSpinner={
+                            <div className="flex items-center justify-center h-[420px] bg-[#fafafa]">
+                              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#b90e0a]" />
+                            </div>
+                          }
+                        />
+                      </div>
+                    </div>
                   </div>
-
-                  <div
-                    style={{
-                      position: "absolute",
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      height: "50px",
-                      background:
-                        "linear-gradient(to top, #000 0%, #000 40%, transparent 100%)",
-                      pointerEvents: "auto",
-                      zIndex: 10,
-                      cursor: "default",
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="text-center mt-12">
-            <Button
-              onClick={() =>
-                window.open("https://www.instagram.com/kall.keyy/", "_blank")
-              }
-              className="bg-[#b90e0a] hover:bg-[#BB0003] text-white font-bold px-6 py-3 md:px-8 md:py-4 text-base md:text-lg 
-                 transition-all duration-300 hover:scale-105 hover:shadow-2xl group"
-            >
-              <Instagram className="w-4 h-4 md:w-5 md:h-5 mr-2" />
-              FOLLOW US ON INSTAGRAM
-              <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </div>
-        </div>
-
-        {/* NEWSLETTER SECTION - ENHANCED */}
-        <div className="max-w-4xl mx-auto mb-24">
-          <div className="relative bg-gradient-to-r from-[#b90e0a]/10 via-[#28282B] to-[#b90e0a]/10 rounded-3xl p-8 md:p-12 border border-[#b90e0a]/30 overflow-hidden">
-            {/* Animated background */}
-            <div className="absolute inset-0 opacity-10">
-              <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(221,0,4,0.2)_50%,transparent_75%)] bg-[length:250%_250%] animate-gradient" />
-            </div>
-
-            <div className="relative z-10 text-center">
-              <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-4 font-akira">
-                STAY IN THE <span className="text-[#b90e0a]">LOOP</span>
-              </h3>
-              <p className="text-[#808088] mb-8 text-lg">
-                Get early access to new drops, exclusive content, and special
-                discounts
-              </p>
-
-              <form onSubmit={handleNewsletterSubmit} className="flex gap-2">
-                <input
-                  type="email"
-                  value={emailInput}
-                  onChange={(e) => setEmailInput(e.target.value)}
-                  placeholder="Enter your email"
-                  className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-lg 
-               text-white placeholder:text-white/50 focus:outline-none 
-               focus:border-[#b90e0a] transition-colors"
-                  disabled={isSubmitting} // ADD THIS
-                  required // ADD THIS
-                />
-                <button
-                  type="submit"
-                  disabled={isSubmitting} // ADD THIS
-                  className="px-6 py-3 bg-[#b90e0a] text-white rounded-lg font-bold 
-               hover:bg-[#BB0003] transition-colors whitespace-nowrap
-               disabled:opacity-50 disabled:cursor-not-allowed" // ADD disabled styles
-                >
-                  {isSubmitting ? "Subscribing..." : "Subscribe"}{" "}
-                  {/* UPDATE TEXT */}
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <footer className="bg-black py-12 px-4 border-t border-[#808088]/20 relative">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="md:col-span-2 animate-fade-in-up">
-              <h3 className="text-2xl sm:text-3xl font-black mb-4 font-akira">
-                KALLKEYY
-              </h3>
-              <p className="text-[#808088] mb-4 max-w-md">
-                Based on a prophecy untold, KALLKEYY is more than just
-                streetwear; it's a movement. Every Design has a story, every
-                stitch a purpose.
-              </p>
-              <div className="flex space-x-4">
-                <a
-                  href="https://www.instagram.com/kall.keyy/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 bg-[#28282B] rounded-full flex items-center justify-center hover:bg-[#b90e0a] transition-all duration-300 cursor-pointer hover:scale-110 hover:rotate-12 animate-bounce-in text-white no-underline"
-                  aria-label="Follow us on Instagram"
-                >
-                  IG
-                </a>
+                ))}
               </div>
             </div>
-            <div
-              className="animate-fade-in-up"
-              style={{ animationDelay: "0.2s" }}
-            >
-              <h4 className="text-lg font-bold mb-4">QUICK LINKS</h4>
-              <ul className="space-y-2 text-[#808088]">
-                <li
-                  onClick={() =>
-                    onNavigateToAbout
-                      ? onNavigateToAbout()
-                      : handleUnavailablePage("About Us")
-                  }
-                  className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
-                >
-                  About Us
-                </li>
-                <li
-                  onClick={() =>
-                    onNavigateToSizeGuide
-                      ? onNavigateToSizeGuide()
-                      : handleUnavailablePage("Size Guide")
-                  }
-                  className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
-                >
-                  Size Guide
-                </li>
-                <li
-                  onClick={() =>
-                    onNavigateToShipping
-                      ? onNavigateToShipping()
-                      : handleUnavailablePage("Shipping")
-                  }
-                  className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
-                >
-                  Shipping
-                </li>
-                <li
-                  onClick={() =>
-                    onNavigateToReturns
-                      ? onNavigateToReturns()
-                      : handleUnavailablePage("Returns")
-                  }
-                  className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
-                >
-                  Returns
-                </li>
-              </ul>
-            </div>
-            <div
-              className="animate-fade-in-up"
-              style={{ animationDelay: "0.4s" }}
-            >
-              <h4 className="text-lg font-bold mb-4">SUPPORT</h4>
-              <ul className="space-y-2 text-[#808088]">
-                <li
-                  onClick={() =>
-                    onNavigateToContact
-                      ? onNavigateToContact()
-                      : handleUnavailablePage("Contact")
-                  }
-                  className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
-                >
-                  Contact
-                </li>
-                <li
-                  onClick={() =>
-                    onNavigateToFAQ
-                      ? onNavigateToFAQ()
-                      : handleUnavailablePage("FAQ")
-                  }
-                  className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
-                >
-                  FAQ
-                </li>
-                <li
-                  onClick={() =>
-                    onNavigateToPrivacyPolicy
-                      ? onNavigateToPrivacyPolicy()
-                      : handleUnavailablePage("Privacy Policy")
-                  }
-                  className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
-                >
-                  Privacy Policy
-                </li>
-                <li
-                  onClick={() =>
-                    onNavigateToTermsOfService
-                      ? onNavigateToTermsOfService()
-                      : handleUnavailablePage("Terms of Service")
-                  }
-                  className="hover:text-white cursor-pointer hover:translate-x-2 transition-all duration-300"
-                >
-                  Terms of Service
-                </li>
-              </ul>
+
+            <div className="text-center mt-5 sm:mt-6 lg:mt-8 px-5 sm:px-8 lg:px-12">
+              <Button
+                onClick={() => window.open("https://www.instagram.com/kall.keyy/", "_blank")}
+                className="bg-[#0a0a0a] hover:bg-[#b90e0a] text-white font-bold px-4 sm:px-5 py-2 sm:py-2.5 text-[10px] sm:text-xs rounded-full transition-all duration-300 group hover:scale-105"
+              >
+                <Instagram className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5" />
+                Follow @kall.keyy
+                <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 ml-1.5 group-hover:translate-x-1 transition-transform" />
+              </Button>
             </div>
           </div>
-          <div
-            className="border-t border-[#808088]/20 mt-8 pt-8 text-center text-[#808088] animate-fade-in-up"
-            style={{ animationDelay: "0.6s" }}
-          >
-            <p>
-              &copy; 2025 KALLKEYY. All rights reserved. Made with passion for
-              street culture.
+        </section>
+
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-[#111] text-white py-8 sm:py-12 lg:py-16 px-5 sm:px-8 lg:px-12 border-t border-white/10">
+        <div className="max-w-[1600px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 lg:gap-12">
+          <div className="col-span-2 md:col-span-1 space-y-3 sm:space-y-4">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-black font-akira tracking-wider cursor-pointer hover:text-[#b90e0a] transition-colors" onClick={onBackToMain}>KALLKEYY</h2>
+            <p className="text-gray-400 text-[10px] sm:text-xs lg:text-sm leading-relaxed">
+              Redefining streetwear with bold designs and premium quality. 
+              Wear your identity.
             </p>
           </div>
+          
+          <div>
+            <h3 className="font-bold text-xs sm:text-sm lg:text-base mb-3 sm:mb-4 lg:mb-5 tracking-wide">SHOP</h3>
+            <ul className="space-y-1.5 sm:space-y-2 lg:space-y-3 text-gray-400 text-[10px] sm:text-xs lg:text-sm">
+              <li><button onClick={() => onNavigateToShop ? onNavigateToShop() : handleUnavailablePage("Shop")} className="hover:text-[#b90e0a] transition-colors">All Products</button></li>
+              <li><button onClick={() => onNavigateToShop ? onNavigateToShop() : handleUnavailablePage("Shop")} className="hover:text-[#b90e0a] transition-colors">New Arrivals</button></li>
+              <li><button onClick={() => onNavigateToShop ? onNavigateToShop() : handleUnavailablePage("Shop")} className="hover:text-[#b90e0a] transition-colors">Best Sellers</button></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-bold text-xs sm:text-sm lg:text-base mb-3 sm:mb-4 lg:mb-5 tracking-wide">SUPPORT</h3>
+            <ul className="space-y-1.5 sm:space-y-2 lg:space-y-3 text-gray-400 text-[10px] sm:text-xs lg:text-sm">
+              <li><button onClick={() => onNavigateToOrders ? onNavigateToOrders() : handleUnavailablePage("Orders")} className="hover:text-[#b90e0a] transition-colors">Track Order</button></li>
+              <li><button onClick={() => onNavigateToShipping ? onNavigateToShipping() : handleUnavailablePage("Shipping")} className="hover:text-[#b90e0a] transition-colors">Shipping Info</button></li>
+              <li><button onClick={() => onNavigateToReturns ? onNavigateToReturns() : handleUnavailablePage("Returns")} className="hover:text-[#b90e0a] transition-colors">Returns</button></li>
+              <li><button onClick={() => onNavigateToSizeGuide ? onNavigateToSizeGuide() : handleUnavailablePage("Size Guide")} className="hover:text-[#b90e0a] transition-colors">Size Guide</button></li>
+              <li><button onClick={() => onNavigateToFAQ ? onNavigateToFAQ() : handleUnavailablePage("FAQ")} className="hover:text-[#b90e0a] transition-colors">FAQs</button></li>
+              <li><button onClick={() => onNavigateToContact ? onNavigateToContact() : handleUnavailablePage("Contact")} className="hover:text-[#b90e0a] transition-colors">Contact Us</button></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-bold text-xs sm:text-sm lg:text-base mb-3 sm:mb-4 lg:mb-5 tracking-wide">LEGAL</h3>
+            <ul className="space-y-1.5 sm:space-y-2 lg:space-y-3 text-gray-400 text-[10px] sm:text-xs lg:text-sm">
+              <li><button onClick={() => onNavigateToPrivacyPolicy ? onNavigateToPrivacyPolicy() : handleUnavailablePage("Privacy Policy")} className="hover:text-[#b90e0a] transition-colors">Privacy Policy</button></li>
+              <li><button onClick={() => onNavigateToTermsOfService ? onNavigateToTermsOfService() : handleUnavailablePage("Terms of Service")} className="hover:text-[#b90e0a] transition-colors">Terms of Service</button></li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="max-w-[1600px] mx-auto mt-6 sm:mt-8 lg:mt-12 pt-4 sm:pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-2 sm:gap-3">
+          <p className="text-gray-400 text-[9px] sm:text-[10px] lg:text-xs">© {new Date().getFullYear()} KALLKEYY. All rights reserved.</p>
+          <p className="text-gray-400 text-[9px] sm:text-[10px] lg:text-xs flex items-center gap-1">
+            Designed in India. Built for the world.
+          </p>
         </div>
       </footer>
 
-      {/* STYLES */}
+      {/* Styles */}
       <style>{`
-        @keyframes scroll-seamless {
-          0% {
-            transform: translateX(0);
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.4s ease-out;
+        }
+        .animate-slideUp {
+          animation: slideUp 0.5s ease-out;
+        }
+        .animate-slideDown {
+          animation: slideDown 0.4s ease-out;
+        }
+        .animate-scaleIn {
+          animation: scaleIn 0.4s ease-out;
+        }
+        
+        /* Custom Instagram Scrollbar */
+        .instagram-scroll-container {
+          scrollbar-width: thin;
+          scrollbar-color: #b90e0a #e8e8e8;
+        }
+        .instagram-scroll-container::-webkit-scrollbar {
+          height: 4px;
+        }
+        .instagram-scroll-container::-webkit-scrollbar-track {
+          background: #e8e8e8;
+          border-radius: 10px;
+        }
+        .instagram-scroll-container::-webkit-scrollbar-thumb {
+          background: linear-gradient(90deg, #b90e0a, #d41212, #b90e0a);
+          border-radius: 10px;
+        }
+        .instagram-scroll-container::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(90deg, #8a0a08, #b90e0a, #8a0a08);
+        }
+        
+        /* Instagram Reel Card Styling */
+        .instagram-reel-card {
+          position: relative;
+        }
+        .instagram-reel-card iframe {
+          border-radius: 12px !important;
+        }
+        
+        @media (min-width: 1024px) {
+          .instagram-scroll-container::-webkit-scrollbar {
+            height: 0;
+            display: none;
           }
-          100% {
-            transform: translateX(-50%);
+          .instagram-scroll-container {
+            scrollbar-width: none;
           }
         }
-
-        @keyframes float-chain {
-          0%,
-          100% {
-            transform: translateY(0px) rotate(0deg);
-          }
-          50% {
-            transform: translateY(-20px) rotate(10deg);
-          }
+        
+        /* Subtle hover transitions */
+        .hover-lift {
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-
-        @keyframes fade-in-up {
-          0% {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes slide-in-up {
-          0% {
-            opacity: 0;
-            transform: translateY(50px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes gradient {
-          0% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-          100% {
-            background-position: 0% 50%;
-          }
-        }
-
-        .animate-scroll-seamless {
-          animation: scroll-seamless 30s linear infinite;
-        }
-        .animate-float-chain {
-          animation: float-chain 4s ease-in-out infinite;
-        }
-        .animate-fade-in-up {
-          animation: fade-in-up 1s ease-out forwards;
-        }
-        .animate-slide-in-up {
-          animation: slide-in-up 0.8s ease-out forwards;
-        }
-        .animate-gradient {
-          animation: gradient 8s ease infinite;
+        .hover-lift:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 10px 40px rgba(0,0,0,0.1);
         }
       `}</style>
     </div>

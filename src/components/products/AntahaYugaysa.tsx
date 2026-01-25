@@ -14,7 +14,7 @@ interface Props {
   skipAnimations?: boolean;
 }
 
-const ANTAHA_YUGAYSA_DATA = {
+export const ANTAHA_YUGAYSA_DATA = {
   name: "ANTAHA-YUGAYSA",
   price: "₹2,499",
   originalPrice: "₹4,499",

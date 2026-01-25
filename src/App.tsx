@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import Preloader from "@/components/Preloader";
-import MainBrandPage from "@/components/MainBrandPage";
 import { useSEO } from "./hooks/useSEO";
 import { trackPageView } from "./lib/analytics";
 import { SITE_CONFIG } from "./lib/seo";
@@ -15,6 +14,7 @@ import SmaraJivitam from "@/components/products/SmaraJivitam";
 import AntahaYugaysa from "@/components/products/AntahaYugaysa";
 import MrityoBaddha from "@/components/products/MrityoBaddha";
 import ProductMenuPage from "@/components/ProductMenuPage";
+import HomePage from "@/components/HomePage";
 import LoginPage from "@/components/auth/LoginPage";
 import SignupPage from "@/components/auth/SignupPage";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -576,18 +576,14 @@ const App = () => {
             )}
 
             {stage === "main" && (
-              <MainBrandPage
-                onViewProduct={() => navigateToProduct("kaaldrishta")}
-                onViewProductMenu={navigateToShop}
-                onViewHoodie={() => navigateToProduct("kaaldrishta")}
-                onViewTshirt={() => navigateToProduct("smarajivitam")}
-                onViewHoodie2={() => navigateToProduct("antahayugaysa")}
-                onViewTshirt2={() => navigateToProduct("mrityobaddha")}
-                onNavigateToLogin={navigateToLogin}
-                onNavigateToSignup={navigateToSignup}
+              <HomePage
+                onSelectProduct={handleSelectProduct}
+                onBackToMain={navigateToHome}
                 onNavigateToShop={navigateToShop}
                 onNavigateToAbout={navigateToAbout}
                 onNavigateToContact={navigateToContact}
+                onNavigateToLogin={navigateToLogin}
+                onNavigateToSignup={navigateToSignup}
                 onNavigateToOrders={navigateToOrders}
                 onNavigateToSizeGuide={navigateToSizeGuide}
                 onNavigateToShipping={navigateToShipping}
@@ -595,7 +591,6 @@ const App = () => {
                 onNavigateToFAQ={navigateToFAQ}
                 onNavigateToPrivacyPolicy={navigateToPrivacyPolicy}
                 onNavigateToTermsOfService={navigateToTermsOfService}
-                onBackToMain={navigateToHome}
                 skipAnimations={skipAnimations}
               />
             )}
