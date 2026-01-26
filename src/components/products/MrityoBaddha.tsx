@@ -16,9 +16,9 @@ interface Props {
 
 export const MRITYO_BADDHA_DATA = {
   name: "MRITYO-BADDHA",
-  price: "₹1,299",
+  price: "₹1,099",
   originalPrice: "₹2,499",
-  salePrice: "₹1,299",
+  salePrice: "₹1,099",
   tag: "TRENDING",
   description:
     '"MRITYO-BADDHA — BOUND BY DEATH" A graphic tee that embodies the struggle against mortality. 280 GSM premium cotton with oversized boxy fit.',

@@ -470,16 +470,6 @@ export default function OrdersPage({
                           <span>{formatDate(order.createdAt)}</span>
                         </div>
                       </div>
-                      <Badge
-                        className={`${getStatusStyles(order.status)} capitalize flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold border rounded-full`}
-                      >
-                        {getStatusIcon(order.status)}
-                        <span>
-                          {order.status === 'return_requested' ? 'Return Requested' : 
-                           order.status === 'confirmed' ? 'Confirmed' : 
-                           order.status}
-                        </span>
-                      </Badge>
                     </div>
 
                     {/* Order Details */}
@@ -500,42 +490,38 @@ export default function OrdersPage({
                       )}
                     </div>
 
-                    {/* Product thumbnails */}
-                    {order.items.length > 0 && (
-                      <div className="flex items-center gap-2 pt-2">
-                        <div className="flex -space-x-2">
-                          {order.items.slice(0, 3).map((item, idx) => (
-                            <div 
-                              key={idx} 
-                              className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border-2 border-white bg-gray-100 overflow-hidden shadow-sm"
-                            >
-                              <img
-                                src={item.image}
-                                alt={item.productName}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          ))}
-                        </div>
-                        {order.items.length > 3 && (
-                          <span className="text-xs font-medium text-gray-500 ml-1">
-                            +{order.items.length - 3} more
-                          </span>
-                        )}
-                      </div>
-                    )}
+                    {/* Status and View Details */}
+                    <div className="flex items-center gap-3 pt-2">
+                      <Badge
+                        className={`${getStatusStyles(order.status)} capitalize flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold border rounded-full`}
+                      >
+                        {getStatusIcon(order.status)}
+                        <span>
+                          {order.status === 'return_requested' ? 'Return Requested' : 
+                           order.status === 'confirmed' ? 'Confirmed' : 
+                           order.status}
+                        </span>
+                      </Badge>
+                      <Button
+                        variant="outline"
+                        className="border-gray-200 hover:border-[#b90e0a] hover:bg-[#b90e0a]/5 hover:text-[#b90e0a] transition-all font-semibold rounded-xl group-hover:border-[#b90e0a]/30"
+                      >
+                        View Details
+                        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </div>
                   </div>
 
-                  {/* View Details Button */}
-                  <div className="flex items-center">
-                    <Button
-                      variant="outline"
-                      className="border-gray-200 hover:border-[#b90e0a] hover:bg-[#b90e0a]/5 hover:text-[#b90e0a] transition-all font-semibold rounded-xl group-hover:border-[#b90e0a]/30"
-                    >
-                      View Details
-                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </div>
+                  {/* Product Image */}
+                  {order.items.length > 0 && (
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-lg border-2 border-white bg-gray-100 overflow-hidden shadow-sm">
+                      <img
+                        src={order.items[0].image}
+                        alt={order.items[0].productName}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

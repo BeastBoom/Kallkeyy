@@ -46,7 +46,7 @@ export default function TermsOfServicePage({
   skipAnimations = false,
 }: Props) {
   const { user, logout } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // Get current route to determine active nav item
   const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
@@ -57,12 +57,14 @@ export default function TermsOfServicePage({
     <div className={`min-h-screen bg-gradient-to-b from-[#f8f8f8] via-[#f0f0f0] to-[#e8e8e8] ${skipAnimations ? '[&_*]:!animate-none' : ''}`}>
       {/* Announcement Bar */}
       <div className="bg-[#333333] text-white text-center py-1.5 px-4 text-[10px] sm:text-xs font-bold tracking-widest uppercase z-[60] relative">
-        Free Shipping on all pan-India orders · Code <span className="text-[#4CAF50]">KALLKEYY100</span> for 10% Off
+        Free Shipping on all pan-India orders · Code <span className="text-[#4CAF50]">KALLKEYY100</span> for ₹100 Off on your first order only
       </div>
+
+      {/* Navigation - Shopify Style with Centered Links */}
       <nav className="sticky top-0 left-0 right-0 z-50 border-b border-white/10 bg-black/95 backdrop-blur-md text-white">
         <div className="w-full px-5 sm:px-8 lg:px-24 py-3 lg:py-4">
-          <div className="flex items-center justify-between max-w-[1600px] mx-auto relative">
-            {/* LEFT: Text Logo (Responsive sizing) */}
+          <div className="flex items-center justify-between max-w-[1600px] mx-auto">
+            {/* LEFT: Text Logo */}
             <div className="flex-shrink-0 z-10">
               <h1
                 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-wider hover:text-[#b90e0a] transition-colors duration-300 cursor-pointer font-akira"
@@ -72,105 +74,91 @@ export default function TermsOfServicePage({
               </h1>
             </div>
 
-            {/* CENTER: Brand Logo Image (Hidden on mobile/tablet, visible on large desktop only to prevent overlap) */}
-            <div className="hidden xl:block absolute left-1/2 transform -translate-x-1/2 z-10">
-              <img
-                src="/navbar-logo.png"
-                alt="KALLKEYY Logo"
+            {/* CENTER: Navigation Links (Shopify Style) */}
+            <div className="hidden lg:flex items-center gap-8 absolute left-1/2 transform -translate-x-1/2">
+              <button
                 onClick={onBackToMain}
-                className="h-10 w-auto sm:h-12 lg:h-14 object-contain opacity-90 hover:opacity-100 transition-opacity cursor-pointer"
-              />
+                className="text-sm font-bold tracking-wide hover:text-[#b90e0a] transition-colors duration-300 whitespace-nowrap uppercase"
+              >
+                Home
+              </button>
+              <button
+                onClick={() =>
+                  onNavigateToShop
+                    ? onNavigateToShop()
+                    : handleUnavailablePage("Shop")
+                }
+                className="text-sm font-bold tracking-wide hover:text-[#b90e0a] transition-colors duration-300 whitespace-nowrap uppercase"
+              >
+                Shop
+              </button>
+              {user && (
+                <button
+                  onClick={() =>
+                    onNavigateToOrders
+                      ? onNavigateToOrders()
+                      : handleUnavailablePage("Orders")
+                  }
+                  className="text-sm font-bold tracking-wide hover:text-[#b90e0a] transition-colors duration-300 whitespace-nowrap uppercase"
+                >
+                  Orders
+                </button>
+              )}
+              <button
+                onClick={() =>
+                  onNavigateToAbout
+                    ? onNavigateToAbout()
+                    : handleUnavailablePage("About")
+                }
+                className="text-sm font-bold tracking-wide hover:text-[#b90e0a] transition-colors duration-300 whitespace-nowrap uppercase"
+              >
+                About
+              </button>
+              <button
+                onClick={() =>
+                  onNavigateToContact
+                    ? onNavigateToContact()
+                    : handleUnavailablePage("Contact")
+                }
+                className="text-sm font-bold tracking-wide hover:text-[#b90e0a] transition-colors duration-300 whitespace-nowrap uppercase"
+              >
+                Contact
+              </button>
             </div>
 
-            {/* RIGHT: Navigation + Auth */}
-            <div className="flex items-center z-10">
-              {/* Desktop Navigation Links */}
-              <div className="hidden lg:flex gap-0.5 text-sm font-bold">
-                <button
-                  onClick={() => onBackToMain()}
-                  className={isHomeActive 
-                    ? "text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 bg-white/5 rounded-lg whitespace-nowrap"
-                    : "hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
-                  }
-                >
-                  HOME
-                </button>
-                <button
-                  onClick={() =>
-                    onNavigateToShop
-                      ? onNavigateToShop()
-                      : handleUnavailablePage("Shop")
-                  }
-                  className={isShopActive
-                    ? "text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 bg-white/5 rounded-lg whitespace-nowrap"
-                    : "hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
-                  }
-                >
-                  SHOP
-                </button>
-                {user && (
-                  <button
-                    onClick={() =>
-                      onNavigateToOrders
-                        ? onNavigateToOrders()
-                        : handleUnavailablePage("Orders")
-                    }
-                    className="hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
-                  >
-                    ORDERS
-                  </button>
-                )}
-                <button
-                  onClick={() =>
-                    onNavigateToAbout
-                      ? onNavigateToAbout()
-                      : handleUnavailablePage("About")
-                  }
-                  className="hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
-                >
-                  ABOUT
-                </button>
-                <button
-                  onClick={() =>
-                    onNavigateToContact
-                      ? onNavigateToContact()
-                      : handleUnavailablePage("Contact")
-                  }
-                  className="hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap"
-                >
-                  CONTACT
-                </button>
-
-                {/* AUTH BUTTONS - Desktop */}
+            {/* RIGHT: Auth */}
+            <div className="flex items-center gap-3 z-10">
+              {/* Desktop Auth Buttons */}
+              <div className="hidden lg:flex items-center gap-6">
                 {user ? (
                   <>
-                    <span className="text-white px-1 lg:px-2 py-2 flex items-center text-xs whitespace-nowrap">
-                      HEY,{" "}
-                      <span className="text-[#b90e0a] ml-1">
+                    <span className="text-white text-base font-medium flex items-center">
+                      Hey,{" "}
+                      <span className="text-[#b90e0a] ml-1 font-bold">
                         {formatDisplayName(user.name)}
                       </span>
                     </span>
                     <button
                       onClick={logout}
-                      className="hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg flex items-center gap-1 whitespace-nowrap"
+                      className="text-white hover:text-[#b90e0a] transition-colors duration-300 flex items-center gap-2 text-base font-medium"
                     >
-                      <LogOut size={14} className="lg:w-4 lg:h-4" />
-                      <span className="text-xs">LOGOUT</span>
+                      <LogOut size={18} />
+                      <span>Logout</span>
                     </button>
                   </>
                 ) : (
                   <>
                     <button
                       onClick={() => onNavigateToLogin ? onNavigateToLogin() : handleUnavailablePage("Login")}
-                      className="hover:text-[#b90e0a] transition-colors duration-300 px-1 lg:px-2 py-2 hover:bg-white/5 rounded-lg whitespace-nowrap text-xs"
+                      className="text-white hover:text-[#b90e0a] transition-colors duration-300 text-base font-bold"
                     >
-                      LOGIN
+                      Login
                     </button>
                     <button
                       onClick={() => onNavigateToSignup ? onNavigateToSignup() : handleUnavailablePage("Signup")}
-                      className="bg-[#b90e0a] hover:bg-[#b90e0a]/80 transition-colors duration-300 px-2 lg:px-3 py-2 rounded-lg ml-1 whitespace-nowrap text-xs"
+                      className="bg-[#b90e0a] hover:bg-[#8a0a08] transition-colors duration-300 px-5 py-2.5 rounded-full text-base font-bold text-white"
                     >
-                      SIGN UP
+                      Sign Up
                     </button>
                   </>
                 )}
@@ -178,30 +166,51 @@ export default function TermsOfServicePage({
 
               {/* Hamburger Menu Button (Mobile/Tablet) */}
               <button
-                className="lg:hidden text-white hover:text-[#b90e0a] transition-colors p-2 -mr-2"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="lg:hidden text-white hover:text-[#b90e0a] transition-colors p-1.5"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 aria-label="Toggle menu"
               >
-                {mobileMenuOpen ? (
-                  <X size={24} className="sm:w-7 sm:h-7" />
+                {isMobileMenuOpen ? (
+                  <X size={20} className="sm:w-6 sm:h-6" />
                 ) : (
-                  <Menu size={24} className="sm:w-7 sm:h-7" />
+                  <Menu size={20} className="sm:w-6 sm:h-6" />
                 )}
               </button>
             </div>
           </div>
+        </div>
+      </nav>
 
-          {/* Mobile Menu (Animated) */}
-          {mobileMenuOpen && (
-            <div className="lg:hidden mt-4 pb-4 space-y-2 border-t border-white/10 pt-4 animate-fadeIn">
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-[100] animate-fadeIn">
+          {/* Dark overlay background */}
+          <div 
+            className="absolute inset-0 bg-black/90 backdrop-blur-md"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          
+          {/* Menu content */}
+          <div className="relative h-full flex flex-col pt-16 px-5 pb-6 overflow-y-auto">
+            {/* Close button */}
+            <button
+              className="absolute top-4 right-4 text-white hover:text-[#b90e0a] transition-colors p-1.5"
+              onClick={() => setIsMobileMenuOpen(false)}
+              aria-label="Close menu"
+            >
+              <X size={24} />
+            </button>
+
+            {/* Navigation Links */}
+            <div className="space-y-1">
               <button
                 onClick={() => {
                   onBackToMain();
-                  setMobileMenuOpen(false);
+                  setIsMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold"
               >
-                HOME
+                Home
               </button>
               <button
                 onClick={() => {
@@ -210,11 +219,11 @@ export default function TermsOfServicePage({
                   } else {
                     handleUnavailablePage("Shop");
                   }
-                  setMobileMenuOpen(false);
+                  setIsMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold"
               >
-                SHOP
+                Shop
               </button>
               {user && (
                 <button
@@ -224,11 +233,11 @@ export default function TermsOfServicePage({
                     } else {
                       handleUnavailablePage("Orders");
                     }
-                    setMobileMenuOpen(false);
+                    setIsMobileMenuOpen(false);
                   }}
-                  className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                  className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold"
                 >
-                  ORDERS
+                  Orders
                 </button>
               )}
               <button
@@ -238,11 +247,11 @@ export default function TermsOfServicePage({
                   } else {
                     handleUnavailablePage("About");
                   }
-                  setMobileMenuOpen(false);
+                  setIsMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold"
               >
-                ABOUT
+                About
               </button>
               <button
                 onClick={() => {
@@ -251,69 +260,66 @@ export default function TermsOfServicePage({
                   } else {
                     handleUnavailablePage("Contact");
                   }
-                  setMobileMenuOpen(false);
+                  setIsMobileMenuOpen(false);
                 }}
-                className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
+                className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold"
               >
-                CONTACT
+                Contact
               </button>
-
-              {/* AUTH SECTION - Mobile */}
-              <div className="border-t border-white/10 pt-3 mt-3">
-                {user ? (
-                  <>
-                    <div className="text-white px-4 py-2 mb-2 text-sm">
-                      HEY,{" "}
-                      <span className="text-[#b90e0a]">
-                        {formatDisplayName(user.name)}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => {
-                        logout();
-                        setMobileMenuOpen(false);
-                      }}
-                      className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg flex items-center gap-2 text-base font-semibold"
-                    >
-                      <LogOut size={18} />
-                      LOGOUT
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => {
-                        if (onNavigateToLogin) {
-                          onNavigateToLogin();
-                        } else {
-                          handleUnavailablePage("Login");
-                        }
-                        setMobileMenuOpen(false);
-                      }}
-                      className="block w-full text-left hover:text-[#b90e0a] transition-colors duration-300 px-4 py-2.5 hover:bg-white/5 rounded-lg text-base font-semibold"
-                    >
-                      LOGIN
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (onNavigateToSignup) {
-                          onNavigateToSignup();
-                        } else {
-                          handleUnavailablePage("Signup");
-                        }
-                        setMobileMenuOpen(false);
-                      }}
-                      className="w-full bg-[#b90e0a] hover:bg-[#b90e0a]/80 transition-colors duration-300 px-4 py-2.5 rounded-lg text-center mt-2 text-base font-semibold"
-                    >
-                      SIGN UP
-                    </button>
-                  </>
-                )}
-              </div>
             </div>
-          )}
+
+            {/* AUTH SECTION - Mobile */}
+            <div className="border-t border-white/20 pt-4 mt-4">
+              {user ? (
+                <>
+                  <div className="text-white px-3 py-2 mb-1 text-sm font-medium">
+                    Hey, <span className="text-[#b90e0a] font-bold">{formatDisplayName(user.name)}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      logout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg flex items-center gap-2 text-base font-bold"
+                  >
+                    <LogOut size={18} />
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <div className="space-y-2 px-3">
+                  <button
+                    onClick={() => {
+                      if (onNavigateToLogin) {
+                        onNavigateToLogin();
+                      } else {
+                        handleUnavailablePage("Login");
+                      }
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="block w-full text-center text-white hover:text-[#b90e0a] transition-colors duration-300 py-3 border border-white/20 rounded-full text-sm font-bold"
+                  >
+                    Login
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (onNavigateToSignup) {
+                        onNavigateToSignup();
+                      } else {
+                        handleUnavailablePage("Signup");
+                      }
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full bg-[#b90e0a] hover:bg-[#8a0a08] transition-colors duration-300 py-3 rounded-full text-center text-sm font-bold text-white"
+                  >
+                    Sign Up
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      </nav>
+      )}
       
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

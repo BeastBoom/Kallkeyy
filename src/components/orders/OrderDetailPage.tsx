@@ -473,7 +473,7 @@ export default function OrderDetailPage({
       )}
 
       {/* Main Content */}
-      <div className="relative z-10 pt-24 sm:pt-28 pb-20 px-4 sm:px-6 lg:px-8 container mx-auto max-w-5xl">
+      <div className="relative z-10 pt-12 sm:pt-18 pb-20 px-4 sm:px-6 lg:px-8 container mx-auto max-w-5xl">
         {/* Back Button */}
         <button
           onClick={() => window.history.back()}

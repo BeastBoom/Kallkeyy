@@ -61,7 +61,7 @@ const heroSlides: HeroSlide[] = [
     description:
       "A curated collection of 4 divine drops. Where streetwear meets mythology. Limited edition pieces that define your identity.",
     tag: "COLLECTION",
-    price: "STARTING ₹1,299",
+    price: "STARTING ₹1,099",
     isUpcoming: false,
     buttonText: "EXPLORE COLLECTION",
     buttonAction: "scroll",
@@ -75,7 +75,7 @@ const heroSlides: HeroSlide[] = [
     description:
       "Born from the ashes of forgotten gods. Our flagship oversized premium hoodie with divine graphics. The crown jewel of Astitva Act-I.",
     tag: "FLAGSHIP",
-    price: "₹2,499",
+    price: "₹2,099",
     isUpcoming: false,
     buttonText: "SHOP NOW",
     buttonAction: "product",
@@ -87,9 +87,9 @@ const heroSlides: HeroSlide[] = [
     title: "🔥 LAUNCH SALE 🔥",
     subtitle: "EXCLUSIVE LAUNCH PRICES!",
     description:
-      "Premium hoodies starting at ₹2,499 | T-Shirts starting at ₹1,299. FREE SHIPPING on all orders! Use code KALLKEYY100 at checkout for an additional 10% discount. Don't Miss Out! 💥",
+      "Premium hoodies starting at ₹1,999 | T-Shirts starting at ₹1,099. FREE SHIPPING on all orders! Use code KALLKEYY100 at checkout for an additional 10% discount. Don't Miss Out! 💥",
     tag: "LIVE NOW",
-    price: "HOODIES ₹2,499 | T-SHIRTS ₹1,299",
+    price: "HOODIES ₹1,999 | T-SHIRTS ₹1,099",
     isUpcoming: false,
     buttonText: "SHOP NOW",
     buttonAction: "scroll",
@@ -103,7 +103,7 @@ const heroSlides: HeroSlide[] = [
     description:
       "Wings erupt from chaos, forged in will and fire. Our signature oversized tee that started it all. Premium 240gsm French Terry Cotton.",
     tag: "SIGNATURE",
-    price: "₹1,299",
+    price: "₹1,199",
     isUpcoming: false,
     buttonText: "GET YOURS NOW",
     buttonAction: "product",
@@ -134,9 +134,9 @@ const products: Product[] = [
     id: "kaaldrishta",
     name: "KAAL-DRISHTA",
     image: "/KaalDrishta-1.png",
-    price: "₹2,499",
+    price: "₹2,099",
     originalPrice: "₹4,499",
-    salePrice: "₹2,499",
+    salePrice: "₹2,099",
     tag: "FLAGSHIP",
     description:
       "The blazing eye that never blinks. Born from the ashes of forgotten gods.",
@@ -152,9 +152,9 @@ const products: Product[] = [
     id: "smarajivitam",
     name: "SMARA-JIVITAM",
     image: "/Smarajivitam-1.png",
-    price: "₹1,299",
+    price: "₹1,199",
     originalPrice: "₹2,499",
-    salePrice: "₹1,299",
+    salePrice: "₹1,199",
     tag: "NEW DROP",
     description:
       "The Ascension. Wings erupt from chaos, forged in will and fire.",
@@ -170,9 +170,9 @@ const products: Product[] = [
     id: "antahayugaysa",
     name: "ANTAHA-YUGAYSA",
     image: "/Antahayugasya-1.png",
-    price: "₹2,499",
+    price: "₹1,999",
     originalPrice: "₹4,499",
-    salePrice: "₹2,499",
+    salePrice: "₹1,999",
     tag: "NEW LAUNCH",
     description:
       "Hands of God. Where endings wear eternity, and creation remembers its own destruction.",
@@ -188,9 +188,9 @@ const products: Product[] = [
     id: "mrityobaddha",
     name: "MRITYO-BADDHA",
     image: "/Mrityobaddha-1.png",
-    price: "₹1,299",
+    price: "₹1,099",
     originalPrice: "₹2,499",
-    salePrice: "₹1,299",
+    salePrice: "₹1,099",
     tag: "TRENDING",
     description:
       "Bound by Death. A graphic tee that embodies the struggle against mortality.",
@@ -764,12 +764,10 @@ export default function ProductMenuPage({
                   <div className="absolute top-1.5 sm:top-2 left-1.5 sm:left-2 z-10 flex flex-col gap-1 sm:gap-1.5 items-start">
                     {product.originalPrice && product.salePrice && (
                       <Badge className="bg-gradient-to-r from-[#4CAF50] to-[#2E7D32] text-white border-none shadow-sm font-bold rounded-full uppercase text-[7px] sm:text-[9px] px-1.5 sm:px-2 py-0.5 sm:py-1 animate-pulse">
-                        {Math.round(
-                          ((parseFloat(product.originalPrice.replace(/[₹,]/g, "")) -
-                            parseFloat(product.salePrice.replace(/[₹,]/g, ""))) /
-                            parseFloat(product.originalPrice.replace(/[₹,]/g, ""))) *
-                            100
-                        )}% OFF
+                        {product.id === "kaaldrishta" && "53% OFF"}
+                        {product.id === "smarajivitam" && "52% OFF"}
+                        {product.id === "antahayugaysa" && "56% OFF"}
+                        {product.id === "mrityobaddha" && "56% OFF"}
                       </Badge>
                     )}
                     <Badge className="bg-white/95 backdrop-blur-sm text-[#0a0a0a] hover:bg-white border-none shadow-sm font-bold tracking-wider rounded-full uppercase text-[6px] sm:text-[8px] px-1.5 sm:px-2 py-0.5">

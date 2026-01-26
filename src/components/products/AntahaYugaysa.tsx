@@ -16,9 +16,9 @@ interface Props {
 
 export const ANTAHA_YUGAYSA_DATA = {
   name: "ANTAHA-YUGAYSA",
-  price: "₹2,499",
+  price: "₹1,999",
   originalPrice: "₹4,499",
-  salePrice: "₹2,499",
+  salePrice: "₹1,999",
   tag: "NEW LAUNCH",
   description:
     '"ANTAHA-YUGAYSA — HANDS OF GOD" When the divine clock shattered, time imploded into itself, through a wormhole. The Hands of God reached—not to save, but to rewrite. From that fracture, Antaha-Yugaysa was born—where endings wear eternity, and creation remembers its own destruction.',

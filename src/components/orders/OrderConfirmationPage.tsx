@@ -11,7 +11,7 @@ const OrderConfirmationPage = () => {
   };
 
   const [orderId, setOrderId] = useState<string | null>(null);
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(10);
   const [showContent, setShowContent] = useState(false);
   const [showCheckmark, setShowCheckmark] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -69,10 +69,6 @@ const OrderConfirmationPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-white flex items-center justify-center relative overflow-hidden py-8 px-4">
-      {/* Coupon Code Block */}
-      <div className="absolute top-0 left-0 right-0 bg-[#333333] text-white text-center py-1.5 px-4 text-[10px] sm:text-xs font-bold tracking-widest uppercase z-[60]">
-        Free Shipping on all pan-India orders · Code <span className="text-[#4CAF50]">KALLKEYY100</span> for ₹100 Off on your first order only
-      </div>
 
       {/* Confetti Animation */}
       {showConfetti && (
@@ -164,59 +160,36 @@ const OrderConfirmationPage = () => {
           )}
 
           {/* Status Steps */}
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 mb-6 md:mb-8 px-2">
+          <div className="flex items-center justify-center gap-4 md:gap-6 mb-6 md:mb-8 px-2">
             {/* Payment Step */}
-            <div className="flex flex-col items-center gap-2 md:gap-3 transform transition-all hover:scale-105 md:hover:scale-110">
-              <div className="w-14 h-14 md:w-18 md:h-18 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-400/30 animate-bounce-delay">
-                <CheckCircle2 className="w-7 h-7 md:w-9 md:h-9 text-white" />
+            <div className="flex flex-col items-center gap-2 md:gap-3">
+              <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-400/30">
+                <CheckCircle2 className="w-6 h-6 md:w-8 md:h-8 text-white" />
               </div>
-              <span className="text-sm md:text-base text-gray-700 font-semibold">Payment</span>
-              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">✓ Complete</span>
+              <span className="text-xs md:text-sm text-gray-700 font-semibold">Payment</span>
+              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">✓ Complete</span>
             </div>
-            
-            {/* Connector Line */}
-            <div className="hidden md:block w-12 lg:w-16 h-1 bg-gradient-to-r from-emerald-400 to-amber-400 rounded-full relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-amber-400 animate-pulse rounded-full" />
-            </div>
-            <div className="md:hidden w-1 h-8 bg-gradient-to-b from-emerald-400 to-amber-400 rounded-full" />
             
             {/* Processing Step */}
-            <div className="flex flex-col items-center gap-2 md:gap-3 transform transition-all hover:scale-105 md:hover:scale-110">
-              <div className="w-14 h-14 md:w-18 md:h-18 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center shadow-lg shadow-amber-400/30 relative">
-                <Gift className="w-7 h-7 md:w-9 md:h-9 text-white animate-pulse-slow" />
-                <div className="absolute inset-0 rounded-2xl border-2 border-amber-400 animate-ping opacity-30" />
-              </div>
-              <span className="text-sm md:text-base text-gray-700 font-semibold">Processing</span>
-              <span className="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full animate-pulse">In Progress</span>
-            </div>
-            
-            {/* Connector Line */}
-            <div className="hidden md:block w-12 lg:w-16 h-1 bg-gray-200 rounded-full" />
-            <div className="md:hidden w-1 h-8 bg-gray-200 rounded-full" />
-            
-            {/* Shipping Step */}
             <div className="flex flex-col items-center gap-2 md:gap-3">
-              <div className="w-14 h-14 md:w-18 md:h-18 rounded-2xl bg-gray-100 border-2 border-gray-200 flex items-center justify-center">
-                <Truck className="w-7 h-7 md:w-9 md:h-9 text-gray-400" />
+              <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center shadow-lg shadow-amber-400/30">
+                <Gift className="w-6 h-6 md:w-8 md:h-8 text-white" />
               </div>
-              <span className="text-sm md:text-base text-gray-500 font-semibold">Shipping</span>
-              <span className="text-xs font-medium text-gray-400 bg-gray-100 px-3 py-1 rounded-full">Pending</span>
+              <span className="text-xs md:text-sm text-gray-700 font-semibold">Processing</span>
+              <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-full">In Progress</span>
             </div>
           </div>
 
           {/* Message Card */}
-          <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-2xl p-5 md:p-6 lg:p-8 mb-6 md:mb-8 shadow-lg relative overflow-hidden mx-2 md:mx-0">
+          <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-2xl p-4 md:p-6 mb-6 md:mb-8 shadow-lg relative overflow-hidden mx-2 md:mx-0">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#b90e0a] via-amber-400 to-emerald-400 animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
-            <p className="text-gray-700 leading-relaxed text-sm sm:text-base md:text-lg relative z-10">
-              <span className="text-xl md:text-2xl">🎊</span>{" "}
-              <strong className="text-gray-900">Thank you for your purchase!</strong>{" "}
-              <span className="text-xl md:text-2xl">🎊</span>
-              <br className="hidden sm:block" />
+            <p className="text-gray-700 leading-relaxed text-sm md:text-base relative z-10">
+              <span className="text-lg md:text-xl">🎊</span>{" "}
+              <strong className="text-gray-900">Thank you!</strong>{" "}
+              <span className="text-lg md:text-xl">🎊</span>
               <br />
-              <span className="text-gray-600">
-                You will receive a confirmation email shortly with all the details.
-                <br className="hidden sm:block" />
-                Our team will start processing your order right away!
+              <span className="text-gray-600 text-xs md:text-sm">
+                Confirmation email coming soon. Order processing started!
               </span>
             </p>
           </div>

@@ -33,7 +33,7 @@ export default function FAQPage({
   skipAnimations = false,
 }: Props) {
   const { user, logout } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
@@ -218,8 +218,8 @@ export default function FAQPage({
                   </>
                 )}
               </div>
-              <button className="lg:hidden text-white hover:text-[#b90e0a] transition-colors p-1.5" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-                {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              <button className="lg:hidden text-white hover:text-[#b90e0a] transition-colors p-1.5" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+                {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
             </div>
           </div>
@@ -227,28 +227,28 @@ export default function FAQPage({
       </nav>
 
       {/* Mobile Menu Overlay */}
-      {mobileMenuOpen && (
+      {isMobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-[100] animate-fadeIn">
-          <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setMobileMenuOpen(false)} />
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setIsMobileMenuOpen(false)} />
           <div className="relative h-full flex flex-col pt-16 px-5 pb-6 overflow-y-auto">
-            <button className="absolute top-4 right-4 text-white hover:text-[#b90e0a] transition-colors p-1.5" onClick={() => setMobileMenuOpen(false)}><X size={24} /></button>
+            <button className="absolute top-4 right-4 text-white hover:text-[#b90e0a] transition-colors p-1.5" onClick={() => setIsMobileMenuOpen(false)}><X size={24} /></button>
             <div className="space-y-1">
-              <button onClick={() => { onBackToMain(); setMobileMenuOpen(false); }} className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold">Home</button>
-              <button onClick={() => { onNavigateToShop?.(); setMobileMenuOpen(false); }} className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold">Shop</button>
-              {user && <button onClick={() => { onNavigateToOrders?.(); setMobileMenuOpen(false); }} className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold">Orders</button>}
-              <button onClick={() => { onNavigateToAbout?.(); setMobileMenuOpen(false); }} className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold">About</button>
-              <button onClick={() => { onNavigateToContact?.(); setMobileMenuOpen(false); }} className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold">Contact</button>
+              <button onClick={() => { onBackToMain(); setIsMobileMenuOpen(false); }} className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold">Home</button>
+              <button onClick={() => { onNavigateToShop?.(); setIsMobileMenuOpen(false); }} className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold">Shop</button>
+              {user && <button onClick={() => { onNavigateToOrders?.(); setIsMobileMenuOpen(false); }} className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold">Orders</button>}
+              <button onClick={() => { onNavigateToAbout?.(); setIsMobileMenuOpen(false); }} className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold">About</button>
+              <button onClick={() => { onNavigateToContact?.(); setIsMobileMenuOpen(false); }} className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg text-base font-bold">Contact</button>
             </div>
             <div className="border-t border-white/20 pt-4 mt-4">
               {user ? (
                 <>
                   <div className="text-white px-3 py-2 mb-1 text-sm font-medium">Hey, <span className="text-[#b90e0a] font-bold">{formatDisplayName(user.name)}</span></div>
-                  <button onClick={() => { logout(); setMobileMenuOpen(false); }} className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg flex items-center gap-2 text-base font-bold"><LogOut size={18} />Logout</button>
+                  <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="block w-full text-left text-white hover:text-[#b90e0a] transition-colors duration-300 px-3 py-3 hover:bg-white/5 rounded-lg flex items-center gap-2 text-base font-bold"><LogOut size={18} />Logout</button>
                 </>
               ) : (
                 <div className="space-y-2 px-3">
-                  <button onClick={() => { onNavigateToLogin(); setMobileMenuOpen(false); }} className="block w-full text-center text-white hover:text-[#b90e0a] transition-colors duration-300 py-3 border border-white/20 rounded-full text-sm font-bold">Login</button>
-                  <button onClick={() => { onNavigateToSignup(); setMobileMenuOpen(false); }} className="w-full bg-[#b90e0a] hover:bg-[#8a0a08] transition-colors duration-300 py-3 rounded-full text-center text-sm font-bold text-white">Sign Up</button>
+                  <button onClick={() => { onNavigateToLogin(); setIsMobileMenuOpen(false); }} className="block w-full text-center text-white hover:text-[#b90e0a] transition-colors duration-300 py-3 border border-white/20 rounded-full text-sm font-bold">Login</button>
+                  <button onClick={() => { onNavigateToSignup(); setIsMobileMenuOpen(false); }} className="w-full bg-[#b90e0a] hover:bg-[#8a0a08] transition-colors duration-300 py-3 rounded-full text-center text-sm font-bold text-white">Sign Up</button>
                 </div>
               )}
             </div>
