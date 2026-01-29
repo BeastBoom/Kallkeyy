@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Menu,
   X,
@@ -644,7 +645,7 @@ export default function OrderDetailPage({
             {/* Order Items */}
             <div className="bg-white/80 backdrop-blur-xl border border-gray-200/50 rounded-xl sm:rounded-2xl p-5 sm:p-6 shadow-lg">
               <h2 className="text-lg sm:text-xl font-bold mb-4 flex items-center gap-2 text-gray-900">
-                <Package className="w-5 h-5 text-[#b90e0a]" />
+                <Package className="w-5 h-5 text-red-500" />
                 Order Items
               </h2>
               <div className="space-y-4">
@@ -670,7 +671,7 @@ export default function OrderDetailPage({
                           Qty: {item.quantity}
                         </span>
                       </div>
-                      <p className="font-bold text-lg sm:text-xl text-[#b90e0a]">₹{item.price.toLocaleString()}</p>
+                      <p className="font-bold text-lg sm:text-xl text-red-500">₹{item.price.toLocaleString()}</p>
                     </div>
                   </div>
                 ))}
@@ -680,7 +681,7 @@ export default function OrderDetailPage({
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <div className="flex justify-between items-center">
                   <span className="text-lg sm:text-xl font-bold text-gray-900">Total Amount</span>
-                  <span className="text-2xl sm:text-3xl font-black text-[#b90e0a]">₹{order.amount.toLocaleString()}</span>
+                  <span className="text-2xl sm:text-3xl font-black text-red-500">₹{order.amount.toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -690,7 +691,7 @@ export default function OrderDetailPage({
               {/* Shipping Address */}
               <div className="bg-white/80 backdrop-blur-xl border border-gray-200/50 rounded-xl sm:rounded-2xl p-5 sm:p-6 shadow-lg">
                 <h2 className="text-lg sm:text-xl font-bold mb-4 flex items-center gap-2 text-gray-900">
-                  <MapPin className="w-5 h-5 text-[#b90e0a]" />
+                  <MapPin className="w-5 h-5 text-red-500" />
                   Shipping Address
                 </h2>
                 <div className="space-y-3">
@@ -720,7 +721,7 @@ export default function OrderDetailPage({
               {/* Payment Info */}
               <div className="bg-white/80 backdrop-blur-xl border border-gray-200/50 rounded-xl sm:rounded-2xl p-5 sm:p-6 shadow-lg">
                 <h2 className="text-lg sm:text-xl font-bold mb-4 flex items-center gap-2 text-gray-900">
-                  <CreditCard className="w-5 h-5 text-[#b90e0a]" />
+                  <CreditCard className="w-5 h-5 text-red-500" />
                   Payment Information
                 </h2>
                 {order.paymentMethod === 'cod' ? (
@@ -877,25 +878,64 @@ export default function OrderDetailPage({
               <h2 className="text-lg sm:text-xl font-bold mb-4 text-gray-900">Need Help?</h2>
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {showCancelButton && (
-                  <Button 
-                    onClick={() => {
-                      if (cancellationStatus.canCancel) {
-                        setShowCancelPopup(true);
-                      } else {
-                        setShowExpiredModal(true);
-                      }
-                    }}
-                    variant="outline" 
-                    disabled={!cancellationStatus.canCancel}
-                    className={`border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-xl font-semibold h-12 transition-all ${
-                      cancellationStatus.canCancel ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'
-                    }`}
-                    onMouseEnter={() => !cancellationStatus.canCancel && setShowExpiredModal(true)}
-                    onMouseLeave={() => setShowExpiredModal(false)}
-                  >
-                    <XCircle className="w-4 h-4 mr-2" />
-                    Cancel Order
-                  </Button>
+                  <>
+                    {/* Desktop Version - Disabled button with tooltip */}
+                    <div className="hidden lg:block w-full">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="w-full">
+                              <Button 
+                                onClick={() => {
+                                  if (cancellationStatus.canCancel) {
+                                    setShowCancelPopup(true);
+                                  } else {
+                                    setShowExpiredModal(true);
+                                  }
+                                }}
+                                variant="outline" 
+                                disabled={!cancellationStatus.canCancel}
+                                className={`w-full border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-xl font-semibold h-12 transition-all ${
+                                  cancellationStatus.canCancel ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'
+                                }`}
+                              >
+                                <XCircle className="w-4 h-4 mr-2" />
+                                Cancel Order
+                              </Button>
+                            </div>
+                          </TooltipTrigger>
+                          {!cancellationStatus.canCancel && (
+                            <TooltipContent side="bottom">
+                              24-hour cancellation window has expired. Please contact support for assistance.
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+
+                    {/* Mobile Version - Always clickable with alert */}
+                    <div className="lg:hidden w-full">
+                      <Button 
+                        onClick={() => {
+                          if (cancellationStatus.canCancel) {
+                            setShowCancelPopup(true);
+                          } else {
+                            toast({
+                              variant: "destructive",
+                              title: "Cancellation Window Expired",
+                              description: "24-hour cancellation window has expired. Please contact support for assistance.",
+                              duration: 2500,
+                            });
+                          }
+                        }}
+                        variant="outline" 
+                        className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-xl font-semibold h-12 transition-all cursor-pointer"
+                      >
+                        <XCircle className="w-4 h-4 mr-2" />
+                        Cancel Order
+                      </Button>
+                    </div>
+                  </>
                 )}
                 {canRequestReturn && (
                   <Button 

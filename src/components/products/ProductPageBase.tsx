@@ -597,7 +597,7 @@ export default function ProductPageBase({
     product.productType === "hoodie" ? HOODIE_SIZE_CHART : TSHIRT_SIZE_CHART;
 
   return (
-    <div className={`min-h-screen bg-gradient-to-b from-[#f8f8f8] via-[#f0f0f0] to-[#e8e8e8] text-black relative ${skipAnimations ? '[&_*]:!animate-none' : ''}`}>
+    <div className={`min-h-screen bg-[#f8f8f8] text-black relative ${skipAnimations ? '[&_*]:!animate-none' : ''}`}>
       {/* Announcement Bar */}
       <div className="bg-[#333333] text-white text-center py-1.5 px-4 text-[10px] sm:text-xs font-bold tracking-widest uppercase z-[60] relative">
         Free Shipping on all pan-India orders · Code <span className="text-[#4CAF50]">KALLKEYY100</span> for ₹100 Off on your first order only
@@ -886,7 +886,7 @@ export default function ProductPageBase({
                   ASTITVA ACT-I
                 </Badge>
                 {product.originalPrice && product.salePrice && (
-                  <Badge className="bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] text-white border-none px-3 py-1.5 text-xs font-bold shadow-lg">
+                  <Badge className="bg-[#2E7D32] text-white border-none px-3 py-1.5 text-xs font-bold shadow-lg">
                     {Math.round(
                       ((parseFloat(product.originalPrice.replace(/[₹,]/g, "")) -
                         parseFloat(product.salePrice.replace(/[₹,]/g, ""))) /
@@ -967,8 +967,8 @@ export default function ProductPageBase({
                   <span className="text-sm font-medium">Checking availability...</span>
                 </div>
               ) : isAllSizesOutOfStock() ? (
-                <div className="flex items-center gap-2 text-red-600">
-                  <div className="w-2 h-2 rounded-full bg-red-500" />
+                <div className="flex items-center gap-2 text-black">
+                  <div className="w-2 h-2 rounded-full bg-black" />
                   <span className="text-sm font-bold uppercase">Out of Stock</span>
                 </div>
               ) : (
@@ -1009,7 +1009,7 @@ export default function ProductPageBase({
             </div>
 
             {/* Price Section */}
-            <div className="bg-gradient-to-r from-[#fafafa] to-white p-5 rounded-xl border border-black/5">
+            <div className="bg-[#fafafa] p-5 rounded-xl border border-black/5">
               {product.originalPrice && product.salePrice ? (
                 <div className="space-y-2">
                   <div className="flex items-baseline gap-3">
@@ -1021,7 +1021,7 @@ export default function ProductPageBase({
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge className="bg-gradient-to-r from-[#2E7D32] to-[#4CAF50] text-white border-none px-3 py-1 text-xs font-bold">
+                    <Badge className="bg-[#2E7D32] text-white border-none px-3 py-1 text-xs font-bold">
                       SAVE {Math.round(
                         ((parseFloat(product.originalPrice.replace(/[₹,]/g, "")) -
                           parseFloat(product.salePrice.replace(/[₹,]/g, ""))) /
@@ -1096,11 +1096,11 @@ export default function ProductPageBase({
             <div className="space-y-4 p-5 bg-white rounded-xl border border-black/5">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-bold text-[#0a0a0a] tracking-wider uppercase">
+                  <h3 className="text-sm font-bold text-black tracking-wider uppercase">
                     Select Size
                   </h3>
                   {selectedSize && (
-                    <p className="text-xs text-gray-500 mt-0.5">Selected: {selectedSize}</p>
+                    <p className="text-xs text-black mt-0.5">Selected: {selectedSize}</p>
                   )}
                 </div>
                 <Button
@@ -1173,10 +1173,10 @@ export default function ProductPageBase({
                         disabled={!isInStock}
                         className={`w-full py-3.5 px-4 rounded-xl font-bold text-sm transition-all duration-300 relative overflow-hidden ${
                           !isInStock
-                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            ? "bg-gray-100 text-black cursor-not-allowed"
                             : isSelected
                             ? "bg-[#b90e0a] text-white shadow-lg shadow-[#b90e0a]/30 scale-105"
-                            : "bg-[#fafafa] text-[#0a0a0a] hover:bg-[#b90e0a]/10 hover:scale-105 border border-black/10"
+                            : "bg-[#fafafa] text-black hover:bg-[#b90e0a]/10 hover:scale-105 border border-black/10"
                         }`}
                       >
                         {size}
@@ -1205,7 +1205,7 @@ export default function ProductPageBase({
               {isAllSizesOutOfStock() ? (
                 <Button
                   disabled
-                  className="w-full bg-gray-300 text-gray-600 cursor-not-allowed py-6 font-bold text-base rounded-xl"
+                  className="w-full bg-gray-300 text-black cursor-not-allowed py-6 font-bold text-base rounded-xl"
                 >
                   OUT OF STOCK
                 </Button>
@@ -1213,7 +1213,7 @@ export default function ProductPageBase({
                 <Button
                   onClick={handleAddToCart}
                   disabled={!selectedSize || isLoadingStock}
-                  className="w-full bg-[#b90e0a] hover:bg-[#8a0a08] text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:shadow-xl hover:shadow-[#b90e0a]/20 py-6 text-base rounded-xl group"
+                  className="w-full bg-[#b90e0a] hover:bg-[#a00d09] text-white font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:shadow-xl hover:shadow-[#b90e0a]/20 py-6 text-base rounded-xl group"
                 >
                   <ShoppingBag className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
                   {isLoadingStock 
@@ -1324,7 +1324,7 @@ export default function ProductPageBase({
             ) : (
               <>
                 {/* Review Statistics */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 bg-gradient-to-r from-[#fafafa] to-white rounded-xl p-6 border border-black/5 mb-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 bg-[#fafafa] rounded-xl p-6 border border-black/5 mb-6">
                   {/* Average Rating */}
                   <div className="flex flex-col items-center justify-center lg:border-r border-black/10">
                     <div className="text-5xl sm:text-6xl font-black text-[#b90e0a] mb-2">
@@ -1361,7 +1361,7 @@ export default function ProductPageBase({
                           </div>
                           <div className="flex-1 bg-black/10 rounded-full h-2.5 overflow-hidden">
                             <div
-                              className="bg-gradient-to-r from-[#b90e0a] to-[#ff4444] h-full transition-all duration-700 rounded-full"
+                              className="bg-[#b90e0a] h-full transition-all duration-700 rounded-full"
                               style={{ width: `${percentage}%` }}
                             />
                           </div>
@@ -1409,12 +1409,12 @@ export default function ProductPageBase({
                           key={review._id}
                           className={`p-5 rounded-xl border transition-all duration-300 hover:shadow-md ${
                             isUserReview
-                              ? "bg-gradient-to-r from-[#b90e0a]/5 to-[#b90e0a]/10 border-[#b90e0a]/20"
+                              ? "bg-[#b90e0a]/5 border-[#b90e0a]/20"
                               : "bg-[#fafafa] border-black/5 hover:border-black/10"
                           }`}
                         >
                           <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#b90e0a] to-[#8a0a08] flex items-center justify-center text-white font-bold flex-shrink-0 shadow-md">
+                            <div className="w-12 h-12 rounded-full bg-[#b90e0a] flex items-center justify-center text-white font-bold flex-shrink-0 shadow-md">
                               {review.name.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex-1 space-y-2">
@@ -1489,7 +1489,7 @@ export default function ProductPageBase({
             {showReviewForm && (
               <form
                 onSubmit={submitReview}
-                className="space-y-5 p-6 bg-gradient-to-r from-[#fafafa] to-white rounded-xl border border-black/5 mt-6"
+                className="space-y-5 p-6 bg-[#fafafa] rounded-xl border border-black/5 mt-6"
               >
                 <h4 className="font-bold text-[#0a0a0a]">
                   {isEditingReview ? "Edit Your Review" : "Write a Review"}
