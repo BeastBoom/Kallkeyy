@@ -641,8 +641,18 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
         return;
       }
 
-      // Create COD order
-      const response = await fetch(`${API_BASE_URL}/api/payment/create-cod-order`, {
+      // Load Razorpay script for token payment
+      const res = await loadRazorpayScript();
+      if (!res) {
+        alert(
+          "Razorpay SDK failed to load. Please check your internet connection."
+        );
+        setLoading(false);
+        return;
+      }
+
+      // Create COD token order (₹100) through Razorpay
+      const response = await fetch(`${API_BASE_URL}/api/orders/create-cod-token-order`, {
         method: "POST",
         credentials: 'include',
         headers: {
@@ -659,48 +669,133 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
       });
 
       const data = await response.json();
-      
       if (!data.success) {
-        console.error("COD order creation failed:", data);
-        alert(data.message || "Failed to place COD order. Please try again.");
+        console.error("COD token order creation failed:", data);
+        alert(data.message || "Failed to create COD token payment. Please try again.");
         setLoading(false);
         return;
       }
 
-      // Track purchase with Google Analytics
-      if (data.order) {
-        const purchaseItems = items.map(item => ({
-          item_id: item.productId,
-          item_name: item.productName,
-          item_category: item.productId.includes('hoodie') ? 'Hoodies' : 'T-Shirts',
-          price: item.price,
-          quantity: item.quantity,
-        }));
-        
-        const finalAmount = couponApplied ? couponApplied.finalAmount : totalPrice;
-        trackPurchase({
-          transaction_id: data.order.orderId || data.order._id?.toString() || '',
-          value: finalAmount,
-          currency: 'INR',
-          tax: 0,
-          shipping: 0,
-          items: purchaseItems,
-        });
+      // Validate response data
+      if (!data.order || !data.order.id || !data.key) {
+        console.error("Invalid COD token order creation response:", data);
+        alert("Invalid response from server. Please try again.");
+        setLoading(false);
+        return;
       }
 
-      // Clear cart
-      await clearCart();
+      // Get payment configuration ID from backend response or frontend environment
+      const paymentConfigId = data.checkout_config_id || import.meta.env.VITE_RAZORPAY_PAYMENT_CONFIG_ID;
 
-      // Navigate to order confirmation page
-      if (onOrderSuccess && data.order?.orderId) {
-        onOrderSuccess(data.order.orderId);
-      } else {
-        window.location.href = `/order-confirmation?orderId=${data.order.orderId}`;
-      }
+      const options: RazorpayOptions = {
+        key: data.key,
+        amount: data.order.amount, // ₹100 token amount
+        currency: data.order.currency,
+        name: "KALLKEYY",
+        description: "COD Order Token Payment (₹100)",
+        order_id: data.order.id,
+        // Add payment configuration ID if specified
+        ...(paymentConfigId && {
+          checkout_config_id: paymentConfigId
+        }),
+        handler: async function (response: RazorpayResponse) {
+          // Verify COD token payment
+          const verifyResponse = await fetch(
+            `${API_BASE_URL}/api/orders/verify-cod-token-payment`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                shippingAddress: {
+                  ...selectedAddress,
+                  email: user?.email,
+                },
+                couponCode: couponApplied?.code || null,
+              }),
+            }
+          );
 
+          const verifyData = await verifyResponse.json();
+          
+          if (verifyData.success) {
+            // Track purchase with Google Analytics for COD token payment
+            if (verifyData.order) {
+              const purchaseItems = items.map(item => ({
+                item_id: item.productId,
+                item_name: item.productName,
+                item_category: item.productId.includes('hoodie') ? 'Hoodies' : 'T-Shirts',
+                price: item.price,
+                quantity: item.quantity,
+              }));
+              
+              const finalAmount = couponApplied ? couponApplied.finalAmount : totalPrice;
+              trackPurchase({
+                transaction_id: verifyData.order.orderId || verifyData.order._id?.toString() || '',
+                value: finalAmount,
+                currency: 'INR',
+                tax: 0,
+                shipping: 0,
+                items: purchaseItems,
+              });
+            }
+            
+            // Payment successful - navigate to order confirmation page
+            await clearCart();
+            
+            // Get order ID from response
+            const orderId = verifyData.order?._id?.toString() || verifyData.order?.orderId || verifyData.order?._id || verifyData.orderId || '';
+            
+            // Use navigation callback if provided, otherwise fallback to window.location
+            if (onOrderSuccess) {
+              onOrderSuccess(orderId || undefined);
+            } else {
+              sessionStorage.setItem('allowed_/order-confirmation', 'true');
+              if (orderId) {
+                window.location.href = `/order-confirmation?orderId=${orderId}`;
+              } else {
+                window.location.href = "/order-confirmation";
+              }
+            }
+          } else {
+            // Payment verification failed
+            console.error("COD token payment verification failed:", verifyData);
+            const errorMessage = verifyData.message || "Unknown error";
+            alert(
+              `❌ COD token payment verification failed: ${errorMessage}\n\n` +
+              `🔑 Razorpay Payment ID: ${response.razorpay_payment_id}\n` +
+              `🔑 Razorpay Order ID: ${response.razorpay_order_id}\n\n` +
+              `Please save these IDs and contact support. Your ₹100 token payment may have been processed.`
+            );
+            setLoading(false);
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            setLoading(false);
+            // Don't show alert on modal dismiss - user might close intentionally
+          },
+        },
+        prefill: {
+          name: selectedAddress.fullName,
+          email: user?.email || "",
+          contact: selectedAddress.phone,
+        },
+        theme: {
+          color: "#b90e0a", // KALLKEYY brand color
+        },
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
     } catch (error) {
-      console.error("COD order error:", error);
-      alert("Failed to place COD order. Please try again.");
+      console.error("COD token payment error:", error);
+      alert("Failed to process COD token payment. Please try again.");
       setLoading(false);
     }
   };
@@ -794,24 +889,24 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
         return;
       }
 
-      // Get payment configuration ID from backend response or frontend environment
-      // Backend response takes priority (if RAZORPAY_PAYMENT_CONFIG_ID is set in backend .env)
-      // Otherwise, fallback to frontend env variable (VITE_RAZORPAY_PAYMENT_CONFIG_ID)
-      const paymentConfigId = data.checkout_config_id || import.meta.env.VITE_RAZORPAY_PAYMENT_CONFIG_ID;
+            // Get payment configuration ID from backend response or frontend environment
+            // Backend response takes priority (if RAZORPAY_PAYMENT_CONFIG_ID is set in backend .env)
+            // Otherwise, fallback to frontend env variable (VITE_RAZORPAY_PAYMENT_CONFIG_ID)
+            const paymentConfigId = data.checkout_config_id || import.meta.env.VITE_RAZORPAY_PAYMENT_CONFIG_ID;
 
-      const options: RazorpayOptions = {
-        key: data.key,
-        amount: data.order.amount,
-        currency: data.order.currency,
-        name: "KALLKEYY",
-        description: "Streetwear Fashion",
-        order_id: data.order.id,
-        // Add payment configuration ID if specified
-        // This applies the custom payment methods (UPI, Cards, Netbanking only)
-        // checkout_config_id restricts payment methods to those configured in Razorpay Dashboard
-        ...(paymentConfigId && {
-          checkout_config_id: paymentConfigId
-        }),
+            const options: RazorpayOptions = {
+              key: data.key,
+              amount: data.order.amount,
+              currency: data.order.currency,
+              name: "KALLKEYY",
+              description: "Streetwear Fashion",
+              order_id: data.order.id,
+              // Add payment configuration ID if specified
+              // This applies the custom payment methods (UPI, Cards, Netbanking only)
+              // checkout_config_id restricts payment methods to those configured in Razorpay Dashboard
+              ...(paymentConfigId && {
+                checkout_config_id: paymentConfigId
+              }),
         handler: async function (response: RazorpayResponse) {
           // Retry verification with exponential backoff for network resilience
           let verifyData;
@@ -1600,7 +1695,7 @@ export default function CheckoutPage({ onBackToShop, skipAnimations = false, onO
               </button>
             )}
 
-            {paymentMethod === "razorpay" && (
+            {(paymentMethod === "razorpay" || paymentMethod === "cod") && (
               <div className="flex items-center justify-center gap-2 mt-4 p-3 rounded-lg bg-green-50 border border-green-300">
                 <Lock size={16} className="text-green-600" />
                 <span className="text-gray-700 text-sm font-medium">

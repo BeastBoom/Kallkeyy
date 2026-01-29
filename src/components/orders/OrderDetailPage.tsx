@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   Menu,
   X,
@@ -27,10 +28,12 @@ import {
   Phone,
   User,
   Check,
+  AlertTriangle,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "../../contexts/AuthContext";
-import { getOrderById, requestOrderReturn, Order } from "../../services/orderService";
+import { getOrderById, requestOrderReturn, cancelOrder, processOrderRefund, Order } from "../../services/orderService";
 
 interface Props {
   orderId: string;
@@ -64,6 +67,8 @@ export default function OrderDetailPage({
   const [returnComments, setReturnComments] = useState("");
   const [showPaymentId, setShowPaymentId] = useState(false);
   const [copiedPaymentId, setCopiedPaymentId] = useState(false);
+  const [showCancelPopup, setShowCancelPopup] = useState(false);
+  const [showExpiredModal, setShowExpiredModal] = useState(false);
   const { user, logout } = useAuth();
   
   // Get current route to determine active nav item
@@ -162,12 +167,81 @@ export default function OrderDetailPage({
     }
   };
 
-  const handleCancelOrder = () => {
-    toast({
-      variant: "destructive",
-      title: "Order Cancellation",
-      description: "Orders cannot be cancelled right now. Please mail to support@kallkeyy.com for order cancellation.",
-    });
+  // Calculate cancellation window status
+  const getCancellationStatus = () => {
+    if (!order) return { canCancel: false, reason: '', timeRemaining: null };
+    
+    // Check if order can be cancelled based on status
+    if (order.status !== 'pending' && order.status !== 'confirmed' && order.status !== 'processing') {
+      return { 
+        canCancel: false, 
+        reason: `Order cannot be cancelled at this stage. Current status: ${order.status}`, 
+        timeRemaining: null 
+      };
+    }
+
+    // Check 24-hour cancellation window
+    const now = new Date();
+    const cancellationWindowEnds = order.cancellationWindowEndsAt 
+      ? new Date(order.cancellationWindowEndsAt) 
+      : new Date(new Date(order.createdAt).getTime() + 24 * 60 * 60 * 1000);
+    
+    if (now > cancellationWindowEnds) {
+      return { 
+        canCancel: false, 
+        reason: '24-hour cancellation window has expired. Please contact support for assistance.', 
+        timeRemaining: null 
+      };
+    }
+
+    // Calculate time remaining
+    const timeDiff = cancellationWindowEnds.getTime() - now.getTime();
+    const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+    const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+    const timeRemaining = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+    return { 
+      canCancel: true, 
+      reason: '', 
+      timeRemaining 
+    };
+  };
+
+  const cancellationStatus = getCancellationStatus();
+
+  const handleCancelOrder = async () => {
+    if (!order) return;
+
+
+    // Check if order can be cancelled
+    if (!cancellationStatus.canCancel) {
+      toast({
+        variant: "destructive",
+        title: "Cannot Cancel Order",
+        description: cancellationStatus.reason,
+      });
+      return;
+    }
+
+
+    try {
+      const result = await cancelOrder(order._id);
+      toast({
+        title: "Order Cancelled",
+        description: result.message,
+      });
+      // Refresh order details to show updated status
+      fetchOrderDetails();
+    } catch (error: any) {
+      console.error(`❌ Order ${order._id} cancellation failed:`, error);
+      toast({
+        variant: "destructive",
+        title: "Cancellation Failed",
+        description: error.message || "Failed to cancel order. Please try again.",
+      });
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -231,6 +305,30 @@ export default function OrderDetailPage({
     if (!fullName) return "";
     const nameParts = fullName.trim().split(/\s+/);
     return nameParts[0].toUpperCase();
+  };
+
+  // Format time remaining to HH:MM format (without seconds)
+  const formatTimeRemaining = (timeRemaining: string | null): string => {
+    if (!timeRemaining) return "00:00";
+    const [hours, minutes] = timeRemaining.split(':');
+    return `${hours}:${minutes}`;
+  };
+
+  // Calculate progress percentage for the progress bar
+  const getProgressPercentage = (): number => {
+    if (!order || !cancellationStatus.timeRemaining) return 0;
+    
+    // Total cancellation window in milliseconds (24 hours)
+    const totalWindow = 24 * 60 * 60 * 1000;
+    
+    // Calculate remaining time in milliseconds
+    const [hours, minutes, seconds] = cancellationStatus.timeRemaining.split(':').map(Number);
+    const remainingTime = (hours * 60 * 60 * 1000) + (minutes * 60 * 1000) + (seconds * 1000);
+    
+    // Calculate progress percentage (how much time has passed)
+    const progress = ((totalWindow - remainingTime) / totalWindow) * 100;
+    
+    return Math.max(0, Math.min(100, progress)); // Ensure it's between 0 and 100
   };
 
   // Note: Cancel order functionality is temporarily disabled - users should email support
@@ -780,9 +878,20 @@ export default function OrderDetailPage({
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {showCancelButton && (
                   <Button 
-                    onClick={handleCancelOrder} 
+                    onClick={() => {
+                      if (cancellationStatus.canCancel) {
+                        setShowCancelPopup(true);
+                      } else {
+                        setShowExpiredModal(true);
+                      }
+                    }}
                     variant="outline" 
-                    className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-xl font-semibold h-12 transition-all cursor-pointer"
+                    disabled={!cancellationStatus.canCancel}
+                    className={`border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-xl font-semibold h-12 transition-all ${
+                      cancellationStatus.canCancel ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'
+                    }`}
+                    onMouseEnter={() => !cancellationStatus.canCancel && setShowExpiredModal(true)}
+                    onMouseLeave={() => setShowExpiredModal(false)}
                   >
                     <XCircle className="w-4 h-4 mr-2" />
                     Cancel Order
@@ -878,6 +987,114 @@ export default function OrderDetailPage({
                   Cancel
                 </Button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Order Popup */}
+      {showCancelPopup && (
+        <Dialog open={showCancelPopup} onOpenChange={setShowCancelPopup}>
+          <DialogContent className="sm:max-w-md bg-white rounded-2xl p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+            <DialogHeader>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl font-bold text-gray-900">Cancel Order?</DialogTitle>
+                  <DialogDescription className="text-sm text-gray-500">Are you sure you want to cancel this order?</DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div className="bg-gray-50 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-gray-700">Time remaining:</span>
+                  <span className="text-lg font-bold text-[#b90e0a]">
+                    {formatTimeRemaining(cancellationStatus.timeRemaining)}
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-[#b90e0a] h-2 rounded-full" style={{ width: `${getProgressPercentage()}%` }}></div>
+                </div>
+              </div>
+              
+              <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <ShieldCheck className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold text-green-800">Refund Policy</p>
+                    <p className="text-sm text-green-700">Any payment deducted will be refunded in 3-5 business days</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button 
+                onClick={() => {
+                  setShowCancelPopup(false);
+                  handleCancelOrder();
+                }}
+                className="flex-1 bg-gradient-to-r from-[#b90e0a] to-[#d91410] hover:from-[#a00d09] hover:to-[#b90e0a] text-white font-bold h-12 rounded-xl shadow-lg shadow-[#b90e0a]/25"
+              >
+                Yes, Cancel Order
+              </Button>
+              <Button 
+                onClick={() => setShowCancelPopup(false)} 
+                variant="outline" 
+                className="flex-1 border-gray-200 hover:bg-gray-50 h-12 rounded-xl font-semibold text-gray-900"
+              >
+                Keep Order
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Expired Cancellation Modal */}
+      {showExpiredModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-300">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
+                <Clock className="w-6 h-6 text-gray-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Cancellation Window Expired</h2>
+                <p className="text-sm text-gray-500">24-hour cancellation period has ended</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <p className="text-gray-600">
+                The 24-hour cancellation window for this order has expired. You can no longer cancel this order through the app.
+              </p>
+              
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <p className="text-amber-800 font-medium">Next Steps:</p>
+                <p className="text-amber-700 text-sm mt-1">
+                  Please message or contact support for assistance with order cancellation.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <a
+                href="mailto:support@kallkeyy.com"
+                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold h-12 rounded-xl shadow-lg shadow-blue-600/25 transition-all duration-300 flex items-center justify-center"
+              >
+                Contact Support
+              </a>
+              <Button 
+                onClick={() => setShowExpiredModal(false)} 
+                variant="outline" 
+                className="flex-1 border-gray-200 hover:bg-gray-50 h-12 rounded-xl font-semibold"
+              >
+                Close
+              </Button>
             </div>
           </div>
         </div>

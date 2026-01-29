@@ -48,9 +48,10 @@ const orderSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['razorpay', 'cod'],
-    default: 'razorpay'
+    enum: ['razorpay', 'cod_token'],
+    required: true
   },
+
   paymentStatus: {
     type: String,
     enum: ['pending', 'completed', 'failed'],
@@ -86,12 +87,45 @@ const orderSchema = new mongoose.Schema({
   notes: [{
     type: String
   }],
+  // 24-hour cancellation window fields
+  cancellationWindowEndsAt: {
+    type: Date,
+    default: function() {
+      return new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from creation
+    }
+  },
+  statusHistory: [{
+    status: String,
+    timestamp: {
+      type: Date,
+      default: Date.now
+    },
+    updatedBy: {
+      type: String,
+      enum: ['user', 'admin', 'shiprocket', 'system'],
+      default: 'system'
+    },
+    reason: String
+  }],
   coupon: {
     code: String,
     name: String,
     discountType: String,
     discountValue: Number,
     discountAmount: Number
+  },
+  // Refund tracking fields
+  refundDetails: {
+    refundId: String,
+    refundAmount: Number, // in paise
+    refundStatus: {
+      type: String,
+      enum: ['pending', 'processed', 'failed', 'completed'],
+      default: 'pending'
+    },
+    refundReason: String,
+    refundedAt: Date,
+    refundNotes: String
   }
 }, {
   timestamps: true

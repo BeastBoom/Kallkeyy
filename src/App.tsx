@@ -748,19 +748,39 @@ const App = () => {
             )}
 
             {stage === "size-guide" && (
-              <SizeGuidePage onBackToMain={navigateToHome} skipAnimations={skipAnimations} />
+              <SizeGuidePage 
+                onBackToMain={navigateToHome}
+                onNavigateToLogin={navigateToLogin}
+                onNavigateToSignup={navigateToSignup}
+                skipAnimations={skipAnimations} 
+              />
             )}
 
             {stage === "shipping" && (
-              <ShippingPage onBackToMain={navigateToHome} skipAnimations={skipAnimations} />
+              <ShippingPage 
+                onBackToMain={navigateToHome}
+                onNavigateToLogin={navigateToLogin}
+                onNavigateToSignup={navigateToSignup}
+                skipAnimations={skipAnimations} 
+              />
             )}
 
             {stage === "returns" && (
-              <ReturnsPage onBackToMain={navigateToHome} skipAnimations={skipAnimations} />
+              <ReturnsPage 
+                onBackToMain={navigateToHome}
+                onNavigateToLogin={navigateToLogin}
+                onNavigateToSignup={navigateToSignup}
+                skipAnimations={skipAnimations} 
+              />
             )}
 
             {stage === "faq" && (
-              <FAQPage onBackToMain={navigateToHome} skipAnimations={skipAnimations} />
+              <FAQPage 
+                onBackToMain={navigateToHome}
+                onNavigateToLogin={navigateToLogin}
+                onNavigateToSignup={navigateToSignup}
+                skipAnimations={skipAnimations} 
+              />
             )}
 
             {stage === "checkout" && (

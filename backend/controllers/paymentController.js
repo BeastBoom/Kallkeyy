@@ -9,10 +9,7 @@ const axios = require('axios');
 const { setCorsHeaders } = require('../utils/responseHelper');
 const { recordCouponUsage } = require('./couponController');
 
-// Validate Razorpay credentials
-if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-  console.error('❌ Razorpay credentials are missing! Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in your .env file');
-}
+// Note: Development logging removed for clean production logs
 
 // Initialize Razorpay
 const razorpay = new Razorpay({
@@ -249,13 +246,26 @@ exports.createOrder = async (req, res) => {
     // The frontend CheckoutPage.tsx handles this via VITE_RAZORPAY_PAYMENT_CONFIG_ID
 
     let razorpayOrder;
+    let responseTime;
+    let startTime; // ✅ declare outside
+
     try {
-      razorpayOrder = await razorpay.orders.create(options);
+      startTime = Date.now();
+
+      razorpayOrder = await retryOperation(
+        () => razorpay.orders.create(options),
+        3,
+        1000
+      );
+
+      responseTime = Date.now() - startTime;
+
     } catch (razorpayError) {
+
+      responseTime = startTime ? (Date.now() - startTime) : null; // ✅ safe
+
       logCritical('Razorpay order creation failed', razorpayError);
-      console.error('   Order Amount:', finalAmount);
-      console.error('   User ID:', req.user._id);
-      
+
       setCorsHeaders(req, res);
       return res.status(500).json({
         success: false,
@@ -263,6 +273,7 @@ exports.createOrder = async (req, res) => {
         error: process.env.NODE_ENV === 'development' ? razorpayError.message : undefined
       });
     }
+
 
     // Return Razorpay order details - NO database order created yet
     // Database order will be created only after payment is verified
@@ -308,10 +319,12 @@ async function verifyPaymentWithRazorpay(razorpay_order_id, razorpay_payment_id)
       throw new Error('Payment order ID mismatch');
     }
 
-    // Verify payment status
-    if (payment.status !== 'captured' && payment.status !== 'authorized') {
+    // Verify payment status - Only accept 'captured' status for live mode
+    if (payment.status !== 'captured') {
       throw new Error(`Payment not captured. Status: ${payment.status}`);
     }
+    
+    // Note: Payment logging removed for clean production logs
 
     return {
       verified: true,
@@ -325,6 +338,7 @@ async function verifyPaymentWithRazorpay(razorpay_order_id, razorpay_payment_id)
     };
   }
 }
+
 
 // Helper to check if verbose logging should be enabled (development only)
 // Note: VERCEL_ENV can be 'development', 'preview', or 'production'
@@ -342,6 +356,22 @@ const logCritical = (message, error = null) => {
     if (error.stack && isDevelopment) {
       console.error(`   Stack: ${error.stack}`);
     }
+  }
+};
+
+// Helper function to log payment flow events
+const logPaymentEvent = (event, data) => {
+  const logData = {
+    timestamp: new Date().toISOString(),
+    event,
+    ...data
+  };
+  
+  if (isDevelopment) {
+    console.log(`💳 PAYMENT EVENT: ${JSON.stringify(logData, null, 2)}`);
+  } else {
+    // In production, you might want to send this to a logging service
+    console.log(`💳 PAYMENT EVENT: ${event} - ${JSON.stringify(data)}`);
   }
 };
 
@@ -371,9 +401,7 @@ async function retryOperation(operation, maxRetries = 3, delay = 1000) {
       if (attempt === maxRetries) {
         throw error;
       }
-      if (isDevelopment) {
-        console.log(`⚠️  Operation failed (attempt ${attempt}/${maxRetries}), retrying in ${delay}ms...`);
-      }
+    // Note: Retry logging removed for clean production logs
       await new Promise(resolve => setTimeout(resolve, delay));
       delay *= 2; // Exponential backoff
     }
@@ -445,14 +473,14 @@ exports.verifyPayment = async (req, res) => {
       }
     }
 
+
     if (!signatureMatch) {
       if (useTransactions && session) {
         await session.abortTransaction();
         session.endSession();
       }
-      if (isDevelopment) {
-        console.error('❌ Payment signature verification failed');
-      }
+      // Note: Development logging removed for clean production logs
+      
       
       // Try to find and mark order as failed if it exists
       const existingOrder = await Order.findOne({ razorpayOrderId: razorpay_order_id });
@@ -472,12 +500,17 @@ exports.verifyPayment = async (req, res) => {
 
     // STEP 2: Additional verification with Razorpay API (verify payment is actually captured)
     const razorpayVerification = await verifyPaymentWithRazorpay(razorpay_order_id, razorpay_payment_id);
+    
+    
     if (!razorpayVerification.verified) {
+      // Payment verification failed
       if (useTransactions && session) {
         await session.abortTransaction();
         session.endSession();
       }
       console.error(`❌ Razorpay API verification failed: ${razorpayVerification.error}`);
+      
+      
       setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
@@ -499,9 +532,7 @@ exports.verifyPayment = async (req, res) => {
           await session.abortTransaction();
           session.endSession();
         }
-        if (isDevelopment) {
-          console.error('❌ Unauthorized payment verification attempt');
-        }
+        // Note: Development logging removed for clean production logs
         setCorsHeaders(req, res);
         return res.status(403).json({
           success: false,
@@ -514,9 +545,7 @@ exports.verifyPayment = async (req, res) => {
           await session.abortTransaction();
           session.endSession();
         }
-        if (isDevelopment) {
-          console.log(`✅ Payment already verified (idempotency check passed)`);
-        }
+        // Note: Development logging removed for clean production logs
         setCorsHeaders(req, res);
         return res.status(200).json({
           success: true,
@@ -598,9 +627,7 @@ exports.verifyPayment = async (req, res) => {
           await session.abortTransaction();
           session.endSession();
         }
-        if (isDevelopment) {
-          console.error('❌ Unauthorized payment verification');
-        }
+        // Note: Development logging removed for clean production logs
         setCorsHeaders(req, res);
         return res.status(403).json({
           success: false,
@@ -636,7 +663,7 @@ exports.verifyPayment = async (req, res) => {
       // Use the amount from Razorpay order (the amount that was actually paid)
       paidAmount = razorpayOrderDetails.amount / 100; // Convert from paise to rupees
 
-      // CREATE ORDER IN DATABASE (only after payment is confirmed)
+        // CREATE ORDER IN DATABASE (only after payment is confirmed)
       try {
         const orderData = {
           userId: req.user._id,
@@ -650,7 +677,16 @@ exports.verifyPayment = async (req, res) => {
           currency: razorpayOrderDetails.currency,
           paymentMethod: 'razorpay',
           status: 'confirmed',
-          paymentStatus: 'completed'
+          paymentStatus: 'completed',
+          // Add 24-hour cancellation window
+          cancellationWindowEndsAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          // Add status history entry
+          statusHistory: [{
+            status: 'confirmed',
+            timestamp: new Date(),
+            updatedBy: 'system',
+            reason: 'Order confirmed after payment verification'
+          }]
         };
 
         // Add coupon data if available
@@ -736,6 +772,7 @@ exports.verifyPayment = async (req, res) => {
           // Log but continue - stock might have changed, but payment is confirmed
         }
 
+
         let productUpdateQuery = Product.findOneAndUpdate(
           { productId: item.productId },
           {
@@ -751,6 +788,7 @@ exports.verifyPayment = async (req, res) => {
       }
 
       // Clear cart
+
       let cartUpdateQuery = Cart.findOneAndUpdate(
         { userId: req.user._id },
         { items: [], totalItems: 0, totalPrice: 0 }
@@ -780,6 +818,7 @@ exports.verifyPayment = async (req, res) => {
       }
       
       console.error('❌ Error during stock deduction/cart clearing - transaction rolled back');
+      
       
       // CRITICAL: Even though transaction failed, payment is confirmed
       // Log this for manual reconciliation
@@ -833,7 +872,6 @@ exports.verifyPayment = async (req, res) => {
     // Create Shiprocket order (if enabled) - AFTER transaction is committed
     // This runs asynchronously and won't block the response
     if (process.env.SHIPROCKET_ENABLED === 'true' && order) {
-      console.log('🚀 Initiating Shiprocket order creation for order:', order.orderId);
       
       // Retry Shiprocket creation in background with exponential backoff
       retryOperation(
@@ -843,7 +881,6 @@ exports.verifyPayment = async (req, res) => {
       )
       .then(result => {
         if (result) {
-          console.log('✅ Shiprocket order successfully created. Order ID:', order.orderId, 'Shiprocket Order ID:', result.order_id);
         } else {
           logCritical(`Shiprocket returned null/undefined result for order ${order.orderId}`);
         }
@@ -946,7 +983,7 @@ exports.verifyPayment = async (req, res) => {
                 paymentMethod: 'razorpay',
                 status: 'confirmed',
                 paymentStatus: 'completed',
-                notes: ['⚠️ Created during error recovery - verify stock deduction']
+                notes: ['⚠️ Created during error recovery - manual stock verification required']
               };
               
               // Add coupon data if present
@@ -1246,11 +1283,94 @@ function calculatePackageDetails(items) {
   return { length, breadth, height, weight };
 }
 
+// Helper function to cancel Shiprocket order
+exports.cancelShiprocketOrder = async function cancelShiprocketOrder(orderId) {
+  try {
+    console.log('🚫 Cancelling Shiprocket order for:', orderId);
+    
+    // Validate Shiprocket is enabled
+    if (process.env.SHIPROCKET_ENABLED !== 'true') {
+      if (isDevelopment) {
+        console.log('⚠️  Shiprocket is disabled, skipping cancellation');
+      }
+      return null;
+    }
+
+    // Validate required environment variables
+    if (!process.env.SHIPROCKET_EMAIL || !process.env.SHIPROCKET_PASSWORD) {
+      throw new Error('Shiprocket credentials not configured in environment variables');
+    }
+
+    // Get auth token
+    const token = await getShiprocketToken();
+    
+    // According to Shiprocket API docs, cancellation uses different endpoint and payload format
+    // The API expects order_id as an array, not a string
+    const cancelResponse = await axios.post(
+      'https://apiv2.shiprocket.in/v1/external/orders/cancel',
+      { ids: [Number(orderId)] }, // Shiprocket expects order_id as array
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000 // 30 second timeout
+      }
+    );
+
+    // Validate response
+    if (!cancelResponse.data) {
+      throw new Error('Empty response from Shiprocket API');
+    }
+
+    const responseData = cancelResponse.data;
+
+    // Check for success field or message indicating success
+    if (responseData.message && responseData.message.toLowerCase().includes('success')) {
+      return responseData;
+    } else if (responseData.success === true || responseData.success === 'true') {
+      return responseData;
+    } else if (responseData.message) {
+      // Handle different response formats
+      return responseData;
+    } else {
+      throw new Error(`Shiprocket API error: ${responseData.message || 'Unknown error'}`);
+    }
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message;
+    const errorDetails = error.response?.data;
+    
+    // ALWAYS log Shiprocket errors - critical for production debugging
+    logCritical(`Shiprocket order cancellation failed for order ${orderId}`, error);
+    
+    console.error(`❌ Shiprocket Cancellation Error Details:`);
+    console.error(`   Error Type: ${error.constructor.name}`);
+    console.error(`   Error Message: ${error.message}`);
+    console.error(`   Error Code: ${error.code}`);
+    
+    if (error.response) {
+      console.error(`   Response Status: ${error.response.status}`);
+      console.error(`   Response Headers:`, error.response.headers);
+      console.error(`   Response Data:`, error.response.data);
+    }
+    
+    // Clear token cache on authentication errors
+    if (error.response?.status === 401 || error.message?.includes('authentication')) {
+      shiprocketTokenCache = null;
+      shiprocketTokenExpiry = null;
+      console.log('🔄 Cleared Shiprocket token cache due to auth error');
+    }
+    
+    // Don't throw - log and continue (order can still be cancelled even if Shiprocket fails)
+    // But throw for retry mechanism to work
+    throw error;
+  }
+}
+
 // Helper function to create Shiprocket order
 // Export Shiprocket order creation function for use in COD controller
 exports.createShiprocketOrder = async function createShiprocketOrder(order) {
   try {
-    console.log('🚀 Creating Shiprocket order for:', order.orderId);
     
     // Validate Shiprocket is enabled
     if (process.env.SHIPROCKET_ENABLED !== 'true') {
@@ -1338,7 +1458,7 @@ exports.createShiprocketOrder = async function createShiprocketOrder(order) {
     // Get auth token
     const token = await getShiprocketToken();
 
-    // Calculate package dimensions and weight
+    // Calculate package dimensions and weight based on items
     const packageDetails = calculatePackageDetails(order.items);
 
     // Create SKU with size information for each item
@@ -1351,6 +1471,14 @@ exports.createShiprocketOrder = async function createShiprocketOrder(order) {
       tax: 0,
       hsn: 0
     }));
+
+    // Determine payment method for Shiprocket
+    // For COD token orders, the payment method should be 'COD' (not 'Prepaid')
+    // The token payment is separate from the order payment method
+    let shiprocketPaymentMethod = 'Prepaid';
+    if (order.paymentMethod === 'cod' || order.paymentMethod === 'cod_token') {
+      shiprocketPaymentMethod = 'COD';
+    }
 
     // Create order payload (optimized for streetwear)
     const orderPayload = {
@@ -1371,7 +1499,7 @@ exports.createShiprocketOrder = async function createShiprocketOrder(order) {
       billing_phone: formattedPhone,
       shipping_is_billing: true,
       order_items: orderItems,
-      payment_method: order.paymentMethod === 'cod' ? 'COD' : 'Prepaid',
+      payment_method: shiprocketPaymentMethod, // Use the determined payment method
       shipping_charges: 0,
       giftwrap_charges: 0,
       transaction_charges: 0,
@@ -1414,13 +1542,12 @@ exports.createShiprocketOrder = async function createShiprocketOrder(order) {
       throw new Error('Shiprocket response missing order_id');
     }
 
-    console.log('✅ Shiprocket response received for order:', order.orderId);
-
     // Update order with Shiprocket details
     // Keep status as 'confirmed' - don't change to 'processing' here
     // Status will be updated to 'processing' when order is actually being prepared/shipped
     const updateData = {
-      shiprocketOrderId: responseData.order_id
+      shiprocketOrderId: responseData.order_id,
+      shiprocketPaymentMethod: shiprocketPaymentMethod // Track the payment method sent to Shiprocket
       // Note: We keep the current status (confirmed) instead of changing to 'processing'
     };
 
@@ -1430,8 +1557,6 @@ exports.createShiprocketOrder = async function createShiprocketOrder(order) {
 
     await Order.findByIdAndUpdate(order._id, updateData);
 
-    console.log('✅ Shiprocket order created successfully. Order ID:', order.orderId, 'Shiprocket Order ID:', responseData.order_id);
-
     return responseData;
   } catch (error) {
     const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message;
@@ -1440,7 +1565,8 @@ exports.createShiprocketOrder = async function createShiprocketOrder(order) {
     // ALWAYS log Shiprocket errors - critical for production debugging
     logCritical(`Shiprocket order creation failed for order ${order.orderId}`, error);
     console.error(`   Order Amount: ₹${order.amount}`);
-    console.error(`   Payment Method: ${order.paymentMethod || 'N/A'}`);
+    console.error(`   Order Payment Method: ${order.paymentMethod || 'N/A'}`);
+    console.error(`   Shiprocket Payment Method: ${order.paymentMethod === 'cod' || order.paymentMethod === 'cod_token' ? 'COD' : 'Prepaid'}`);
     
     // Log full error response for debugging (especially for 400 errors)
     if (error.response?.status === 400 && error.response?.data) {
@@ -1456,7 +1582,7 @@ exports.createShiprocketOrder = async function createShiprocketOrder(order) {
       if (order.amount <= 0) {
         console.error('   ⚠️  Issue: Order amount is 0 or negative. Shiprocket requires minimum order value for COD orders.');
       }
-      if (order.amount < 100 && order.paymentMethod === 'cod') {
+      if (order.amount < 100 && (order.paymentMethod === 'cod' || order.paymentMethod === 'cod_token')) {
         console.error('   ⚠️  Issue: COD orders with very low amounts (< ₹100) may be rejected by Shiprocket.');
       }
     }
@@ -1608,7 +1734,6 @@ exports.getOrderTracking = async (req, res) => {
 // Shiprocket webhook handler
 exports.shiprocketWebhook = async (req, res) => {
   try {
-    console.log('📨 Shiprocket webhook received:', JSON.stringify(req.body, null, 2));
 
     const webhookData = req.body;
     
@@ -1618,10 +1743,14 @@ exports.shiprocketWebhook = async (req, res) => {
     });
 
     if (!order) {
-      console.log(`⚠️  Order not found for Shiprocket ID: ${webhookData.order_id}`);
       setCorsHeaders(req, res);
       return res.status(200).json({ success: true, message: 'Order not found' });
     }
+
+    console.log(`✅ Found order: ${order.orderId} (Current Status: ${order.status})`);
+    console.log(`   Shiprocket Status: ${webhookData.current_status}`);
+    console.log(`   AWB Code: ${webhookData.awb_code}`);
+    console.log(`   Courier: ${webhookData.courier_name}`);
 
     // Update order based on webhook event
     const updates = {};
@@ -1631,6 +1760,7 @@ exports.shiprocketWebhook = async (req, res) => {
       case 'PICKUP SCHEDULED':
       case 'PICKUP QUEUED':
         updates.status = 'processing';
+        console.log(`   Status update: ${order.status} → processing`);
         break;
       
       case 'SHIPPED':
@@ -1638,41 +1768,63 @@ exports.shiprocketWebhook = async (req, res) => {
         updates.status = 'shipped';
         updates.awbCode = webhookData.awb_code;
         updates.courierName = webhookData.courier_name;
+        console.log(`   Status update: ${order.status} → shipped`);
+        console.log(`   AWB Code: ${webhookData.awb_code}`);
+        console.log(`   Courier: ${webhookData.courier_name}`);
         break;
       
       case 'OUT FOR DELIVERY':
         updates.status = 'shipped';
         updates.awbCode = webhookData.awb_code;
         updates.courierName = webhookData.courier_name;
+        console.log(`   Status update: ${order.status} → shipped (out for delivery)`);
+        console.log(`   AWB Code: ${webhookData.awb_code}`);
+        console.log(`   Courier: ${webhookData.courier_name}`);
         break;
       
       case 'DELIVERED':
         updates.status = 'delivered';
         updates.awbCode = webhookData.awb_code;
         updates.courierName = webhookData.courier_name;
+        console.log(`   Status update: ${order.status} → delivered`);
+        console.log(`   AWB Code: ${webhookData.awb_code}`);
+        console.log(`   Courier: ${webhookData.courier_name}`);
         break;
       
       case 'CANCELED':
       case 'RTO INITIATED':
       case 'RTO DELIVERED':
         updates.status = 'cancelled';
+        console.log(`   Status update: ${order.status} → cancelled`);
         break;
+      
+      default:
+        console.log(`   No status update needed for: ${webhookData.current_status}`);
     }
 
     // Add tracking URL if available
     if (webhookData.awb_code) {
       updates.trackingUrl = `https://shiprocket.co/tracking/${webhookData.awb_code}`;
+      console.log(`   Tracking URL: ${updates.trackingUrl}`);
     }
 
     if (Object.keys(updates).length > 0) {
+      console.log(`🔄 Updating order ${order.orderId} with:`, updates);
       await Order.findByIdAndUpdate(order._id, updates);
-      console.log(`✅ Order ${order.orderId} updated:`, updates);
+      console.log(`✅ Order ${order.orderId} updated successfully`);
+    } else {
+      console.log(`ℹ️  No updates needed for order ${order.orderId}`);
     }
 
     setCorsHeaders(req, res);
     res.status(200).json({ success: true });
   } catch (error) {
     console.error('❌ Shiprocket webhook error:', error);
+    console.error('   Error Type:', error.constructor.name);
+    console.error('   Error Message:', error.message);
+    if (error.stack) {
+      console.error('   Error Stack:', error.stack);
+    }
     setCorsHeaders(req, res);
     res.status(500).json({ 
       success: false, 

@@ -366,7 +366,7 @@ export default function Coupons() {
                       value={couponForm.code}
                       onChange={(e) => setCouponForm({ ...couponForm, code: e.target.value.toUpperCase() })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
-                      placeholder="KALLKEYY10"
+                      placeholder="KALLKEYY100"
                     />
                   </div>
                   <div>

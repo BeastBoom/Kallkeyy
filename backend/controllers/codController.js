@@ -295,8 +295,17 @@ exports.createCODOrder = async (req, res) => {
         amount: finalAmount,
         currency: 'INR',
         paymentMethod: 'cod',
-        status: 'processing', // COD orders start as processing
+        status: 'confirmed', // COD orders start as confirmed
         paymentStatus: 'pending', // Payment pending until delivery
+        // Add 24-hour cancellation window
+        cancellationWindowEndsAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        // Add status history entry
+        statusHistory: [{
+          status: 'confirmed',
+          timestamp: new Date(),
+          updatedBy: 'system',
+          reason: 'COD order created'
+        }],
         coupon: couponData || null
       };
 

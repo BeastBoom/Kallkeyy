@@ -41,6 +41,15 @@ export interface Order {
   returnComments?: string;
   returnRequestedAt?: string;
   cancelledAt?: string;
+  cancellationWindowEndsAt?: string;
+  refundDetails?: {
+    refundId?: string;
+    refundAmount?: number;
+    refundStatus?: 'pending' | 'processed' | 'failed' | 'completed';
+    refundReason?: string;
+    refundedAt?: string;
+    refundNotes?: string;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -126,6 +135,7 @@ export const requestOrderReturn = async (
 
 export const cancelOrder = async (orderId: string): Promise<{ message: string; order: Order }> => {
   try {
+    
     const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}/cancel`, {
       method: 'PUT',
       headers: {
@@ -135,15 +145,111 @@ export const cancelOrder = async (orderId: string): Promise<{ message: string; o
       credentials: 'include',
     });
 
+
     if (!response.ok) {
       const error = await response.json();
+      console.error(`❌ Backend returned error:`, error);
+      
+      // If order is eligible for refund, redirect to refund endpoint
+      if (error.refundEligible) {
+        return processOrderRefund(orderId, error.cancellationReason || 'User cancelled order');
+      }
+      
       throw new Error(error.message || 'Failed to cancel order');
     }
 
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error cancelling order:', error);
+    console.error('❌ Frontend order cancellation error:', error);
+    throw error;
+  }
+};
+
+export const processOrderRefund = async (
+  orderId: string,
+  reason: string
+): Promise<{ message: string; order: Order }> => {
+  try {
+    
+    const response = await fetch(`${API_BASE_URL}/api/refunds/cancel`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getAuthToken()}`,
+      },
+      credentials: 'include',
+      body: JSON.stringify({ orderId, reason }),
+    });
+
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error(`❌ Refund processing failed:`, error);
+      throw new Error(error.message || 'Failed to process refund');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('❌ Frontend refund processing error:', error);
+    throw error;
+  }
+};
+
+// Helper function to validate payment status for frontend
+export const validatePaymentStatus = (paymentStatus: string, razorpayStatus?: string): boolean => {
+  // Only accept 'captured' status for transactions to appear in Razorpay dashboard
+  if (razorpayStatus && razorpayStatus !== 'captured') {
+    console.warn(`⚠️ Payment status is ${razorpayStatus}, not 'captured'. Transactions may not appear in Razorpay dashboard.`);
+    return false;
+  }
+  
+  return paymentStatus === 'completed';
+};
+
+export const getRefundStatus = async (orderId: string): Promise<{ success: boolean; refundDetails: any; orderStatus: string }> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/refunds/status/${orderId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getAuthToken()}`,
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch refund status');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching refund status:', error);
+    throw error;
+  }
+};
+
+export const getOrderTracking = async (orderId: string): Promise<any> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}/tracking`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getAuthToken()}`,
+      },
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch tracking information');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching tracking information:', error);
     throw error;
   }
 };

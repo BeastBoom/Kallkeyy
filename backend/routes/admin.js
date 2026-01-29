@@ -63,8 +63,16 @@ router.get('/orders/:orderId', adminAuth, adminOrderController.getOrderDetails);
 router.put('/orders/:orderId/status', adminAuth, adminOrderController.updateOrderStatus);
 router.put('/orders/:orderId/shipping', adminAuth, adminOrderController.updateShippingDetails);
 router.put('/orders/:orderId/cancel', adminAuth, adminOrderController.cancelOrder);
+router.put('/orders/:orderId/processing', adminAuth, adminOrderController.markAsProcessing);
+router.put('/orders/:orderId/shipped', adminAuth, adminOrderController.markAsShipped);
 router.get('/orders/stats/overview', adminAuth, adminOrderController.getOrderStatistics);
 router.get('/orders/export/csv', adminAuth, adminOrderController.exportOrders);
+
+// ==========================================
+// REFUND MANAGEMENT (All admins)
+// ==========================================
+router.post('/refunds/process', adminAuth, require('../controllers/refundController').processManualRefund);
+router.get('/refunds', adminAuth, require('../controllers/refundController').getAllRefunds);
 
 // ==========================================
 // SUBSCRIBER MANAGEMENT (All admins)

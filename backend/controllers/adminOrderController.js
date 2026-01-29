@@ -256,6 +256,138 @@ exports.cancelOrder = async (req, res) => {
   }
 };
 
+// Mark order as processing
+exports.markAsProcessing = async (req, res) => {
+  try {
+    await connectDB();
+
+    const { orderId } = req.params;
+    const { notes } = req.body;
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      setCorsHeaders(req, res);
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    // Only allow processing if order is confirmed and 24-hour window has passed
+    const now = new Date();
+    const cancellationWindowEnds = order.cancellationWindowEndsAt || new Date(order.createdAt.getTime() + 24 * 60 * 60 * 1000);
+    
+    if (order.status !== 'confirmed') {
+      setCorsHeaders(req, res);
+      return res.status(400).json({
+        success: false,
+        message: 'Order must be in confirmed status to mark as processing'
+      });
+    }
+
+    if (now < cancellationWindowEnds) {
+      setCorsHeaders(req, res);
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot process order until 24-hour cancellation window expires',
+        cancellationWindowEndsAt: cancellationWindowEnds
+      });
+    }
+
+    order.status = 'processing';
+    order.statusHistory.push({
+      status: 'processing',
+      timestamp: new Date(),
+      updatedBy: 'admin',
+      reason: notes || 'Order marked as processing by admin'
+    });
+
+    if (notes) {
+      if (!order.notes) order.notes = [];
+      order.notes.push(`[Admin] ${notes}`);
+    }
+
+    await order.save();
+
+    setCorsHeaders(req, res);
+    res.status(200).json({
+      success: true,
+      message: 'Order marked as processing successfully',
+      order
+    });
+  } catch (error) {
+    console.error('Mark as processing error:', error);
+    setCorsHeaders(req, res);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to mark order as processing'
+    });
+  }
+};
+
+// Mark order as shipped (manual shipping with Shiprocket sync)
+exports.markAsShipped = async (req, res) => {
+  try {
+    await connectDB();
+
+    const { orderId } = req.params;
+    const { awbCode, courierName, trackingUrl, notes } = req.body;
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      setCorsHeaders(req, res);
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    if (order.status !== 'processing') {
+      setCorsHeaders(req, res);
+      return res.status(400).json({
+        success: false,
+        message: 'Order must be in processing status to mark as shipped'
+      });
+    }
+
+    // Update order status and shipping details
+    order.status = 'shipped';
+    order.awbCode = awbCode;
+    order.courierName = courierName;
+    order.trackingUrl = trackingUrl || `https://shiprocket.co/tracking/${awbCode}`;
+    
+    order.statusHistory.push({
+      status: 'shipped',
+      timestamp: new Date(),
+      updatedBy: 'admin',
+      reason: notes || 'Order shipped manually by admin'
+    });
+
+    if (notes) {
+      if (!order.notes) order.notes = [];
+      order.notes.push(`[Admin] ${notes}`);
+    }
+
+    await order.save();
+
+    setCorsHeaders(req, res);
+    res.status(200).json({
+      success: true,
+      message: 'Order marked as shipped successfully',
+      order
+    });
+  } catch (error) {
+    console.error('Mark as shipped error:', error);
+    setCorsHeaders(req, res);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to mark order as shipped'
+    });
+  }
+};
+
 // Get order statistics
 exports.getOrderStatistics = async (req, res) => {
   try {

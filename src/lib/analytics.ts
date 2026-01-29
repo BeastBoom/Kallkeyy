@@ -16,15 +16,7 @@ declare global {
 // Get GA4 Measurement ID from environment variable
 const GA4_MEASUREMENT_ID = import.meta.env.VITE_GA4_MEASUREMENT_ID || '';
 
-// Log measurement ID status in development
-if (import.meta.env.DEV && typeof window !== 'undefined') {
-  if (GA4_MEASUREMENT_ID) {
-    console.log('✅ GA4 Measurement ID found:', GA4_MEASUREMENT_ID);
-  } else {
-    console.warn('⚠️ GA4 Measurement ID NOT found in environment variables');
-    console.warn('   Add VITE_GA4_MEASUREMENT_ID=G-XXXXXXXXXX to your .env file');
-  }
-}
+// Note: Development logging removed for clean production logs
 
 /**
  * Initialize Google Analytics
@@ -35,19 +27,11 @@ export const initGA = () => {
   }
 
   if (!GA4_MEASUREMENT_ID) {
-    // Only warn in development
-    if (import.meta.env.DEV) {
-      console.warn('⚠️ Google Analytics Measurement ID not found. Set VITE_GA4_MEASUREMENT_ID environment variable.');
-    }
     return;
   }
 
   // Validate Measurement ID format (should start with G-)
   if (!GA4_MEASUREMENT_ID.startsWith('G-')) {
-    // Only log error in development
-    if (import.meta.env.DEV) {
-      console.error('❌ Invalid GA4 Measurement ID format. Should start with "G-"');
-    }
     return;
   }
 
@@ -83,11 +67,9 @@ export const initGA = () => {
   script.async = true;
   script.src = `https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`;
   
-  // Add error handling for script load (only log in development)
+  // Note: Error handling removed for clean production logs
   script.onerror = () => {
-    if (import.meta.env.DEV) {
-      console.error('❌ Failed to load Google Analytics script');
-    }
+    // Error handling removed
   };
   
   script.onload = () => {
@@ -110,9 +92,6 @@ export const initGA = () => {
  */
 export const trackPageView = (path: string, title?: string) => {
   if (!GA4_MEASUREMENT_ID) {
-    if (import.meta.env.DEV) {
-      console.warn('⚠️ GA4 Measurement ID not found for page view tracking');
-    }
     return;
   }
 
@@ -146,9 +125,6 @@ export const trackEvent = (
   }
 ) => {
   if (!GA4_MEASUREMENT_ID) {
-    if (import.meta.env.DEV) {
-      console.warn('⚠️ GA4 Measurement ID not found for event tracking:', eventName);
-    }
     return;
   }
 

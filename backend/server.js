@@ -65,6 +65,7 @@ const reviewRoutes = require('./routes/reviews');
 const adminRoutes = require('./routes/admin');
 const orderRoutes = require('./routes/orders');
 const couponRoutes = require('./routes/coupons');
+const refundRoutes = require('./routes/refunds');
 
 app.get('/', (req, res) => {
   res.status(200).json({ success: true, message: 'Kallkeyy API - v1.0', health: '/api/health' });
@@ -81,6 +82,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/coupons', couponRoutes);
+app.use('/api/refunds', refundRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({
