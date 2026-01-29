@@ -571,6 +571,36 @@ exports.verifyCODTokenPayment = async (req, res) => {
 
       const order = await Order.create(orderData);
 
+      // ✅ CREATE SHIPROCKET ORDER FOR COD
+      if (process.env.SHIPROCKET_ENABLED === 'true') {
+        try {
+          const { createShiprocketOrder } = require('./paymentController');
+
+          const shiprocketResult = await retryOperation(
+            () => createShiprocketOrder(order),
+            3,
+            2000
+          );
+
+          if (shiprocketResult && shiprocketResult.order_id) {
+            await Order.findByIdAndUpdate(order._id, {
+              shiprocketOrderId: shiprocketResult.order_id,
+              shiprocketShipmentId: shiprocketResult.shipment_id,
+              shiprocketPaymentMethod: 'COD'
+            });
+          } else {
+            throw new Error('Shiprocket returned empty response');
+          }
+
+        } catch (err) {
+          console.error('❌ Shiprocket COD order failed:', err.message);
+          await Order.findByIdAndUpdate(order._id, {
+            $push: { notes: `Shiprocket COD failed: ${err.message}` }
+          });
+        }
+      }
+
+
       // Record coupon usage after order is created
       if (couponDataFromNotes && couponDataFromNotes.code) {
         recordCouponUsage(couponDataFromNotes.code, req.user._id, order.orderId).catch(err => {
@@ -661,45 +691,68 @@ exports.verifyCODTokenPayment = async (req, res) => {
         }
       }
 
-      // Create Shiprocket order (if enabled) - AFTER order is created
-      // This runs asynchronously and won't block the response
+      // Create Shiprocket order (if enabled) - CRITICAL: Must happen synchronously
+      // This ensures the order is properly logged in Shiprocket before responding to client
       if (process.env.SHIPROCKET_ENABLED === 'true' && order) {
-        console.log('🚀 Initiating Shiprocket order creation for COD order:', order.orderId);
+        console.log(`🚀 Creating Shiprocket order for COD order: ${order.orderId}`);
         
-        // Retry Shiprocket creation in background with exponential backoff
-        retryOperation(
-          () => createShiprocketOrder(order),
-          3,
-          2000
-        )
-        .then(result => {
-          if (result) {
-            console.log('✅ Shiprocket COD order successfully created. Order ID:', order.orderId, 'Shiprocket Order ID:', result.order_id);
+        try {
+          // Retry Shiprocket creation with proper error handling
+          const shiprocketResult = await retryOperation(
+            () => createShiprocketOrder(order),
+            3,
+            2000
+          );
+          
+          if (shiprocketResult && shiprocketResult.order_id) {
+            console.log(`✅ Shiprocket COD order created successfully for order ${order.orderId}`);
+            console.log(`   Shiprocket Order ID: ${shiprocketResult.order_id}`);
+            console.log(`   Shiprocket Shipment ID: ${shiprocketResult.shipment_id || 'N/A'}`);
+            
+            // Update order with Shiprocket details immediately
+            await Order.findByIdAndUpdate(order._id, {
+              shiprocketOrderId: shiprocketResult.order_id,
+              shiprocketShipmentId: shiprocketResult.shipment_id,
+              shiprocketPaymentMethod: 'COD' // COD token orders should be COD in Shiprocket
+            });
+            
+            console.log(`✅ COD order ${order.orderId} updated with Shiprocket details`);
           } else {
-            logCritical(`Shiprocket returned null/undefined result for COD order ${order.orderId}`);
+            console.error(`❌ Shiprocket order creation returned null/undefined for COD order ${order.orderId}`);
+            throw new Error('Shiprocket order creation returned null/undefined result');
           }
-        })
-        .catch(err => {
-          logCritical(`Shiprocket COD order creation failed after retries for order ${order.orderId}`, err);
-          console.error('🚨 MANUAL SHIPROCKET ORDER REQUIRED for COD order');
-          console.error(`   Order ID: ${order.orderId}`);
-          console.error(`   Error: ${err.response?.data?.message || err.message}`);
-          if (err.response?.data) {
-            console.error(`   Shiprocket Response: ${JSON.stringify(err.response.data)}`);
-          }
-          if (err.response?.status) {
-            console.error(`   HTTP Status: ${err.response.status}`);
+        } catch (shiprocketError) {
+          console.error(`❌ Shiprocket COD order creation failed for order ${order.orderId}:`);
+          console.error(`   Error Type: ${shiprocketError.constructor.name}`);
+          console.error(`   Error Message: ${shiprocketError.message}`);
+          
+          if (shiprocketError.response) {
+            console.error(`   HTTP Status: ${shiprocketError.response.status}`);
+            console.error(`   Response Data: ${JSON.stringify(shiprocketError.response.data, null, 2)}`);
           }
           
-          // Log to order notes for admin reference
-          Order.findByIdAndUpdate(order._id, {
-            $push: {
-              notes: `Shiprocket creation failed after retries: ${err.response?.data?.message || err.message}. Manual creation required.`
-            }
-          }).catch(updateErr => {
-            console.error('Failed to update COD order notes:', updateErr.message);
-          });
-        });
+          // Log critical error for production monitoring
+          logCritical(`Shiprocket COD order creation failed for order ${order.orderId}`, shiprocketError);
+          
+          // Update order with detailed error information
+          try {
+            const errorDetails = shiprocketError.response?.data 
+              ? `Shiprocket API Error: ${shiprocketError.response.data.message || shiprocketError.message}. Details: ${JSON.stringify(shiprocketError.response.data)}`
+              : `Shiprocket Error: ${shiprocketError.message}`;
+              
+            await Order.findByIdAndUpdate(order._id, {
+              $push: {
+                notes: errorDetails
+              }
+            });
+            console.log(`📝 Error logged to COD order ${order.orderId} notes`);
+          } catch (noteError) {
+            console.error(`❌ Failed to update COD order ${order.orderId} with error notes:`, noteError.message);
+          }
+          
+          // Continue with order creation even if Shiprocket fails - don't throw error
+          console.warn(`⚠️  COD order ${order.orderId} created but Shiprocket integration failed. Manual Shiprocket order required.`);
+        }
       } else {
         if (process.env.SHIPROCKET_ENABLED !== 'true') {
           console.log('⚠️  Shiprocket is disabled (SHIPROCKET_ENABLED != true)');
