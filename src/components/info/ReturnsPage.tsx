@@ -150,7 +150,7 @@ export default function ReturnsPage({
           <div className="space-y-4">
             {[
               { title: "Item is Unworn", desc: "Products must be unworn, unwashed, and in original condition with all tags attached." },
-              { title: "Original Packaging", desc: "Item must be returned in original packaging along with all accessories and invoices." },
+              { title: "Original Packaging", desc: "Item must be returned in original packaging along with invoices." },
               { title: "Within Return Window", desc: "Return request must be initiated within 3 days of delivery." },
               { title: "No Signs of Damage", desc: "Items should not have any stains, odors, pet hair, or damage caused by the customer." }
             ].map((item, i) => (

@@ -31,7 +31,7 @@ export const KAAL_DRISHTA_DATA = {
   material: [
     "Oversized unisex fit",
     "350gsm comfortable fabric",
-    "Boxy fit with drop shoulders",
+    "Gentle Wash and Avoid Blow Dry",
     "Do not bleach or iron directly on print",
   ],
   productType: "hoodie" as const,

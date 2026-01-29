@@ -1066,7 +1066,7 @@ export default function OrderDetailPage({
                   <ShieldCheck className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-semibold text-green-800">Refund Policy</p>
-                    <p className="text-sm text-green-700">Any payment deducted will be refunded in 3-5 business days</p>
+                    <p className="text-sm text-green-700">Any payment deducted will be refunded in 5-7 business days</p>
                   </div>
                 </div>
               </div>

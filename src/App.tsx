@@ -447,14 +447,14 @@ const App = () => {
         description: SITE_CONFIG.description,
       },
       main: {
-        title: "KALLKEYY - Premium Streetwear Fashion | Hoodies, T-Shirts & Accessories",
-        description: "Discover KALLKEYY - premium streetwear fashion brand. Shop quality hoodies, t-shirts, and accessories designed for the modern streetwear enthusiast.",
+        title: "KALLKEYY - Premium Streetwear Fashion | Hoodies and T-Shirts",
+        description: "Discover KALLKEYY - premium streetwear fashion brand. Shop quality hoodies and t-shirts designed for the modern streetwear enthusiast.",
         keywords: "streetwear, hoodies, t-shirts, fashion, clothing, KALLKEYY, urban fashion, street style",
         url: `${baseUrl}/`,
       },
       "product-menu": {
         title: "Shop - Premium Streetwear Collection | KALLKEYY",
-        description: "Browse our complete collection of premium streetwear including hoodies, t-shirts, and accessories. Free shipping available.",
+        description: "Browse our complete collection of premium streetwear including hoodies and t-shirts. Free shipping available.",
         keywords: "streetwear shop, hoodies, t-shirts, clothing store, KALLKEYY shop",
         url: `${baseUrl}/shop`,
       },

@@ -19,7 +19,7 @@ export interface SEOConfig {
 export const SITE_CONFIG = {
   name: "KALLKEYY",
   url: "https://kallkeyy.com",
-  description: "Premium streetwear fashion brand. Shop quality hoodies, t-shirts, and accessories designed for the modern streetwear enthusiast.",
+  description: "Premium streetwear fashion brand. Shop quality hoodies and t-shirts designed for the modern streetwear enthusiast.",
   defaultImage: "https://kallkeyy.com/navbar-logo.png",
   locale: "en_US",
 };

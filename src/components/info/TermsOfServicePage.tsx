@@ -460,7 +460,7 @@ export default function TermsOfServicePage({
       <br />
       <p className="text-gray-700 mb-4 leading-relaxed"><strong className="font-bold">&quot;Platform&quot;</strong> means the website www.kallkeyy.com and all associated digital interfaces, mobile applications, progressive web applications, and online services operated by KALLKEYY.</p>
       <br />
-      <p className="text-gray-700 mb-4 leading-relaxed"><strong className="font-bold">&quot;Products&quot;</strong> means all streetwear clothing, apparel, accessories, merchandise, and related goods sold, offered for sale, or displayed through the Platform, including but not limited to t-shirts, hoodies, jackets, caps, bags, and other fashion items.</p>
+      <p className="text-gray-700 mb-4 leading-relaxed"><strong className="font-bold">&quot;Products&quot;</strong> means all streetwear clothing, apparel, merchandise, and related goods sold, offered for sale, or displayed through the Platform, including but not limited to t-shirts, hoodies, jackets, caps, bags, and other fashion items.</p>
       <br />
       <p className="text-gray-700 mb-4 leading-relaxed"><strong className="font-bold">&quot;Services&quot;</strong> means all services provided by KALLKEYY through the Platform, including but not limited to e-commerce services, customer support, product recommendations, account management, and any other ancillary services.</p>
       <br />

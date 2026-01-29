@@ -31,7 +31,7 @@ export const MRITYO_BADDHA_DATA = {
   material: [
     "Oversized unisex fit",
     "240gsm French Terry Cotton",
-    "Boxy fit with drop shoulders",
+    "Gentle Wash and Avoid Blow Dry",
     "Do not bleach or iron directly on print",
   ],
   productType: "tshirt" as const,
