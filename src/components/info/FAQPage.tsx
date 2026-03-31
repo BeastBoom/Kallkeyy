@@ -110,7 +110,7 @@ export default function FAQPage({
     {
       category: "Products",
       question: "What sizes do you offer?",
-      answer: "We offer sizes M, L, XL, and XXL. Check our Size Guide page for detailed measurements to find your perfect fit."
+      answer: "We offer sizes S, M, L, XL, and XXL. Check our Size Guide page for detailed measurements to find your perfect fit."
     },
     {
       category: "Products",

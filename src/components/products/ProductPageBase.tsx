@@ -75,6 +75,7 @@ interface Review {
 
 // Size charts for different product types
 const HOODIE_SIZE_CHART = {
+  S: { chest: "36-38", garmentChest: "44", length: "24.5", shoulder: "24" },
   M: { chest: "38-40", garmentChest: "46", length: "25.5", shoulder: "24.5" },
   L: { chest: "40-42", garmentChest: "48", length: "26.5", shoulder: "25" },
   XL: { chest: "42-44", garmentChest: "50", length: "27.5", shoulder: "25.5" },
@@ -82,6 +83,7 @@ const HOODIE_SIZE_CHART = {
 };
 
 const TSHIRT_SIZE_CHART = {
+  S: { chest: "36-38", garmentChest: "44", length: "24.5", shoulder: "24" },
   M: { chest: "38-40", garmentChest: "46", length: "25.5", shoulder: "24.5" },
   L: { chest: "40-42", garmentChest: "48", length: "26.5", shoulder: "25" },
   XL: { chest: "42-44", garmentChest: "50", length: "27.5", shoulder: "25.5" },
@@ -175,7 +177,7 @@ export default function ProductPageBase({
   const [activeIdx, setActiveIdx] = useState(0);
   const [productStock, setProductStock] = useState({
     inStock: true,
-    stock: { M: 0, L: 0, XL: 0, XXL: 0 },
+    stock: { S: 0, M: 0, L: 0, XL: 0, XXL: 0 },
   });
   const [isLoadingStock, setIsLoadingStock] = useState(true);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -233,7 +235,7 @@ export default function ProductPageBase({
         // Default to out of stock if API fails
         setProductStock({
           inStock: false,
-          stock: { M: 0, L: 0, XL: 0, XXL: 0 },
+          stock: { S: 0, M: 0, L: 0, XL: 0, XXL: 0 },
         });
       } finally {
         setIsLoadingStock(false);
@@ -1160,7 +1162,7 @@ export default function ProductPageBase({
               </div>
 
               {/* Size Buttons */}
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-5 gap-3">
                 {Object.keys(SIZE_CHART).map((size) => {
                   const isInStock = isSizeInStock(size);
                   const isSelected = selectedSize === size;

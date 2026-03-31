@@ -2,6 +2,7 @@ const Order = require('../models/Order');
 const User = require('../models/User');
 const { setCorsHeaders } = require('../utils/responseHelper');
 const connectDB = require('../config/db');
+const { restoreStock } = require('../utils/stockManager');
 
 // Get all orders with pagination and filtering
 exports.getAllOrders = async (req, res) => {
@@ -184,7 +185,7 @@ exports.updateShippingDetails = async (req, res) => {
     if (trackingUrl) order.trackingUrl = trackingUrl;
 
     // Auto-update status if shipping details are added
-    if (awbCode && order.status === 'paid') {
+    if (awbCode && order.status === 'confirmed') {
       order.status = 'processing';
     }
 
@@ -206,7 +207,7 @@ exports.updateShippingDetails = async (req, res) => {
   }
 };
 
-// Cancel order
+// Cancel order (FIXED: now restores stock)
 exports.cancelOrder = async (req, res) => {
   try {
     await connectDB();
@@ -232,7 +233,28 @@ exports.cancelOrder = async (req, res) => {
       });
     }
 
+    if (order.status === 'cancelled') {
+      setCorsHeaders(req, res);
+      return res.status(400).json({
+        success: false,
+        message: 'Order is already cancelled'
+      });
+    }
+
+    // Update order status
     order.status = 'cancelled';
+    order.cancelledAt = new Date();
+    order.cancellationReason = reason || 'Cancelled by admin';
+
+    // Add to status history
+    if (!order.statusHistory) order.statusHistory = [];
+    order.statusHistory.push({
+      status: 'cancelled',
+      timestamp: new Date(),
+      updatedBy: 'admin',
+      reason: `Admin cancellation: ${reason || 'No reason provided'}`
+    });
+
     if (reason) {
       if (!order.notes) order.notes = [];
       order.notes.push(`[Admin Cancelled] ${reason}`);
@@ -240,10 +262,22 @@ exports.cancelOrder = async (req, res) => {
 
     await order.save();
 
+    // CRITICAL FIX: Restore product stock on admin cancellation
+    try {
+      await restoreStock(order.items);
+      console.log(`✅ Stock restored for admin-cancelled order: ${order.orderId}`);
+    } catch (stockError) {
+      console.error(`❌ Failed to restore stock for order ${order.orderId}:`, stockError.message);
+      // Log the failure but don't fail the cancellation
+      if (!order.notes) order.notes = [];
+      order.notes.push(`⚠️ Stock restoration failed: ${stockError.message}. Manual stock adjustment required.`);
+      await order.save();
+    }
+
     setCorsHeaders(req, res);
     res.status(200).json({
       success: true,
-      message: 'Order cancelled successfully',
+      message: 'Order cancelled successfully and stock restored',
       order
     });
   } catch (error) {
@@ -500,4 +534,3 @@ exports.exportOrders = async (req, res) => {
     });
   }
 };
-

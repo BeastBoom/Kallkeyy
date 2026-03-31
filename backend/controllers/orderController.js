@@ -1,6 +1,7 @@
 const Order = require("../models/Order");
-const Product = require("../models/Product");
 const { setCorsHeaders } = require('../utils/responseHelper');
+const { restoreStock } = require('../utils/stockManager');
+const { cancelShiprocketOrder } = require('../utils/shiprocketHelper');
 
 // @desc    Get all orders for logged in user
 // @route   GET /api/orders
@@ -155,77 +156,49 @@ exports.cancelOrder = async (req, res) => {
       });
     }
 
-    // Check if payment was successful for refund processing
-    const isPaymentSuccessful = order.paymentStatus === 'completed' && order.status === 'paid';
+    // FIXED: Check if payment was completed for refund processing
+    // Previously checked order.status === 'paid' which never matches (orders are 'confirmed')
+    const isPaymentSuccessful = order.paymentStatus === 'completed' && order.paymentMethod === 'razorpay';
     
-    // If payment was successful, redirect to refund endpoint
+    // If payment was successful via Razorpay, redirect to refund endpoint
     if (isPaymentSuccessful) {
-      req.body = { orderId: order.orderId, reason: "User cancelled order" };
+      req.body = { orderId: order.orderId, reason: req.body.reason || "User cancelled order" };
       return require('./refundController').processOrderCancellation(req, res);
     }
-
 
     // For COD orders or failed payments, proceed with regular cancellation
     // Cancel Shiprocket order if it exists
     if (order.shiprocketOrderId) {
       console.log(`🔄 Attempting to cancel Shiprocket order for order: ${order.orderId}`);
-      console.log(`   Shiprocket Order ID: ${order.shiprocketOrderId}`);
-      console.log(`   Order Status: ${order.status}`);
       
-      // Check if order can be cancelled via Shiprocket API
-      // Shiprocket only allows cancellation for orders in "pending" or "confirmed" status
-      // Orders in "processing" status (picked up) cannot be cancelled via API
       if (order.status === 'processing') {
         console.log(`⚠️  Order status is 'processing' - cannot cancel via Shiprocket API`);
-        console.log(`ℹ️  Order will be cancelled in our system but Shiprocket order remains active`);
-        
-        // Log this for admin review
         try {
           await Order.findByIdAndUpdate(order._id, {
             $push: {
               notes: `Order status is 'processing' - Shiprocket cancellation not allowed via API. Manual cancellation required in Shiprocket dashboard.`
             }
           });
-          console.log(`📝 Note added to order: ${order.orderId}`);
         } catch (noteError) {
           console.error(`❌ Failed to log status note:`, noteError.message);
         }
       } else {
-        // Order can be cancelled via Shiprocket API
         try {
-          const { cancelShiprocketOrder } = require('./paymentController');
-          console.log(`   Calling cancelShiprocketOrder function...`);
-          
           const result = await cancelShiprocketOrder(order.shiprocketOrderId);
           console.log(`✅ Shiprocket order cancelled successfully for order: ${order.orderId}`);
-          console.log(`   Shiprocket Response:`, result);
         } catch (shiprocketError) {
-          console.error(`❌ Failed to cancel Shiprocket order for order ${order.orderId}:`);
-          console.error(`   Error Type: ${shiprocketError.constructor.name}`);
-          console.error(`   Error Message: ${shiprocketError.message}`);
-          console.error(`   Error Stack:`, shiprocketError.stack);
-          
-          if (shiprocketError.response) {
-            console.error(`   Shiprocket Response Status: ${shiprocketError.response.status}`);
-            console.error(`   Shiprocket Response Data:`, shiprocketError.response.data);
-          }
-          
-          // Don't fail the order cancellation if Shiprocket cancellation fails
-          // Log the error for admin review
+          console.error(`❌ Failed to cancel Shiprocket order for order ${order.orderId}:`, shiprocketError.message);
           try {
             await Order.findByIdAndUpdate(order._id, {
               $push: {
                 notes: `Shiprocket cancellation failed: ${shiprocketError.message}. Manual cancellation required.`
               }
             });
-            console.log(`📝 Error logged to order notes for order: ${order.orderId}`);
           } catch (noteError) {
             console.error(`❌ Failed to log error to order notes:`, noteError.message);
           }
         }
       }
-    } else {
-      console.log(`ℹ️  No Shiprocket order ID found for order: ${order.orderId}`);
     }
 
     // Update order status for non-refundable orders
@@ -234,6 +207,7 @@ exports.cancelOrder = async (req, res) => {
     order.cancellationReason = req.body.reason || 'User cancelled order';
     order.cancellationNotes = 'No refund required (COD order or payment not captured)';
     
+    if (!order.statusHistory) order.statusHistory = [];
     order.statusHistory.push({
       status: 'cancelled',
       timestamp: new Date(),
@@ -243,21 +217,12 @@ exports.cancelOrder = async (req, res) => {
 
     await order.save();
 
-    // Restore product stock
-    for (const item of order.items) {
-      const product = await Product.findOne({ productId: item.productId });
-      if (product) {
-        // Check if the size exists in the stock object
-        if (product.stock && product.stock[item.size] !== undefined) {
-          product.stock[item.size] += item.quantity;
-          await product.save();
-          console.log(`✅ Restored ${item.quantity} units of size ${item.size} for product ${item.productId}`);
-        } else {
-          console.warn(`⚠️  Size ${item.size} not found in product ${item.productId} stock`);
-        }
-      } else {
-        console.warn(`⚠️  Product ${item.productId} not found during stock restoration`);
-      }
+    // Restore product stock using shared utility
+    try {
+      await restoreStock(order.items);
+      console.log(`✅ Stock restored for cancelled order: ${order.orderId}`);
+    } catch (stockError) {
+      console.error(`❌ Failed to restore stock for order ${order.orderId}:`, stockError.message);
     }
 
     setCorsHeaders(req, res);
@@ -271,4 +236,3 @@ exports.cancelOrder = async (req, res) => {
     res.status(500).json({ message: "Server error cancelling order" });
   }
 };
-

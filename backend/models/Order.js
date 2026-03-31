@@ -48,7 +48,7 @@ const orderSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['razorpay', 'cod_token'],
+    enum: ['razorpay', 'cod_token', 'cod'],
     required: true
   },
 
@@ -57,6 +57,17 @@ const orderSchema = new mongoose.Schema({
     enum: ['pending', 'completed', 'failed'],
     default: 'pending'
   },
+  // COD token payment tracking
+  codTokenPayment: {
+    razorpayOrderId: String,
+    razorpayPaymentId: String,
+    tokenAmount: Number,
+    paymentDate: Date,
+    verified: Boolean
+  },
+  // Cancellation tracking
+  cancellationReason: String,
+  cancellationNotes: String,
   shiprocketOrderId: String,
   shiprocketShipmentId: String,
   awbCode: String,

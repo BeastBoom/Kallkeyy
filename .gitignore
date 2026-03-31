@@ -68,3 +68,14 @@ Desktop.ini
 src/components/auth/PhoneVerificationModal copy.tsx
 backend/server_copy.js
 POSTMAN_API_
+
+
+GSD-STYLE.md 
+model_capabilities.yaml
+Project_Rules.md
+scripts/
+docs/
+.agent/
+.gemini/
+.gsd/
+adapters/

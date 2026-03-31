@@ -1,16 +1,13 @@
 const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const User = require('../models/User');
-const Product = require('../models/Product');
-const Razorpay = require('razorpay');
 const { sendOrderCancellationEmail } = require('../utils/emailService');
-const { logAction } = require('../utils/responseHelper');
+const { setCorsHeaders, logAction } = require('../utils/responseHelper');
+const { retryOperation } = require('../utils/helpers');
+const { getRazorpay } = require('../utils/razorpayHelper');
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
-});
+// Shared Razorpay instance
+const razorpay = getRazorpay();
 
 // Helper function to safely abort transaction
 const safeAbort = async (session) => {
@@ -23,21 +20,7 @@ const safeAbort = async (session) => {
   }
 };
 
-// Helper function with retry mechanism for refund operations
-const retryRefundOperation = async (operation, maxRetries = 3, delay = 1000) => {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      return await operation();
-    } catch (error) {
-      if (attempt === maxRetries) {
-        throw error;
-      }
-      console.log(`⚠️  Refund operation failed (attempt ${attempt}/${maxRetries}), retrying in ${delay}ms...`);
-      await new Promise(resolve => setTimeout(resolve, delay));
-      delay *= 2; // Exponential backoff
-    }
-  }
-};
+// retryRefundOperation replaced by shared retryOperation from utils/helpers.js
 
 
 /**
@@ -119,8 +102,9 @@ const processOrderCancellation = async (req, res) => {
     // Update order status and details
     const updatedOrder = await updateOrderForCancellation(order, reason, refundResult, session);
     
-    // Restore inventory
-    await restoreInventory(order.items, session);
+    // Restore inventory using shared stock manager
+    const { restoreStock } = require('../utils/stockManager');
+    await restoreStock(order.items, session);
     
     // Send cancellation email
     try {
@@ -246,29 +230,8 @@ const updateOrderForCancellation = async (order, reason, refundResult, session) 
   return order;
 };
 
-/**
- * Restore inventory for cancelled order
- */
-const restoreInventory = async (items, session) => {
-  for (const item of items) {
-    const product = await Product.findOne({ productId: item.productId }).session(session);
-
-    if (product) {
-      if (typeof product.stock === 'number') {
-        product.stock += item.quantity;
-      }
-
-      // if stock is object like { M: 5, L: 3 }
-      else if (typeof product.stock === 'object' && product.stock !== null) {
-        if (product.stock[item.size] !== undefined) {
-          product.stock[item.size] += item.quantity;
-        }
-      }
-
-      await product.save({ session });
-    }
-  }
-};
+// NOTE: restoreInventory has been replaced by the shared stockManager.restoreStock()
+// imported inline where needed (see processOrderCancellation above).
 
 /**
  * Admin: Process manual refund

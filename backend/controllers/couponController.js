@@ -3,6 +3,7 @@ const Order = require('../models/Order');
 const User = require('../models/User');
 const { setCorsHeaders } = require('../utils/responseHelper');
 const connectDB = require('../config/db');
+const { validateAndCalculateDiscount } = require('../utils/couponValidator');
 
 // Validate and apply coupon code
 exports.validateCoupon = async (req, res) => {
@@ -28,103 +29,15 @@ exports.validateCoupon = async (req, res) => {
       });
     }
 
-    // Find coupon by code (case-insensitive, uppercase)
-    const coupon = await Coupon.findOne({ 
-      code: code.toUpperCase().trim(),
-      isActive: true
-    });
+    // Use shared coupon validator
+    const { couponData, discountAmount } = await validateAndCalculateDiscount(code, cartTotal, userId);
 
-    if (!coupon) {
+    if (!couponData) {
       setCorsHeaders(req, res);
-      return res.status(404).json({
+      return res.status(400).json({
         success: false,
         message: 'Invalid coupon code'
       });
-    }
-
-    // Check if coupon is expired
-    if (coupon.validUntil && new Date() > coupon.validUntil) {
-      setCorsHeaders(req, res);
-      return res.status(400).json({
-        success: false,
-        message: 'This coupon has expired'
-      });
-    }
-
-    // Check if coupon is valid yet
-    if (coupon.validFrom && new Date() < coupon.validFrom) {
-      setCorsHeaders(req, res);
-      return res.status(400).json({
-        success: false,
-        message: 'This coupon is not yet valid'
-      });
-    }
-
-    // Check usage limit
-    if (coupon.usageLimit !== null && coupon.usedCount >= coupon.usageLimit) {
-      setCorsHeaders(req, res);
-      return res.status(400).json({
-        success: false,
-        message: 'This coupon has reached its usage limit'
-      });
-    }
-
-    // Check minimum purchase amount
-    if (cartTotal < coupon.minPurchaseAmount) {
-      setCorsHeaders(req, res);
-      return res.status(400).json({
-        success: false,
-        message: `Minimum purchase amount of ₹${coupon.minPurchaseAmount} is required for this coupon`
-      });
-    }
-
-    // Check first-time purchase rule
-    if (coupon.rules.firstTimePurchaseOnly) {
-      const existingOrders = await Order.countDocuments({
-        userId: userId,
-        paymentStatus: 'completed'
-      });
-
-      if (existingOrders > 0) {
-        setCorsHeaders(req, res);
-        return res.status(400).json({
-          success: false,
-          message: 'This coupon is valid only for first-time purchases'
-        });
-      }
-    }
-
-    // Check once per account rule
-    if (coupon.rules.oncePerAccount) {
-      const hasUsedCoupon = coupon.usedBy.some(
-        usage => usage.userId.toString() === userId.toString()
-      );
-
-      if (hasUsedCoupon) {
-        setCorsHeaders(req, res);
-        return res.status(400).json({
-          success: false,
-          message: 'You have already used this coupon'
-        });
-      }
-    }
-
-    // Calculate discount
-    let discountAmount = 0;
-
-    if (coupon.discountType === 'percentage') {
-      discountAmount = (cartTotal * coupon.discountValue) / 100;
-      // Apply max discount limit if set
-      if (coupon.maxDiscountAmount !== null && discountAmount > coupon.maxDiscountAmount) {
-        discountAmount = coupon.maxDiscountAmount;
-      }
-    } else {
-      // Fixed discount
-      discountAmount = coupon.discountValue;
-      // Don't allow discount more than cart total
-      if (discountAmount > cartTotal) {
-        discountAmount = cartTotal;
-      }
     }
 
     const finalAmount = Math.max(0, cartTotal - discountAmount);
@@ -133,10 +46,10 @@ exports.validateCoupon = async (req, res) => {
     res.status(200).json({
       success: true,
       coupon: {
-        code: coupon.code,
-        name: coupon.name,
-        discountType: coupon.discountType,
-        discountValue: coupon.discountValue,
+        code: couponData.code,
+        name: couponData.name,
+        discountType: couponData.discountType,
+        discountValue: couponData.discountValue,
         discountAmount: discountAmount,
         cartTotal: cartTotal,
         finalAmount: finalAmount
@@ -144,6 +57,14 @@ exports.validateCoupon = async (req, res) => {
     });
 
   } catch (error) {
+    // Handle validation errors from shared validator (they throw { status, message })
+    if (error.status) {
+      setCorsHeaders(req, res);
+      return res.status(error.status).json({
+        success: false,
+        message: error.message
+      });
+    }
     console.error('Coupon validation error:', error);
     setCorsHeaders(req, res);
     res.status(500).json({

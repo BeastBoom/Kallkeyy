@@ -26,6 +26,7 @@ export default function Products() {
     tag: ''
   })
   const [stockForm, setStockForm] = useState({
+    S: 0,
     M: 0,
     L: 0,
     XL: 0,
@@ -63,8 +64,8 @@ export default function Products() {
 
   const openStockModal = (product: any) => {
     setStockProduct(product)
-    // Only set M, L, XL, XXL - ignore S size
     setStockForm({
+      S: product.stock?.S || 0,
       M: product.stock?.M || 0,
       L: product.stock?.L || 0,
       XL: product.stock?.XL || 0,
@@ -77,12 +78,7 @@ export default function Products() {
     e.preventDefault()
     
     try {
-      // Include S from existing product, only update M, L, XL, XXL
-      const updatedStock = {
-        S: stockProduct.stock?.S || 0, // Keep existing S value
-        ...stockForm
-      }
-      await adminAPI.updateStock(stockProduct.productId, updatedStock)
+      await adminAPI.updateStock(stockProduct.productId, stockForm)
       toast.success('Stock updated successfully')
       setShowStockModal(false)
       fetchProducts()
@@ -168,7 +164,6 @@ export default function Products() {
   // Get unique tags for filter
   const uniqueTags = Array.from(new Set(products.map(p => p.tag).filter(t => t)))
 
-  // Filter products - count only M, L, XL, XXL for stock
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.productId?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -177,17 +172,16 @@ export default function Products() {
     
     let matchesStock = true
     if (stockFilter === 'in-stock') {
-      // Only count M, L, XL, XXL (not S)
       const totalStock = product.stock ? 
-        (product.stock.M || 0) + (product.stock.L || 0) + (product.stock.XL || 0) + (product.stock.XXL || 0) : 0
+        (product.stock.S || 0) + (product.stock.M || 0) + (product.stock.L || 0) + (product.stock.XL || 0) + (product.stock.XXL || 0) : 0
       matchesStock = totalStock > 0
     } else if (stockFilter === 'out-of-stock') {
       const totalStock = product.stock ? 
-        (product.stock.M || 0) + (product.stock.L || 0) + (product.stock.XL || 0) + (product.stock.XXL || 0) : 0
+        (product.stock.S || 0) + (product.stock.M || 0) + (product.stock.L || 0) + (product.stock.XL || 0) + (product.stock.XXL || 0) : 0
       matchesStock = totalStock === 0
     } else if (stockFilter === 'low-stock') {
       const totalStock = product.stock ? 
-        (product.stock.M || 0) + (product.stock.L || 0) + (product.stock.XL || 0) + (product.stock.XXL || 0) : 0
+        (product.stock.S || 0) + (product.stock.M || 0) + (product.stock.L || 0) + (product.stock.XL || 0) + (product.stock.XXL || 0) : 0
       matchesStock = totalStock > 0 && totalStock <= 20
     }
     
@@ -306,7 +300,7 @@ export default function Products() {
                       Price
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Stock (M/L/XL/XXL)
+                      Stock (S/M/L/XL/XXL)
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Tag
@@ -318,9 +312,8 @@ export default function Products() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredProducts.map((product) => {
-                    const stock = product.stock || { M: 0, L: 0, XL: 0, XXL: 0 }
-                    // Only count M, L, XL, XXL
-                    const totalStock = (stock.M || 0) + (stock.L || 0) + (stock.XL || 0) + (stock.XXL || 0)
+                    const stock = product.stock || { S: 0, M: 0, L: 0, XL: 0, XXL: 0 }
+                    const totalStock = (stock.S || 0) + (stock.M || 0) + (stock.L || 0) + (stock.XL || 0) + (stock.XXL || 0)
                     return (
                       <tr key={product._id} className="hover:bg-gray-50">
                         <td className="px-6 py-4">
@@ -350,6 +343,7 @@ export default function Products() {
                         <td className="px-6 py-4">
                           <div className="flex flex-col gap-1">
                             <div className="flex gap-2 text-xs">
+                              <span className={stock.S > 0 ? 'text-green-600 font-medium' : 'text-red-600'}>S:{stock.S || 0}</span>
                               <span className={stock.M > 0 ? 'text-green-600 font-medium' : 'text-red-600'}>M:{stock.M || 0}</span>
                               <span className={stock.L > 0 ? 'text-green-600 font-medium' : 'text-red-600'}>L:{stock.L || 0}</span>
                               <span className={stock.XL > 0 ? 'text-green-600 font-medium' : 'text-red-600'}>XL:{stock.XL || 0}</span>
@@ -423,7 +417,7 @@ export default function Products() {
 
             <form onSubmit={handleStockUpdate} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                {['M', 'L', 'XL', 'XXL'].map((size) => (
+                {['S', 'M', 'L', 'XL', 'XXL'].map((size) => (
                   <div key={size} className="bg-gray-50 p-4 rounded-lg">
                     <label className="block text-sm font-bold text-gray-700 mb-2">Size {size}</label>
                     <input

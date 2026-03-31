@@ -1,26 +1,35 @@
-const Razorpay = require('razorpay');
 const crypto = require('crypto');
+const axios = require('axios');
 const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
-const Product = require('../models/Product');
-const Coupon = require('../models/Coupon');
-const axios = require('axios');
 const { setCorsHeaders } = require('../utils/responseHelper');
 const { recordCouponUsage } = require('./couponController');
+const connectDB = require('../config/db');
 
-// Note: Development logging removed for clean production logs
+// Shared utilities
+const { isDevelopment, logCritical, retryOperation } = require('../utils/helpers');
+const { validateAndCalculateDiscount } = require('../utils/couponValidator');
+const { validateStockAvailability, deductStock } = require('../utils/stockManager');
+const { createShiprocketOrderWithRetry, getShiprocketToken } = require('../utils/shiprocketHelper');
+const { getRazorpay, verifyPaymentWithRazorpay } = require('../utils/razorpayHelper');
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
-});
+// Shared Razorpay instance
+const razorpay = getRazorpay();
 
-// Create Razorpay Order
 exports.createOrder = async (req, res) => {
   try {
-    // Validate Razorpay credentials
+    try {
+      await connectDB();
+    } catch (dbError) {
+      console.error('❌ Database connection error:', dbError);
+      setCorsHeaders(req, res);
+      return res.status(500).json({
+        success: false,
+        message: 'Database connection failed. Please try again.'
+      });
+    }
+
     if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
       setCorsHeaders(req, res);
       return res.status(500).json({
@@ -32,7 +41,6 @@ exports.createOrder = async (req, res) => {
     const userId = req.user._id;
     const { shippingAddress, couponCode } = req.body;
 
-    // Validate shipping address
     if (!shippingAddress || !shippingAddress.fullName || !shippingAddress.phone || !shippingAddress.address || !shippingAddress.city || !shippingAddress.state || !shippingAddress.pincode) {
       setCorsHeaders(req, res);
       return res.status(400).json({
@@ -41,7 +49,6 @@ exports.createOrder = async (req, res) => {
       });
     }
 
-    // Get cart items
     const cart = await Cart.findOne({ userId });
     
     if (!cart || cart.items.length === 0) {
@@ -52,32 +59,8 @@ exports.createOrder = async (req, res) => {
       });
     }
 
-    // CRITICAL: Validate stock availability before creating order
-    const unavailableItems = [];
-    for (const item of cart.items) {
-      const product = await Product.findOne({ productId: item.productId });
-      
-      if (!product) {
-        unavailableItems.push({
-          productName: item.productName,
-          size: item.size,
-          reason: 'Product no longer available'
-        });
-        continue;
-      }
-
-      const totalStock = product.stock[item.size] || 0;
-
-      if (totalStock < item.quantity) {
-        unavailableItems.push({
-          productName: item.productName,
-          size: item.size,
-          requestedQuantity: item.quantity,
-          availableQuantity: totalStock,
-          reason: totalStock === 0 ? 'Out of stock' : `Only ${totalStock} available`
-        });
-      }
-    }
+    // CRITICAL: Validate stock availability using shared utility
+    const unavailableItems = await validateStockAvailability(cart.items);
 
     if (unavailableItems.length > 0) {
       setCorsHeaders(req, res);
@@ -93,125 +76,23 @@ exports.createOrder = async (req, res) => {
     let discountAmount = 0;
     let couponData = null;
 
-    // Validate and apply coupon if provided
+    // Validate and apply coupon using shared validator
     if (couponCode && couponCode.trim()) {
       try {
-        const coupon = await Coupon.findOne({ 
-          code: couponCode.toUpperCase().trim(),
-          isActive: true
-        });
-
-        if (coupon) {
-          // Check if coupon is expired
-          if (coupon.validUntil && new Date() > coupon.validUntil) {
-            setCorsHeaders(req, res);
-            return res.status(400).json({
-              success: false,
-              message: 'This coupon has expired'
-            });
-          }
-
-          // Check if coupon is valid yet
-          if (coupon.validFrom && new Date() < coupon.validFrom) {
-            setCorsHeaders(req, res);
-            return res.status(400).json({
-              success: false,
-              message: 'This coupon is not yet valid'
-            });
-          }
-
-          // Check usage limit
-          if (coupon.usageLimit !== null && coupon.usedCount >= coupon.usageLimit) {
-            setCorsHeaders(req, res);
-            return res.status(400).json({
-              success: false,
-              message: 'This coupon has reached its usage limit'
-            });
-          }
-
-          // Check minimum purchase amount
-          if (baseAmount < coupon.minPurchaseAmount) {
-            setCorsHeaders(req, res);
-            return res.status(400).json({
-              success: false,
-              message: `Minimum purchase amount of ₹${coupon.minPurchaseAmount} is required for this coupon`
-            });
-          }
-
-          // Check first-time purchase rule
-          if (coupon.rules.firstTimePurchaseOnly) {
-            const existingOrders = await Order.countDocuments({
-              userId: userId,
-              paymentStatus: 'completed'
-            });
-
-            if (existingOrders > 0) {
-              setCorsHeaders(req, res);
-              return res.status(400).json({
-                success: false,
-                message: 'This coupon is valid only for first-time purchases'
-              });
-            }
-          }
-
-          // Check once per account rule
-          if (coupon.rules.oncePerAccount) {
-            const hasUsedCoupon = coupon.usedBy.some(
-              usage => usage.userId.toString() === userId.toString()
-            );
-
-            if (hasUsedCoupon) {
-              setCorsHeaders(req, res);
-              return res.status(400).json({
-                success: false,
-                message: 'You have already used this coupon'
-              });
-            }
-          }
-
-          // Calculate discount
-          if (coupon.discountType === 'percentage') {
-            discountAmount = (baseAmount * coupon.discountValue) / 100;
-            // Apply max discount limit if set
-            if (coupon.maxDiscountAmount !== null && discountAmount > coupon.maxDiscountAmount) {
-              discountAmount = coupon.maxDiscountAmount;
-            }
-          } else {
-            // Fixed discount
-            discountAmount = coupon.discountValue;
-            // Don't allow discount more than cart total
-            if (discountAmount > baseAmount) {
-              discountAmount = baseAmount;
-            }
-          }
-
-          couponData = {
-            code: coupon.code,
-            name: coupon.name,
-            discountType: coupon.discountType,
-            discountValue: coupon.discountValue,
-            discountAmount: discountAmount
-          };
-        } else {
-          setCorsHeaders(req, res);
-          return res.status(400).json({
-            success: false,
-            message: 'Invalid coupon code'
-          });
-        }
+        const result = await validateAndCalculateDiscount(couponCode, baseAmount, userId);
+        couponData = result.couponData;
+        discountAmount = result.discountAmount;
       } catch (couponError) {
         setCorsHeaders(req, res);
-        return res.status(400).json({
+        return res.status(couponError.status || 400).json({
           success: false,
-          message: 'Failed to validate coupon code'
+          message: couponError.message || 'Failed to validate coupon code'
         });
       }
     }
 
-    // Calculate final amount after discount
     const finalAmount = Math.max(1, baseAmount - discountAmount); // Minimum 1 INR
 
-    // Validate amount (minimum 1 INR)
     if (finalAmount < 1) {
       setCorsHeaders(req, res);
       return res.status(400).json({
@@ -220,18 +101,15 @@ exports.createOrder = async (req, res) => {
       });
     }
 
-    // Generate unique receipt ID
     const receiptId = `order_${Date.now()}_${userId.toString().slice(-6)}`;
 
-    // Create Razorpay order (DO NOT create database order yet - only after payment confirmation)
     const options = {
-      amount: Math.round(finalAmount * 100), // Amount in paise (must be integer)
+      amount: Math.round(finalAmount * 100),
       currency: 'INR',
       receipt: receiptId,
       notes: {
         userId: userId.toString(),
         orderDate: new Date().toISOString(),
-        // Store cart snapshot and shipping address in notes for later order creation
         cartSnapshot: JSON.stringify({
           items: cart.items,
           totalPrice: baseAmount
@@ -241,43 +119,23 @@ exports.createOrder = async (req, res) => {
       }
     };
 
-    // Note: Payment configuration ID (config_id) should be passed on the frontend
-    // when initializing Razorpay checkout, not in the order creation payload
-    // The frontend CheckoutPage.tsx handles this via VITE_RAZORPAY_PAYMENT_CONFIG_ID
-
     let razorpayOrder;
-    let responseTime;
-    let startTime; // ✅ declare outside
-
     try {
-      startTime = Date.now();
-
       razorpayOrder = await retryOperation(
         () => razorpay.orders.create(options),
         3,
         1000
       );
-
-      responseTime = Date.now() - startTime;
-
     } catch (razorpayError) {
-
-      responseTime = startTime ? (Date.now() - startTime) : null; // ✅ safe
-
       logCritical('Razorpay order creation failed', razorpayError);
-
       setCorsHeaders(req, res);
       return res.status(500).json({
         success: false,
         message: 'Failed to create payment order. Please try again.',
-        error: process.env.NODE_ENV === 'development' ? razorpayError.message : undefined
+        error: isDevelopment ? razorpayError.message : undefined
       });
     }
 
-
-    // Return Razorpay order details - NO database order created yet
-    // Database order will be created only after payment is verified
-    // Include payment configuration ID if set (for frontend to use in checkout)
     const responseData = {
       success: true,
       order: {
@@ -289,7 +147,6 @@ exports.createOrder = async (req, res) => {
       key: process.env.RAZORPAY_KEY_ID
     };
 
-    // Add payment config ID if set in backend env (so frontend can use it)
     if (process.env.RAZORPAY_PAYMENT_CONFIG_ID) {
       responseData.checkout_config_id = process.env.RAZORPAY_PAYMENT_CONFIG_ID;
     }
@@ -308,125 +165,11 @@ exports.createOrder = async (req, res) => {
   }
 };
 
-// Helper function to verify payment with Razorpay API (extra validation)
-async function verifyPaymentWithRazorpay(razorpay_order_id, razorpay_payment_id) {
-  try {
-    // Fetch payment details from Razorpay to confirm payment status
-    const payment = await razorpay.payments.fetch(razorpay_payment_id);
-    
-    // Verify payment is linked to the correct order
-    if (payment.order_id !== razorpay_order_id) {
-      throw new Error('Payment order ID mismatch');
-    }
+// verifyPaymentWithRazorpay is now imported from utils/razorpayHelper.js
 
-    // Verify payment status - Only accept 'captured' status for live mode
-    if (payment.status !== 'captured') {
-      throw new Error(`Payment not captured. Status: ${payment.status}`);
-    }
-    
-    // Note: Payment logging removed for clean production logs
-
-    return {
-      verified: true,
-      paymentDetails: payment
-    };
-  } catch (error) {
-    console.error('❌ Razorpay payment verification failed:', error.message);
-    return {
-      verified: false,
-      error: error.message
-    };
-  }
-}
-
-
-// Helper to check if verbose logging should be enabled (development only)
-// Note: VERCEL_ENV can be 'development', 'preview', or 'production'
-const isDevelopment = process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'development';
-
-// Helper to log critical errors that should ALWAYS be logged in production
-const logCritical = (message, error = null) => {
-  console.error(`🚨 CRITICAL: ${message}`);
-  if (error) {
-    console.error(`   Error: ${error.message || error}`);
-    if (error.response) {
-      console.error(`   Status: ${error.response.status}`);
-      console.error(`   Response: ${JSON.stringify(error.response.data)}`);
-    }
-    if (error.stack && isDevelopment) {
-      console.error(`   Stack: ${error.stack}`);
-    }
-  }
-};
-
-// Helper function to log payment flow events
-const logPaymentEvent = (event, data) => {
-  const logData = {
-    timestamp: new Date().toISOString(),
-    event,
-    ...data
-  };
-  
-  if (isDevelopment) {
-    console.log(`💳 PAYMENT EVENT: ${JSON.stringify(logData, null, 2)}`);
-  } else {
-    // In production, you might want to send this to a logging service
-    console.log(`💳 PAYMENT EVENT: ${event} - ${JSON.stringify(data)}`);
-  }
-};
-
-// Helper function to check if MongoDB transactions are supported
-async function supportsTransactions() {
-  try {
-    // Try to start a session - if this works, transactions are supported
-    const testSession = await mongoose.startSession();
-    await testSession.endSession();
-    return true;
-  } catch (error) {
-    // If error mentions replica set, transactions are not supported
-    if (error.message && error.message.includes('replica set')) {
-      return false;
-    }
-    // Other errors might be transient, assume transactions are supported
-    return true;
-  }
-}
-
-// Helper function with retry mechanism
-async function retryOperation(operation, maxRetries = 3, delay = 1000) {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      return await operation();
-    } catch (error) {
-      if (attempt === maxRetries) {
-        throw error;
-      }
-    // Note: Retry logging removed for clean production logs
-      await new Promise(resolve => setTimeout(resolve, delay));
-      delay *= 2; // Exponential backoff
-    }
-  }
-}
-
-// Verify Payment
 exports.verifyPayment = async (req, res) => {
-  // Check if transactions are supported (replica set required)
-  let useTransactions = false;
-  let session = null;
-  
-  // Don't test transactions upfront - start without transactions
-  // This avoids errors on standalone MongoDB instances
-  // Transactions will only be used if we detect support during actual operations
-  useTransactions = false;
-  session = null;
-  
   try {
-    // Validate Razorpay credentials
     if (!process.env.RAZORPAY_KEY_SECRET) {
-      if (useTransactions && session) {
-        await session.abortTransaction();
-        session.endSession();
-      }
       setCorsHeaders(req, res);
       return res.status(500).json({
         success: false,
@@ -440,12 +183,7 @@ exports.verifyPayment = async (req, res) => {
       razorpay_signature
     } = req.body;
 
-    // Validate required fields
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      if (useTransactions && session) {
-        await session.abortTransaction();
-        session.endSession();
-      }
       setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
@@ -453,14 +191,12 @@ exports.verifyPayment = async (req, res) => {
       });
     }
 
-    // STEP 1: Verify signature (CRITICAL SECURITY CHECK)
     const sign = `${razorpay_order_id}|${razorpay_payment_id}`;
     const expectedSign = crypto
       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
       .update(sign)
       .digest('hex');
 
-    // Use constant-time comparison to prevent timing attacks
     let signatureMatch = false;
     if (razorpay_signature.length === expectedSign.length) {
       try {
@@ -473,16 +209,7 @@ exports.verifyPayment = async (req, res) => {
       }
     }
 
-
     if (!signatureMatch) {
-      if (useTransactions && session) {
-        await session.abortTransaction();
-        session.endSession();
-      }
-      // Note: Development logging removed for clean production logs
-      
-      
-      // Try to find and mark order as failed if it exists
       const existingOrder = await Order.findOne({ razorpayOrderId: razorpay_order_id });
       if (existingOrder) {
         await Order.findByIdAndUpdate(existingOrder._id, {
@@ -498,19 +225,10 @@ exports.verifyPayment = async (req, res) => {
       });
     }
 
-    // STEP 2: Additional verification with Razorpay API (verify payment is actually captured)
     const razorpayVerification = await verifyPaymentWithRazorpay(razorpay_order_id, razorpay_payment_id);
     
-    
     if (!razorpayVerification.verified) {
-      // Payment verification failed
-      if (useTransactions && session) {
-        await session.abortTransaction();
-        session.endSession();
-      }
       console.error(`❌ Razorpay API verification failed: ${razorpayVerification.error}`);
-      
-      
       setCorsHeaders(req, res);
       return res.status(400).json({
         success: false,
@@ -518,21 +236,10 @@ exports.verifyPayment = async (req, res) => {
       });
     }
 
-    // STEP 3: Check if order already exists (idempotency check)
-    let orderQuery = Order.findOne({ razorpayOrderId: razorpay_order_id });
-    if (useTransactions && session) {
-      orderQuery = orderQuery.session(session);
-    }
-    let order = await orderQuery;
+    let order = await Order.findOne({ razorpayOrderId: razorpay_order_id });
 
     if (order) {
-      // Order already exists - verify ownership and prevent double payment
       if (order.userId.toString() !== req.user._id.toString()) {
-        if (useTransactions && session) {
-          await session.abortTransaction();
-          session.endSession();
-        }
-        // Note: Development logging removed for clean production logs
         setCorsHeaders(req, res);
         return res.status(403).json({
           success: false,
@@ -541,11 +248,6 @@ exports.verifyPayment = async (req, res) => {
       }
 
       if (order.paymentStatus === 'completed') {
-        if (useTransactions && session) {
-          await session.abortTransaction();
-          session.endSession();
-        }
-        // Note: Development logging removed for clean production logs
         setCorsHeaders(req, res);
         return res.status(200).json({
           success: true,
@@ -554,12 +256,7 @@ exports.verifyPayment = async (req, res) => {
         });
       }
 
-      // Update existing order (edge case: order exists but payment not completed)
-      const updateOptions = { new: true };
-      if (useTransactions && session) {
-        updateOptions.session = session;
-      }
-        order = await Order.findByIdAndUpdate(
+      order = await Order.findByIdAndUpdate(
         order._id,
         {
           razorpayPaymentId: razorpay_payment_id,
@@ -567,28 +264,21 @@ exports.verifyPayment = async (req, res) => {
           paymentStatus: 'completed',
           status: 'confirmed'
         },
-        updateOptions
+        { new: true }
       );
     } else {
-      // CREATE ORDER FOR THE FIRST TIME (only after payment is confirmed)
-      // Get Razorpay order details to retrieve stored cart and address
       let razorpayOrderDetails;
       let shippingAddressData;
       let itemsToUse;
       let paidAmount;
       
       try {
-        // Retry fetching Razorpay order details in case of network issues
         razorpayOrderDetails = await retryOperation(
           () => razorpay.orders.fetch(razorpay_order_id),
           3,
           1000
         );
       } catch (error) {
-        if (useTransactions && session) {
-          await session.abortTransaction();
-          session.endSession();
-        }
         console.error('❌ Failed to fetch Razorpay order details after retries:', error);
         setCorsHeaders(req, res);
         return res.status(500).json({
@@ -597,7 +287,6 @@ exports.verifyPayment = async (req, res) => {
         });
       }
 
-      // Parse cart, shipping address, and coupon from Razorpay notes
       const notes = razorpayOrderDetails.notes || {};
       let cartData;
       let couponDataFromNotes = null;
@@ -609,10 +298,6 @@ exports.verifyPayment = async (req, res) => {
           couponDataFromNotes = JSON.parse(notes.coupon);
         }
       } catch (parseError) {
-        if (useTransactions && session) {
-          await session.abortTransaction();
-          session.endSession();
-        }
         console.error('❌ Failed to parse order data from Razorpay notes:', parseError);
         setCorsHeaders(req, res);
         return res.status(500).json({
@@ -621,13 +306,7 @@ exports.verifyPayment = async (req, res) => {
         });
       }
 
-      // Verify the order belongs to the authenticated user
       if (notes.userId !== req.user._id.toString()) {
-        if (useTransactions && session) {
-          await session.abortTransaction();
-          session.endSession();
-        }
-        // Note: Development logging removed for clean production logs
         setCorsHeaders(req, res);
         return res.status(403).json({
           success: false,
@@ -635,23 +314,13 @@ exports.verifyPayment = async (req, res) => {
         });
       }
 
-      // Validate cart data - try to get current cart, fallback to stored cart snapshot
-      let cartQuery = Cart.findOne({ userId: req.user._id });
-      if (useTransactions && session) {
-        cartQuery = cartQuery.session(session);
-      }
-      let currentCart = await cartQuery;
+      let currentCart = await Cart.findOne({ userId: req.user._id });
       
-      // Use stored cart snapshot if current cart is empty (network issue might have cleared it)
       itemsToUse = (currentCart && currentCart.items.length > 0) 
         ? currentCart.items 
         : (cartData.items || []);
       
       if (!itemsToUse || itemsToUse.length === 0) {
-        if (useTransactions && session) {
-          await session.abortTransaction();
-          session.endSession();
-        }
         console.error('❌ No cart items available during payment verification');
         setCorsHeaders(req, res);
         return res.status(400).json({
@@ -660,14 +329,12 @@ exports.verifyPayment = async (req, res) => {
         });
       }
 
-      // Use the amount from Razorpay order (the amount that was actually paid)
-      paidAmount = razorpayOrderDetails.amount / 100; // Convert from paise to rupees
+      paidAmount = razorpayOrderDetails.amount / 100;
 
-        // CREATE ORDER IN DATABASE (only after payment is confirmed)
       try {
         const orderData = {
           userId: req.user._id,
-          orderId: razorpayOrderDetails.receipt,
+          orderId: razorpayOrderDetails.receipt || `order_${Date.now()}_${req.user._id.toString().slice(-6)}`,
           razorpayOrderId: razorpay_order_id,
           razorpayPaymentId: razorpay_payment_id,
           razorpaySignature: razorpay_signature,
@@ -678,33 +345,18 @@ exports.verifyPayment = async (req, res) => {
           paymentMethod: 'razorpay',
           status: 'confirmed',
           paymentStatus: 'completed',
-          // Add 24-hour cancellation window
           cancellationWindowEndsAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-          // Add status history entry
           statusHistory: [{
             status: 'confirmed',
             timestamp: new Date(),
             updatedBy: 'system',
             reason: 'Order confirmed after payment verification'
-          }]
+          }],
+          coupon: couponDataFromNotes || null
         };
 
-        // Add coupon data if available
-        if (couponDataFromNotes) {
-          orderData.coupon = couponDataFromNotes;
-        }
+        order = await Order.create(orderData);
 
-        const createOptions = useTransactions && session ? { session } : {};
-        if (useTransactions && session) {
-          // With transaction: create returns array
-          order = await Order.create([orderData], createOptions);
-          order = order[0]; // Create returns an array when using session
-        } else {
-          // Without transaction: create returns single object
-          order = await Order.create(orderData);
-        }
-
-        // Record coupon usage after order is created
         if (couponDataFromNotes && couponDataFromNotes.code) {
           recordCouponUsage(couponDataFromNotes.code, req.user._id, order.orderId).catch(err => {
             if (isDevelopment) {
@@ -712,23 +364,10 @@ exports.verifyPayment = async (req, res) => {
             }
           });
         }
-
-        // Order created successfully
-        if (isDevelopment) {
-          console.log('✅ Order created and payment confirmed');
-        }
-      } catch (createError) {
-        if (useTransactions && session) {
-          await session.abortTransaction();
-          session.endSession();
-        }
         
-        // Check if order was created due to duplicate key (race condition)
+      } catch (createError) {
         const existingOrder = await Order.findOne({ razorpayOrderId: razorpay_order_id });
         if (existingOrder && existingOrder.paymentStatus === 'completed') {
-          if (isDevelopment) {
-            console.log('⚠️  Order already exists (race condition handled)');
-          }
           setCorsHeaders(req, res);
           return res.status(200).json({
             success: true,
@@ -746,259 +385,95 @@ exports.verifyPayment = async (req, res) => {
       }
     }
 
-    // 🔥 CRITICAL: Deduct stock from products and clear cart
-    // This happens for both new and existing orders
+    // Deduct stock and clear cart using shared utility
     try {
-      for (const item of order.items) {
-        let productQuery = Product.findOne({ productId: item.productId });
-        if (useTransactions && session) {
-          productQuery = productQuery.session(session);
-        }
-        const product = await productQuery;
-        
-        if (!product) {
-          if (isDevelopment) {
-            console.error('⚠️  Product not found during stock deduction');
-          }
-          continue;
-        }
+      await deductStock(order.items);
 
-        const currentStock = product.stock[item.size] || 0;
-        
-        if (currentStock < item.quantity) {
-          if (isDevelopment) {
-            console.error(`⚠️  Insufficient stock - Required: ${item.quantity}, Available: ${currentStock}`);
-          }
-          // Log but continue - stock might have changed, but payment is confirmed
-        }
-
-
-        let productUpdateQuery = Product.findOneAndUpdate(
-          { productId: item.productId },
-          {
-            $inc: {
-              [`stock.${item.size}`]: -item.quantity
-            }
-          }
-        );
-        if (useTransactions && session) {
-          productUpdateQuery = productUpdateQuery.session(session);
-        }
-        await productUpdateQuery;
-      }
-
-      // Clear cart
-
-      let cartUpdateQuery = Cart.findOneAndUpdate(
+      await Cart.findOneAndUpdate(
         { userId: req.user._id },
         { items: [], totalItems: 0, totalPrice: 0 }
       );
-      if (useTransactions && session) {
-        cartUpdateQuery = cartUpdateQuery.session(session);
-      }
-      await cartUpdateQuery;
-
-      // COMMIT TRANSACTION if using transactions
-      if (useTransactions && session) {
-        await session.commitTransaction();
-        session.endSession();
-        if (isDevelopment) {
-          console.log('✅ Transaction committed successfully');
-        }
-      } else {
-        if (isDevelopment) {
-          console.log('✅ Order processing completed successfully (without transactions)');
-        }
-      }
+      
     } catch (stockError) {
-      // ROLLBACK TRANSACTION on any error (if using transactions)
-      if (useTransactions && session) {
-        await session.abortTransaction();
-        session.endSession();
-      }
+      logCritical('Payment confirmed but order processing (stock deduction/cart) failed', stockError);
       
-      console.error('❌ Error during stock deduction/cart clearing - transaction rolled back');
-      
-      
-      // CRITICAL: Even though transaction failed, payment is confirmed
-      // Log this for manual reconciliation
-      console.error('🚨 MANUAL RECONCILIATION REQUIRED: Payment confirmed but order processing failed');
-      
-      // Try to at least save order record for manual processing (outside transaction)
       try {
         const reconciliationOrder = await Order.findOne({ razorpayOrderId: razorpay_order_id });
         if (!reconciliationOrder) {
-          // Get order details if available
-          let reconRazorpayOrderDetails = razorpayOrderDetails;
-          if (!reconRazorpayOrderDetails) {
-            try {
-              reconRazorpayOrderDetails = await razorpay.orders.fetch(razorpay_order_id);
-            } catch (err) {
-              console.error('Failed to fetch order details for reconciliation:', err);
-            }
-          }
+          let reconRazorpayOrderDetails = await razorpay.orders.fetch(razorpay_order_id);
+          const notes = reconRazorpayOrderDetails.notes || {};
           
-          // Create order without stock deduction for manual processing
+          let shippingAddressData = {};
+          try {
+            shippingAddressData = JSON.parse(notes.shippingAddress || '{}');
+            if (!shippingAddressData.email) {
+              const User = require('../models/User');
+              const user = await User.findById(req.user._id).select('email');
+              shippingAddressData.email = user?.email || 'customer@kallkeyy.com';
+            }
+          } catch(e) {}
+          
           await Order.create({
             userId: req.user._id,
             orderId: reconRazorpayOrderDetails?.receipt || `recon_${Date.now()}`,
             razorpayOrderId: razorpay_order_id,
             razorpayPaymentId: razorpay_payment_id,
             razorpaySignature: razorpay_signature,
-            items: order?.items || itemsToUse || [],
-            shippingAddress: shippingAddressData || {},
-            amount: paidAmount || (reconRazorpayOrderDetails?.amount / 100) || 0,
+            items: order?.items || [],
+            shippingAddress: shippingAddressData,
+            amount: (reconRazorpayOrderDetails?.amount / 100) || 0,
             currency: reconRazorpayOrderDetails?.currency || 'INR',
             paymentMethod: 'razorpay',
             status: 'confirmed',
             paymentStatus: 'completed',
-            notes: ['⚠️ MANUAL RECONCILIATION REQUIRED - Stock not deducted due to transaction failure']
+            notes: ['⚠️ MANUAL RECONCILIATION REQUIRED - Stock not deducted due to processing error']
           });
-          if (isDevelopment) {
-            console.log('✅ Reconciliation order created for manual processing');
-          }
         }
       } catch (reconError) {
         console.error('❌ Failed to create reconciliation order');
       }
-
-      setCorsHeaders(req, res);
-      return res.status(500).json({
-        success: false,
-        message: 'Payment confirmed but order processing encountered an issue. Our team will process your order manually. Please contact support with Razorpay Order ID: ' + razorpay_order_id
-      });
     }
 
-    // Create Shiprocket order (if enabled) - CRITICAL: Must happen synchronously
-    // This ensures the order is properly logged in Shiprocket before responding to client
-    if (process.env.SHIPROCKET_ENABLED === 'true' && order) {
-      console.log(`🚀 Creating Shiprocket order for: ${order.orderId}`);
-      
-      try {
-        // Retry Shiprocket creation with proper error handling
-        const { createShiprocketOrder } = require('./paymentController');
-        const shiprocketResult = await retryOperation(
-          () => createShiprocketOrder(order),
-          3,
-          2000
-        );
-        
-        if (shiprocketResult && shiprocketResult.order_id) {
-          console.log(`✅ Shiprocket order created successfully for order ${order.orderId}`);
-          console.log(`   Shiprocket Order ID: ${shiprocketResult.order_id}`);
-          console.log(`   Shiprocket Shipment ID: ${shiprocketResult.shipment_id || 'N/A'}`);
-          
-          // Update order with Shiprocket details immediately
-          await Order.findByIdAndUpdate(order._id, {
-            shiprocketOrderId: shiprocketResult.order_id,
-            shiprocketShipmentId: shiprocketResult.shipment_id,
-            shiprocketPaymentMethod: order.paymentMethod === 'cod' || order.paymentMethod === 'cod_token' ? 'COD' : 'Prepaid'
-          });
-          
-          console.log(`✅ Order ${order.orderId} updated with Shiprocket details`);
-        } else {
-          console.error(`❌ Shiprocket order creation returned null/undefined for order ${order.orderId}`);
-          throw new Error('Shiprocket order creation returned null/undefined result');
-        }
-      } catch (shiprocketError) {
-        console.error(`❌ Shiprocket order creation failed for order ${order.orderId}:`);
-        console.error(`   Error Type: ${shiprocketError.constructor.name}`);
-        console.error(`   Error Message: ${shiprocketError.message}`);
-        
-        if (shiprocketError.response) {
-          console.error(`   HTTP Status: ${shiprocketError.response.status}`);
-          console.error(`   Response Data: ${JSON.stringify(shiprocketError.response.data, null, 2)}`);
-        }
-        
-        // Log critical error for production monitoring
-        logCritical(`Shiprocket order creation failed for order ${order.orderId}`, shiprocketError);
-        
-        // Update order with detailed error information
-        try {
-          const errorDetails = shiprocketError.response?.data 
-            ? `Shiprocket API Error: ${shiprocketError.response.data.message || shiprocketError.message}. Details: ${JSON.stringify(shiprocketError.response.data)}`
-            : `Shiprocket Error: ${shiprocketError.message}`;
-            
-          await Order.findByIdAndUpdate(order._id, {
-            $push: {
-              notes: errorDetails
-            }
-          });
-          console.log(`📝 Error logged to order ${order.orderId} notes`);
-        } catch (noteError) {
-          console.error(`❌ Failed to update order ${order.orderId} with error notes:`, noteError.message);
-        }
-        
-        // Continue with order creation even if Shiprocket fails - don't throw error
-        console.warn(`⚠️  Order ${order.orderId} created but Shiprocket integration failed. Manual Shiprocket order required.`);
-      }
-    } else {
-      if (process.env.SHIPROCKET_ENABLED !== 'true') {
-        console.log('⚠️  Shiprocket is disabled (SHIPROCKET_ENABLED != true)');
-      } else if (!order) {
-        console.error('❌ No order object available for Shiprocket creation');
-      }
-    }
+    // Create Shiprocket order using shared utility
+    await createShiprocketOrderWithRetry(order, 'razorpay');
 
     setCorsHeaders(req, res);
     return res.status(200).json({
         success: true,
         message: 'Payment verified successfully',
         order
-      });
+    });
+      
   } catch (error) {
-    // Ensure transaction is aborted on any unhandled error
-    if (useTransactions && session && session.inTransaction()) {
-      await session.abortTransaction().catch(() => {});
-    }
-    if (session) {
-      session.endSession().catch(() => {});
-    }
-    
     console.error('❌ Payment verification error:', error);
-    console.error('Error stack:', error.stack);
-    if (error.response?.data) {
-      console.error('Error response data:', JSON.stringify(error.response.data, null, 2));
-    }
     
     // CRITICAL: Check if payment was actually made but verification failed
-    // This handles network failures after payment but before verification
     const { razorpay_order_id, razorpay_payment_id } = req.body || {};
     
     if (razorpay_order_id && razorpay_payment_id) {
-      // Try to verify payment status with Razorpay API
       try {
         const paymentCheck = await verifyPaymentWithRazorpay(razorpay_order_id, razorpay_payment_id);
         if (paymentCheck.verified) {
-          // Payment is confirmed but order creation failed
-          console.error('🚨 CRITICAL: Payment confirmed but verification failed. Manual reconciliation required.');
+          logCritical('Payment confirmed but verification failed. Manual reconciliation required.');
           
-          // Try to create order one more time (without transaction for recovery)
           try {
             const razorpayOrderDetails = await razorpay.orders.fetch(razorpay_order_id);
             const notes = razorpayOrderDetails.notes || {};
             
             const existingOrder = await Order.findOne({ razorpayOrderId: razorpay_order_id });
             if (!existingOrder) {
-              // Create order for reconciliation
               const cartData = JSON.parse(notes.cartSnapshot || '{}');
               const shippingAddressData = JSON.parse(notes.shippingAddress || '{}');
               
-              // Ensure shipping address has email (required for Shiprocket)
               if (!shippingAddressData.email) {
-                // Try to get user email
                 const User = require('../models/User');
                 const user = await User.findById(req.user._id).select('email');
-                if (user && user.email) {
-                  shippingAddressData.email = user.email;
-    } else {
-                  shippingAddressData.email = 'customer@kallkeyy.com';
-                }
+                shippingAddressData.email = user?.email || 'customer@kallkeyy.com';
               }
               
               const recoveryOrderData = {
                 userId: req.user._id,
-                orderId: razorpayOrderDetails.receipt,
+                orderId: razorpayOrderDetails.receipt || `recon_${Date.now()}`,
                 razorpayOrderId: razorpay_order_id,
                 razorpayPaymentId: razorpay_payment_id,
                 razorpaySignature: req.body?.razorpay_signature || '',
@@ -1012,57 +487,15 @@ exports.verifyPayment = async (req, res) => {
                 notes: ['⚠️ Created during error recovery - manual stock verification required']
               };
               
-              // Add coupon data if present
               if (notes.coupon) {
-                try {
-                  recoveryOrderData.coupon = JSON.parse(notes.coupon);
-                } catch (parseErr) {
-                  // Ignore coupon parse errors for recovery orders
-                }
+                try { recoveryOrderData.coupon = JSON.parse(notes.coupon); } catch (e) {}
               }
               
-              await Order.create(recoveryOrderData);
+              const recoveryOrder = await Order.create(recoveryOrderData);
               
-              if (isDevelopment) {
-                console.log('✅ Recovery order created');
-              }
-              
-              // IMPORTANT: Create Shiprocket order for recovery orders too
-              const recoveryOrder = await Order.findOne({ razorpayOrderId: razorpay_order_id });
-              if (process.env.SHIPROCKET_ENABLED === 'true' && recoveryOrder) {
-                if (isDevelopment) {
-                  console.log('🚀 Initiating Shiprocket order creation for recovery order');
-                }
-                retryOperation(
-                  () => exports.createShiprocketOrder(recoveryOrder),
-                  3,
-                  2000
-                )
-                .then(result => {
-                  if (result && isDevelopment) {
-                    console.log('✅ Shiprocket order successfully created for recovery order');
-                  }
-                })
-                .catch(err => {
-                  console.error('⚠️  Shiprocket creation failed for recovery order');
-                  console.error('Shiprocket error details:', err.message || err);
-                  if (err.response?.data) {
-                    console.error('Shiprocket API response:', JSON.stringify(err.response.data, null, 2));
-                  }
-                  // Update order notes with Shiprocket error
-                  Order.findByIdAndUpdate(recoveryOrder._id, {
-                    $push: {
-                      notes: `Shiprocket creation failed for recovery order: ${err.message || err.response?.data?.message || 'Unknown error'}. Manual creation required.`
-                    }
-                  }).catch(updateErr => {
-                    if (isDevelopment) {
-                      console.error('Failed to update recovery order notes:', updateErr);
-                    }
-                  });
-                });
-              }
+              createShiprocketOrderWithRetry(recoveryOrder, 'razorpay_recovery').catch(() => {});
 
-      setCorsHeaders(req, res);
+              setCorsHeaders(req, res);
               return res.status(200).json({
                 success: true,
                 message: 'Payment verified successfully (recovered from error)',
@@ -1078,43 +511,33 @@ exports.verifyPayment = async (req, res) => {
       }
     }
     
-    // Log critical error
     logCritical('Payment verification failed', error);
-    console.error('   Razorpay Order ID:', razorpay_order_id);
-    console.error('   Razorpay Payment ID:', razorpay_payment_id);
     
     setCorsHeaders(req, res);
     res.status(500).json({
       success: false,
       message: 'Payment verification failed. Please contact support with your Razorpay Payment ID if payment was deducted.',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: isDevelopment ? error.message : undefined
     });
   }
 };
 
-// Webhook handler for Razorpay (Optional - can be enabled with webhook secret)
 exports.webhookHandler = async (req, res) => {
   try {
-    // Webhook secret is optional - if not provided, webhook is disabled for security
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
     
     if (!webhookSecret) {
       console.log('⚠️  Razorpay webhook secret not configured. Webhook disabled for security.');
       setCorsHeaders(req, res);
-      return res.status(200).json({ 
-        success: true, 
-        message: 'Webhook disabled - secret not configured' 
-      });
+      return res.status(200).json({ success: true, message: 'Webhook disabled - secret not configured' });
     }
 
     const signature = req.headers['x-razorpay-signature'];
-
     if (!signature) {
       setCorsHeaders(req, res);
       return res.status(400).json({ success: false, message: 'Missing signature' });
     }
 
-    // Verify webhook signature
     const expectedSignature = crypto
       .createHmac('sha256', webhookSecret)
       .update(JSON.stringify(req.body))
@@ -1126,8 +549,7 @@ exports.webhookHandler = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid signature' });
     }
 
-    // Signature verified - process webhook
-      const event = req.body.event;
+    const event = req.body.event;
     const payload = req.body.payload?.payment?.entity;
 
     if (!payload) {
@@ -1135,41 +557,24 @@ exports.webhookHandler = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid webhook payload' });
     }
 
-      if (event === 'payment.captured') {
-        // Update order status
+    if (event === 'payment.captured') {
       const order = await Order.findOneAndUpdate(
-          { razorpayPaymentId: payload.id },
-          { 
-            paymentStatus: 'completed',
-            status: 'confirmed'
-        },
+        { razorpayPaymentId: payload.id },
+        { paymentStatus: 'completed', status: 'confirmed' },
         { new: true }
       );
-
-      if (order) {
-        console.log(`✅ Order ${order.orderId} updated via webhook: payment captured`);
-      } else {
-        console.log(`⚠️  Order not found for payment ID: ${payload.id}`);
-      }
-      } else if (event === 'payment.failed') {
+      if (order) console.log(`✅ Order ${order.orderId} updated via webhook`);
+    } else if (event === 'payment.failed') {
       const order = await Order.findOneAndUpdate(
-          { razorpayOrderId: payload.order_id },
-          { 
-            paymentStatus: 'failed',
-            status: 'failed'
-        },
+        { razorpayOrderId: payload.order_id },
+        { paymentStatus: 'failed', status: 'failed' },
         { new: true }
       );
+      if (order) console.log(`❌ Order ${order.orderId} failed via webhook`);
+    }
 
-      if (order) {
-        console.log(`❌ Order ${order.orderId} updated via webhook: payment failed`);
-      } else {
-        console.log(`⚠️  Order not found for Razorpay order ID: ${payload.order_id}`);
-      }
-      }
-
-      setCorsHeaders(req, res);
-      res.status(200).json({ success: true });
+    setCorsHeaders(req, res);
+    res.status(200).json({ success: true });
   } catch (error) {
     console.error('❌ Webhook error:', error);
     setCorsHeaders(req, res);
@@ -1177,494 +582,7 @@ exports.webhookHandler = async (req, res) => {
   }
 };
 
-// Get user orders
-exports.getUserOrders = async (req, res) => {
-  try {
-    const userId = req.user._id;
-    const orders = await Order.find({ userId }).sort({ createdAt: -1 });
-
-    setCorsHeaders(req, res);
-    res.status(200).json({
-      success: true,
-      orders
-    });
-  } catch (error) {
-    setCorsHeaders(req, res);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch orders',
-      error: error.message
-    });
-  }
-};
-
-// Shiprocket token cache (to avoid fetching token on every order)
-let shiprocketTokenCache = null;
-let shiprocketTokenExpiry = null;
-
-// Helper function to get Shiprocket auth token (with caching)
-async function getShiprocketToken() {
-  try {
-    // Return cached token if still valid (tokens typically last 24 hours)
-    if (shiprocketTokenCache && shiprocketTokenExpiry && Date.now() < shiprocketTokenExpiry) {
-      return shiprocketTokenCache;
-    }
-
-    // Validate credentials exist
-    if (!process.env.SHIPROCKET_EMAIL || !process.env.SHIPROCKET_PASSWORD) {
-      throw new Error('Shiprocket credentials not configured');
-    }
-
-    const authResponse = await axios.post(
-      'https://apiv2.shiprocket.in/v1/external/auth/login',
-      {
-        email: process.env.SHIPROCKET_EMAIL,
-        password: process.env.SHIPROCKET_PASSWORD
-      }
-    );
-
-    if (!authResponse.data || !authResponse.data.token) {
-      throw new Error('Invalid token response from Shiprocket');
-    }
-
-    // Cache token for 20 hours (tokens typically last 24 hours, cache for safety)
-    shiprocketTokenCache = authResponse.data.token;
-    shiprocketTokenExpiry = Date.now() + (20 * 60 * 60 * 1000); // 20 hours
-
-    // Token obtained and cached - continue silently
-    return shiprocketTokenCache;
-  } catch (error) {
-    console.error('❌ Shiprocket authentication failed');
-    // Clear cache on error
-    shiprocketTokenCache = null;
-    shiprocketTokenExpiry = null;
-    throw new Error(`Shiprocket authentication failed: ${error.response?.data?.message || error.message}`);
-  }
-}
-
-// Helper function to split full name into first and last name
-function splitFullName(fullName) {
-  if (!fullName || typeof fullName !== 'string') {
-    return { firstName: '', lastName: '' };
-  }
-  
-  const nameParts = fullName.trim().split(/\s+/);
-  if (nameParts.length === 1) {
-    return { firstName: nameParts[0], lastName: '' };
-  }
-  
-  // First name is first part, rest is last name
-  const firstName = nameParts[0];
-  const lastName = nameParts.slice(1).join(' ');
-  return { firstName, lastName };
-}
-
-// Helper function to format phone number (remove spaces, ensure 10 digits)
-function formatPhoneNumber(phone) {
-  if (!phone) return '';
-  // Remove all non-digits
-  const cleaned = phone.replace(/\D/g, '');
-  // If starts with country code (91), remove it
-  if (cleaned.length === 12 && cleaned.startsWith('91')) {
-    return cleaned.substring(2);
-  }
-  // Return last 10 digits
-  return cleaned.slice(-10);
-}
-
-// Helper function to calculate package dimensions and weight based on items
-function calculatePackageDetails(items) {
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  
-  // Base dimensions for a single item (hoodie/tshirt in a polybag)
-  const baseLength = 30; // cm
-  const baseBreadth = 25; // cm
-  const baseHeight = 5; // cm
-  const baseWeight = 0.3; // kg per item (hoodie is heavier than tshirt)
-  
-  // For multiple items, stack them (increase height)
-  // Max reasonable dimensions for a package
-  const maxLength = 45;
-  const maxBreadth = 35;
-  const maxHeight = 15;
-  
-  let length = baseLength;
-  let breadth = baseBreadth;
-  let height = baseHeight;
-  let weight = baseWeight * totalItems;
-  
-  // Adjust for multiple items (stacking)
-  if (totalItems > 1) {
-    height = Math.min(baseHeight * Math.ceil(totalItems / 2), maxHeight);
-    // If many items, might need bigger base
-    if (totalItems > 4) {
-      length = Math.min(baseLength + 10, maxLength);
-      breadth = Math.min(baseBreadth + 10, maxBreadth);
-    }
-  }
-  
-  // Ensure minimum weight (at least 0.2kg for shipping)
-  weight = Math.max(weight, 0.2);
-  
-  return { length, breadth, height, weight };
-}
-
-// Helper function to cancel Shiprocket order
-exports.cancelShiprocketOrder = async function cancelShiprocketOrder(orderId) {
-  try {
-    console.log('🚫 Cancelling Shiprocket order for:', orderId);
-    
-    // Validate Shiprocket is enabled
-    if (process.env.SHIPROCKET_ENABLED !== 'true') {
-      if (isDevelopment) {
-        console.log('⚠️  Shiprocket is disabled, skipping cancellation');
-      }
-      return null;
-    }
-
-    // Validate required environment variables
-    if (!process.env.SHIPROCKET_EMAIL || !process.env.SHIPROCKET_PASSWORD) {
-      throw new Error('Shiprocket credentials not configured in environment variables');
-    }
-
-    // Get auth token
-    const token = await getShiprocketToken();
-    
-    // According to Shiprocket API docs, cancellation uses different endpoint and payload format
-    // The API expects order_id as an array, not a string
-    const cancelResponse = await axios.post(
-      'https://apiv2.shiprocket.in/v1/external/orders/cancel',
-      { ids: [Number(orderId)] }, // Shiprocket expects order_id as array
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 30000 // 30 second timeout
-      }
-    );
-
-    // Validate response
-    if (!cancelResponse.data) {
-      throw new Error('Empty response from Shiprocket API');
-    }
-
-    const responseData = cancelResponse.data;
-
-    // Check for success field or message indicating success
-    if (responseData.message && responseData.message.toLowerCase().includes('success')) {
-      return responseData;
-    } else if (responseData.success === true || responseData.success === 'true') {
-      return responseData;
-    } else if (responseData.message) {
-      // Handle different response formats
-      return responseData;
-    } else {
-      throw new Error(`Shiprocket API error: ${responseData.message || 'Unknown error'}`);
-    }
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message;
-    const errorDetails = error.response?.data;
-    
-    // ALWAYS log Shiprocket errors - critical for production debugging
-    logCritical(`Shiprocket order cancellation failed for order ${orderId}`, error);
-    
-    console.error(`❌ Shiprocket Cancellation Error Details:`);
-    console.error(`   Error Type: ${error.constructor.name}`);
-    console.error(`   Error Message: ${error.message}`);
-    console.error(`   Error Code: ${error.code}`);
-    
-    if (error.response) {
-      console.error(`   Response Status: ${error.response.status}`);
-      console.error(`   Response Headers:`, error.response.headers);
-      console.error(`   Response Data:`, error.response.data);
-    }
-    
-    // Clear token cache on authentication errors
-    if (error.response?.status === 401 || error.message?.includes('authentication')) {
-      shiprocketTokenCache = null;
-      shiprocketTokenExpiry = null;
-      console.log('🔄 Cleared Shiprocket token cache due to auth error');
-    }
-    
-    // Don't throw - log and continue (order can still be cancelled even if Shiprocket fails)
-    // But throw for retry mechanism to work
-    throw error;
-  }
-}
-
-// Helper function to create Shiprocket order
-// Export Shiprocket order creation function for use in COD controller
-exports.createShiprocketOrder = async function createShiprocketOrder(order) {
-  try {
-    
-    // Validate Shiprocket is enabled
-    if (process.env.SHIPROCKET_ENABLED !== 'true') {
-      if (isDevelopment) {
-        console.log('⚠️  Shiprocket is disabled, skipping order creation');
-      }
-      return null;
-    }
-
-    // Validate required environment variables
-    if (!process.env.SHIPROCKET_EMAIL || !process.env.SHIPROCKET_PASSWORD) {
-      throw new Error('Shiprocket credentials not configured in environment variables');
-    }
-
-    // Validate order data
-    if (!order || !order.shippingAddress) {
-      throw new Error('Invalid order data: missing shipping address');
-    }
-
-    const shippingAddress = order.shippingAddress;
-    
-    // Validate required fields
-    const requiredFields = ['fullName', 'address', 'city', 'state', 'pincode', 'phone'];
-    const missingFields = requiredFields.filter(field => !shippingAddress[field]);
-    if (missingFields.length > 0) {
-      throw new Error(`Missing required shipping fields: ${missingFields.join(', ')}`);
-    }
-
-    // Validate and format phone number (same logic as test script)
-    const formattedPhone = formatPhoneNumber(shippingAddress.phone);
-    if (!formattedPhone || formattedPhone.length !== 10) {
-      if (isDevelopment) {
-        console.error('❌ Invalid phone number format');
-      }
-      throw new Error(`Invalid phone number: ${shippingAddress.phone}. Must be exactly 10 digits.`);
-    }
-    
-    // Additional validation: Ensure phone is all digits (should already be handled by formatPhoneNumber)
-    if (!/^\d{10}$/.test(formattedPhone)) {
-      if (isDevelopment) {
-        console.error('❌ Phone number contains non-digits');
-      }
-      throw new Error(`Invalid phone number format: ${shippingAddress.phone}. Must contain only digits.`);
-    }
-    
-    // Phone validated - continue silently
-
-    // Validate pincode (must be 6 digits for India)
-    const pincode = shippingAddress.pincode.trim().replace(/\D/g, '');
-    if (pincode.length !== 6) {
-      throw new Error(`Invalid pincode: ${shippingAddress.pincode}. Must be 6 digits.`);
-    }
-
-    // Split full name
-    const { firstName, lastName } = splitFullName(shippingAddress.fullName);
-
-    // Get user email if not in shipping address
-    let customerEmail = shippingAddress.email;
-    if (!customerEmail && order.userId) {
-      try {
-        const User = require('../models/User');
-        const user = await User.findById(order.userId);
-        customerEmail = user?.email;
-      } catch (userError) {
-        if (isDevelopment) {
-            console.error('Failed to fetch user email');
-        }
-      }
-    }
-    
-    // Validate email (use order email or default)
-    if (!customerEmail) {
-      customerEmail = 'customer@kallkeyy.com'; // Fallback email
-      if (isDevelopment) {
-        console.warn('⚠️  No email found for order, using fallback email');
-      }
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(customerEmail)) {
-      throw new Error(`Invalid email format: ${customerEmail}`);
-    }
-    
-    // Get auth token
-    const token = await getShiprocketToken();
-
-    // Calculate package dimensions and weight based on items
-    const packageDetails = calculatePackageDetails(order.items);
-
-    // Create SKU with size information for each item
-    const orderItems = order.items.map(item => ({
-      name: `${item.productName} (Size: ${item.size})`,
-      sku: `${item.productId}_${item.size}`, // Include size in SKU
-      units: item.quantity,
-      selling_price: item.price,
-      discount: 0,
-      tax: 0,
-      hsn: 0
-    }));
-
-    // Determine payment method for Shiprocket
-    // For COD token orders, the payment method should be 'COD' (not 'Prepaid')
-    // The token payment is separate from the order payment method
-    let shiprocketPaymentMethod = 'Prepaid';
-    if (order.paymentMethod === 'cod' || order.paymentMethod === 'cod_token') {
-      shiprocketPaymentMethod = 'COD';
-    }
-
-    // Create order payload (optimized for streetwear)
-    const orderPayload = {
-      order_id: order.orderId,
-      order_date: new Date().toISOString().split('T')[0],
-      pickup_location: process.env.SHIPROCKET_PICKUP_LOCATION || 'Primary',
-      channel_id: "",
-      comment: `KALLKEYY Streetwear Order - Order ID: ${order.orderId}`,
-      billing_customer_name: firstName,
-      billing_last_name: lastName || '',
-      billing_address: shippingAddress.address.trim(),
-      billing_address_2: "",
-      billing_city: shippingAddress.city.trim(),
-      billing_pincode: pincode,
-      billing_state: shippingAddress.state.trim(),
-      billing_country: 'India',
-      billing_email: customerEmail.trim().toLowerCase(),
-      billing_phone: formattedPhone,
-      shipping_is_billing: true,
-      order_items: orderItems,
-      payment_method: shiprocketPaymentMethod, // Use the determined payment method
-      shipping_charges: 0,
-      giftwrap_charges: 0,
-      transaction_charges: 0,
-      total_discount: 0,
-      sub_total: order.amount,
-      length: packageDetails.length,
-      breadth: packageDetails.breadth,
-      height: packageDetails.height,
-      weight: packageDetails.weight
-    };
-
-    // Payload validation complete (no sensitive data logging)
-
-    // Create Shiprocket order
-    const shiprocketResponse = await axios.post(
-      'https://apiv2.shiprocket.in/v1/external/orders/create/adhoc',
-      orderPayload,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 30000 // 30 second timeout
-      }
-    );
-
-    // Validate response
-    if (!shiprocketResponse.data) {
-      throw new Error('Empty response from Shiprocket API');
-    }
-
-    const responseData = shiprocketResponse.data;
-
-    // Check for errors in response
-    if (responseData.message && !responseData.order_id) {
-      throw new Error(`Shiprocket API error: ${responseData.message}`);
-    }
-
-    if (!responseData.order_id) {
-      throw new Error('Shiprocket response missing order_id');
-    }
-
-    // Update order with Shiprocket details
-    // Keep status as 'confirmed' - don't change to 'processing' here
-    // Status will be updated to 'processing' when order is actually being prepared/shipped
-    const updateData = {
-      shiprocketOrderId: responseData.order_id,
-      shiprocketPaymentMethod: shiprocketPaymentMethod // Track the payment method sent to Shiprocket
-      // Note: We keep the current status (confirmed) instead of changing to 'processing'
-    };
-
-    if (responseData.shipment_id) {
-      updateData.shiprocketShipmentId = responseData.shipment_id;
-    }
-
-    await Order.findByIdAndUpdate(order._id, updateData);
-
-    return responseData;
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || error.response?.data?.error || error.message;
-    const errorDetails = error.response?.data;
-    
-    // ALWAYS log Shiprocket errors - critical for production debugging
-    logCritical(`Shiprocket order creation failed for order ${order.orderId}`, error);
-    console.error(`   Order Amount: ₹${order.amount}`);
-    console.error(`   Order Payment Method: ${order.paymentMethod || 'N/A'}`);
-    console.error(`   Shiprocket Payment Method: ${order.paymentMethod === 'cod' || order.paymentMethod === 'cod_token' ? 'COD' : 'Prepaid'}`);
-    
-    // Log full error response for debugging (especially for 400 errors)
-    if (error.response?.status === 400 && error.response?.data) {
-      console.error('📋 Shiprocket 400 Error Details:', JSON.stringify(error.response.data, null, 2));
-      
-      // Check for common issues
-      if (errorDetails.message) {
-        console.error(`   Error Message: ${errorDetails.message}`);
-      }
-      if (errorDetails.errors) {
-        console.error(`   Validation Errors:`, JSON.stringify(errorDetails.errors, null, 2));
-      }
-      if (order.amount <= 0) {
-        console.error('   ⚠️  Issue: Order amount is 0 or negative. Shiprocket requires minimum order value for COD orders.');
-      }
-      if (order.amount < 100 && (order.paymentMethod === 'cod' || order.paymentMethod === 'cod_token')) {
-        console.error('   ⚠️  Issue: COD orders with very low amounts (< ₹100) may be rejected by Shiprocket.');
-      }
-    }
-
-    // Clear token cache on authentication errors
-    if (error.response?.status === 401 || error.message?.includes('authentication')) {
-      shiprocketTokenCache = null;
-      shiprocketTokenExpiry = null;
-      console.log('🔄 Cleared Shiprocket token cache due to auth error');
-    }
-    
-    // Update order to note Shiprocket failure with detailed error
-    try {
-      const errorNote = errorDetails 
-        ? `Shiprocket creation failed: ${errorMessage}${errorDetails.errors ? ` - Details: ${JSON.stringify(errorDetails.errors)}` : ''}`
-        : `Shiprocket creation failed: ${errorMessage}`;
-      
-    await Order.findByIdAndUpdate(order._id, {
-      $push: {
-          notes: errorNote
-        }
-      });
-    } catch (updateError) {
-      console.error('Failed to update order with error note:', updateError.message);
-    }
-    
-    // Log specific error types for debugging
-    if (error.response?.data) {
-      const apiError = error.response.data;
-      
-      if (apiError.message?.toLowerCase().includes('pickup')) {
-        console.error('🔧 Issue: Pickup location might not exist. Check SHIPROCKET_PICKUP_LOCATION in .env');
-      }
-      
-      if (apiError.message?.toLowerCase().includes('phone')) {
-        console.error('🔧 Issue: Invalid phone number format. Phone must be 10 digits.');
-      }
-      
-      if (apiError.message?.toLowerCase().includes('pincode')) {
-        console.error('🔧 Issue: Invalid pincode. Must be 6 digits.');
-      }
-      
-      if (apiError.message?.toLowerCase().includes('email')) {
-        console.error('🔧 Issue: Invalid email format.');
-      }
-      
-      if (apiError.message?.toLowerCase().includes('amount') || apiError.message?.toLowerCase().includes('minimum') || apiError.message?.toLowerCase().includes('value')) {
-        console.error('🔧 Issue: Order amount validation failed. Shiprocket may require minimum order value.');
-      }
-    }
-    
-    // Don't throw - log and continue (order still valid even if Shiprocket fails)
-    // But throw for retry mechanism to work
-    throw error;
-  }
-}
+// getUserOrders has been removed — use orderController.getUserOrders at /api/orders instead.
 
 // Get order tracking details from Shiprocket
 exports.getOrderTracking = async (req, res) => {
@@ -1760,7 +678,6 @@ exports.getOrderTracking = async (req, res) => {
 // Shiprocket webhook handler
 exports.shiprocketWebhook = async (req, res) => {
   try {
-
     const webhookData = req.body;
     
     // Find order by Shiprocket order ID
@@ -1775,82 +692,49 @@ exports.shiprocketWebhook = async (req, res) => {
 
     console.log(`✅ Found order: ${order.orderId} (Current Status: ${order.status})`);
     console.log(`   Shiprocket Status: ${webhookData.current_status}`);
-    console.log(`   AWB Code: ${webhookData.awb_code}`);
-    console.log(`   Courier: ${webhookData.courier_name}`);
 
     // Update order based on webhook event
     const updates = {};
 
-    // Handle different webhook events
     switch (webhookData.current_status) {
       case 'PICKUP SCHEDULED':
       case 'PICKUP QUEUED':
         updates.status = 'processing';
-        console.log(`   Status update: ${order.status} → processing`);
         break;
       
       case 'SHIPPED':
       case 'IN TRANSIT':
-        updates.status = 'shipped';
-        updates.awbCode = webhookData.awb_code;
-        updates.courierName = webhookData.courier_name;
-        console.log(`   Status update: ${order.status} → shipped`);
-        console.log(`   AWB Code: ${webhookData.awb_code}`);
-        console.log(`   Courier: ${webhookData.courier_name}`);
-        break;
-      
       case 'OUT FOR DELIVERY':
         updates.status = 'shipped';
         updates.awbCode = webhookData.awb_code;
         updates.courierName = webhookData.courier_name;
-        console.log(`   Status update: ${order.status} → shipped (out for delivery)`);
-        console.log(`   AWB Code: ${webhookData.awb_code}`);
-        console.log(`   Courier: ${webhookData.courier_name}`);
         break;
       
       case 'DELIVERED':
         updates.status = 'delivered';
         updates.awbCode = webhookData.awb_code;
         updates.courierName = webhookData.courier_name;
-        console.log(`   Status update: ${order.status} → delivered`);
-        console.log(`   AWB Code: ${webhookData.awb_code}`);
-        console.log(`   Courier: ${webhookData.courier_name}`);
         break;
       
       case 'CANCELED':
       case 'RTO INITIATED':
       case 'RTO DELIVERED':
         updates.status = 'cancelled';
-        console.log(`   Status update: ${order.status} → cancelled`);
         break;
-      
-      default:
-        console.log(`   No status update needed for: ${webhookData.current_status}`);
     }
 
-    // Add tracking URL if available
     if (webhookData.awb_code) {
       updates.trackingUrl = `https://shiprocket.co/tracking/${webhookData.awb_code}`;
-      console.log(`   Tracking URL: ${updates.trackingUrl}`);
     }
 
     if (Object.keys(updates).length > 0) {
-      console.log(`🔄 Updating order ${order.orderId} with:`, updates);
       await Order.findByIdAndUpdate(order._id, updates);
-      console.log(`✅ Order ${order.orderId} updated successfully`);
-    } else {
-      console.log(`ℹ️  No updates needed for order ${order.orderId}`);
     }
 
     setCorsHeaders(req, res);
     res.status(200).json({ success: true });
   } catch (error) {
     console.error('❌ Shiprocket webhook error:', error);
-    console.error('   Error Type:', error.constructor.name);
-    console.error('   Error Message:', error.message);
-    if (error.stack) {
-      console.error('   Error Stack:', error.stack);
-    }
     setCorsHeaders(req, res);
     res.status(500).json({ 
       success: false, 
